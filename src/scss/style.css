@@ -1,0 +1,278 @@
+* {
+  color: black;
+}
+/* Sidebar color  */
+.MuiToolbar-root.MuiToolbar-gutters.MuiToolbar-regular.css-4le04x-MuiToolbar-root {
+  background-color: #87c4ff !important;
+}
+.css-6rsn2c-MuiDrawer-docked .MuiDrawer-paper {
+  background-color: #87c4ff;
+}
+.css-1co59gj-MuiDrawer-docked .MuiDrawer-paper {
+  background-color: #87c4ff;
+}
+/* For Menu bar bottom of Topbar Color Padding */
+.MuiGrid-root.MuiGrid-container.MuiGrid-spacing-xs-0\.5.MuiGrid-direction-xs-column.css-1mn1r61-MuiGrid-root {
+  background: #87c4ff;
+  padding: 10px;
+}
+/* card  heading background color */
+.MuiCardHeader-root.css-14c277-MuiCardHeader-root {
+  background-color: #87c4ff9e;
+}
+.validation-star {
+  color: red;
+  font-size: 0.9em;
+}
+.error-message {
+  font-size: 11px;
+  color: red;
+}
+/* for menu space remove */
+.css-h4y409-MuiList-root {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+/* for menu dropdown space remove */
+.css-tlelie-MuiListItemText-root {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.plus-btn-color {
+  background-color: #4680ff;
+  color: white;
+  padding: 5px;
+  font-size: 11px;
+}
+
+.plus-btn-color:hover {
+  background-color: black;
+  color: white;
+  /* padding: 5px;
+  font-size: 11px; */
+}
+.btn-size {
+  background-color: rgb(15, 133, 202);
+  border-color: rgb(15, 133, 202);
+  color: white;
+  padding: 5px;
+  font-size: 11px;
+}
+.btn-size:hover {
+  background-color: black;
+  color: white;
+}
+
+.css-1g4vn5t-MuiListItemIcon-root {
+  width: 31px;
+  height: 36px;
+}
+.css-p6fmoj-MuiListItemIcon-root {
+  width: 31px;
+  height: 36px;
+}
+
+.css-xol5d3 {
+  padding: 0;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 10px;
+  border-top: 1px solid white;
+}
+/* menu dropdown selected color changed blue to white */
+.css-1gw16av-MuiTypography-root {
+  color: white;
+}
+.css-1ipca2 {
+  background-color: white;
+}
+/* For Logo */
+.css-c93l9v {
+  display: flex;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: start;
+  justify-content: flex-start;
+  min-height: 74px;
+  width: inherit;
+  padding-top: 20px;
+  padding-bottom: 8px;
+  padding-left: 45px;
+}
+/* Component  Card Padding 0  */
+.css-mdmpnt-MuiContainer-root {
+  padding-left: 0;
+  padding-right: 0;
+}
+/* card heading space remove */
+.css-14c277-MuiCardHeader-root {
+  padding: 5px;
+}
+.css-1yllo3l-MuiPaper-root-MuiCard-root {
+  border-radius: 0 !important;
+}
+/* FOR FIELDS FIELDS FIELDS FIELDS CSSS */
+/* .css-1vz2t41-MuiTableCell-root {
+  padding: 5px !important;
+} */
+.css-191l734-MuiInputBase-input-MuiOutlinedInput-input {
+  padding: 7px !important;
+}
+/* Drodpdown Field */
+.css-1mgeynb-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input {
+  padding: 7px !important;
+}
+/* Select fields font Size */
+.css-pmtr1s-MuiSelect-select-MuiInputBase-input-MuiInput-input.MuiSelect-select {
+  font-size: 11px;
+}
+/* dropdown li  */
+.css-1lzrmkx-MuiButtonBase-root-MuiMenuItem-root {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Remove BREADCUM BREADCUM */
+.css-e0uu0g-MuiPaper-root-MuiCard-root {
+  margin-bottom: 0;
+  display: none;
+}
+
+/* remove top space */
+.css-1yllo3l-MuiPaper-root-MuiCard-root {
+  margin-top: 0 !important;
+}
+@media (min-width: 1024px) {
+  .css-1moaqti {
+    padding: 2px !important;
+  }
+}
+/* TABLE TABLE space remove */
+.css-ehkhya-MuiCardContent-root {
+  padding: 10px;
+}
+.MuiDataGrid-row.MuiDataGrid-row {
+  min-height: 33px !important;
+  --height: 38px !important;
+}
+/* TABLE TABLE pagination Size */
+.css-7ur5mp-MuiTablePagination-displayedRows {
+  font-size: 10px;
+}
+@media (min-width: 768px) {
+  .css-xwmvie-MuiTablePagination-root .MuiTablePagination-selectLabel {
+    /* display: block; */
+    font-size: 10px;
+  }
+}
+.css-2pgudn-MuiSelect-select-MuiInputBase-input.css-2pgudn-MuiSelect-select-MuiInputBase-input.css-2pgudn-MuiSelect-select-MuiInputBase-input {
+  font-size: 10px;
+}
+/* SIDEBAR SIDEBAR  width  or TOPBAR HEIGHT reduce */
+.css-1co59gj-MuiDrawer-docked .MuiDrawer-paper {
+  width: 210px;
+}
+.css-1co59gj-MuiDrawer-docked {
+  width: 215px;
+}
+.css-6rsn2c-MuiDrawer-docked {
+  width: 75px;
+}
+@media (min-width: 1266px) {
+  .css-2tbes3-MuiPaper-root-MuiAppBar-root {
+    width: calc(100% - 210px);
+  }
+}
+.css-1yllo3l-MuiPaper-root-MuiCard-root {
+  margin-right: 5px;
+}
+.css-6rsn2c-MuiDrawer-docked .MuiDrawer-paper {
+  width: 70px;
+}
+
+@media (min-width: 1266px) {
+  .css-4le04x-MuiToolbar-root {
+    padding-left: 30px;
+    padding-right: 10px;
+  }
+}
+.css-4le04x-MuiToolbar-root {
+  min-height: 0px;
+}
+@media (min-width: 1266px) {
+  .css-sl086d-MuiPaper-root-MuiAppBar-root {
+    width: calc(100% - 70px);
+  }
+}
+.css-6rsn2c-MuiDrawer-docked {
+  width: 75px;
+}
+/* topbar padding */
+.css-4le04x-MuiToolbar-root {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* SIDEBAR MENU MENU Menu text font color */
+.css-1qtjwn-MuiTypography-root {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1;
+  font-family: Inter var;
+  color: black;
+  font-weight: 500;
+}
+.css-1ku81fy .simplebar-mask {
+  z-index: inherit;
+  background: #87c4ffa8;
+}
+
+.css-wf6b7j-MuiButtonBase-root-MuiListItemButton-root.Mui-selected:hover {
+  background-color: #87c4ff;
+}
+.css-wf6b7j-MuiButtonBase-root-MuiListItemButton-root:hover {
+  background-color: #87c4ff;
+}
+.css-196wv2v-MuiDivider-root {
+  margin: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 0;
+}
+/* CARD TOP space remove */
+.css-2vu5qc-MuiToolbar-root {
+  min-height: 48px;
+}
+
+/* VIEW PAGE MARGIN TOP REDUCE */
+.css-1n2gw5d-MuiGrid-root > .MuiGrid-item {
+  padding-top: 14px;
+}
+
+/* heading section alignment */
+.css-as8m64-MuiTableRow-root .MuiTableCell-root:first-of-type {
+  padding-bottom: 0px !important;
+  padding-top: 0px !important;
+}
+.css-as8m64-MuiTableRow-root .MuiTableCell-root:last-of-type {
+  padding-left: 3px !important;
+  padding-right: 0 !important;
+}
+
+/* Custom Checkbox Height or width */
+.custom-checkbox {
+  width: 36px;
+  height: 25px;
+}
+/* Remove the arrow All number input fields */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

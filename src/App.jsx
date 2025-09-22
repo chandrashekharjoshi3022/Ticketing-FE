@@ -1,33 +1,40 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Items from "./pages/Items";
-import ProtectedRoute from "./components/ProtectedRoute";
+import { RouterProvider } from 'react-router-dom';
 
-function App() {
+// project import
+import router from 'routes';
+import ThemeCustomization from 'themes';
+
+import Locales from 'components/Locales';
+// import RTLLayout from 'components/RTLLayout';
+import ScrollTop from 'components/ScrollTop';
+import Snackbar from 'components/@extended/Snackbar';
+
+// auth-provider
+import { JWTProvider as AuthProvider } from 'contexts/JWTContext';
+import 'scss/style.css';
+//RFQCONTEXT
+import { MyContextProvider, useMyContext } from 'contexts/RfqItemContex';
+
+// ==============================|| APP - THEME, ROUTER, LOCAL  ||============================== //
+
+export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/items"
-          element={
-            <ProtectedRoute>
-              <Items />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+    <ThemeCustomization>
+      {/* <RTLLayout> */}
+      <Locales>
+        <ScrollTop>
+          <AuthProvider>
+            <>
+              {/* <RouterProvider router={router} /> */}
+              <MyContextProvider>
+                <RouterProvider router={router} />
+              </MyContextProvider>
+              <Snackbar />
+            </>
+          </AuthProvider>
+        </ScrollTop>
+      </Locales>
+      {/* </RTLLayout> */}
+    </ThemeCustomization>
   );
 }
-
-export default App;
