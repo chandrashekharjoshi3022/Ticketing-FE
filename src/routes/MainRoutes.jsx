@@ -18,7 +18,6 @@ import TicketReply from 'pages/tikitingtool/TicketReply';
 const MaintenanceError = Loadable(lazy(() => import('pages/maintenance/error/404')));
 const AppContactUS = Loadable(lazy(() => import('pages/contact-us')));
 const SamplePage = Loadable(lazy(() => import('pages/extra-pages/dashboard')));
-const OPR = Loadable(lazy(() => import('pages/opr1/oprMain')));
 
 const MainRoutes = {
   path: '/',
@@ -46,11 +45,7 @@ const MainRoutes = {
             }
           ]
         },
-        {
-          path: '/',
-          element: <DashboardLayout />,
-          children: [{ path: 'opr', element: <OPR /> }]
-        },
+
         {
           path: '/',
           element: <DashboardLayout />,
