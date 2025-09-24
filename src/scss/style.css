@@ -1,6 +1,4 @@
-* {
-  color: black;
-}
+
 /* Sidebar color  */
 .MuiToolbar-root.MuiToolbar-gutters.MuiToolbar-regular.css-4le04x-MuiToolbar-root {
   background-color: #87c4ff !important;
@@ -116,9 +114,7 @@
 /* .css-1vz2t41-MuiTableCell-root {
   padding: 5px !important;
 } */
-.css-191l734-MuiInputBase-input-MuiOutlinedInput-input {
-  padding: 7px !important;
-}
+
 /* Drodpdown Field */
 .css-1mgeynb-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input {
   padding: 7px !important;
