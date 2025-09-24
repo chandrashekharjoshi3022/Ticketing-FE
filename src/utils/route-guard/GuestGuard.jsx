@@ -1,24 +1,11 @@
-import PropTypes from "prop-types";
-import { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { APP_DEFAULT_PATH } from "config";
+import { useSelector } from 'react-redux';
+import { Navigate, Outlet } from 'react-router-dom';
+import Loader from 'components/Loader';
 
-export default function GuestGuard({ children }) {
-  const { user } = useSelector((state) => state.auth);
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  useEffect(() => {
-    if (user) {
-      navigate(location?.state?.from || APP_DEFAULT_PATH, {
-        state: { from: "" },
-        replace: true,
-      });
-    }
-  }, [user, navigate, location]);
-
-  return children;
+export default function GuestGuard() {
+  const { user, isInitialized } = useSelector(s => s.auth);
+  if (!isInitialized) return <Loader />;
+  if (user) return <Navigate to="/dashboard" replace />;
+  return <Outlet />;
 }
 
-GuestGuard.propTypes = { children: PropTypes.any };

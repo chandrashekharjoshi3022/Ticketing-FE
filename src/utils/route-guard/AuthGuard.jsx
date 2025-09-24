@@ -1,29 +1,33 @@
+// src/utils/route-guard/AuthGuard.jsx
 import PropTypes from 'prop-types';
-import { useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { Navigate } from 'react-router-dom';
+import Loader from 'components/Loader';
 
-// project-imports
-import useAuth from 'hooks/useAuth';
+/**
+ * Synchronous guard that reads auth state from Redux.
+ * Waits for isInitialized, then redirects if not logged in or role mismatch.
+ */
+export default function AuthGuard({ children, role }) {
+  const { user, isInitialized } = useSelector((s) => s.auth);
 
-// ==============================|| AUTH GUARD ||============================== //
+  // Wait for the initial /me completion
+  if (!isInitialized) return <Loader />;
 
-export default function AuthGuard({ children }) {
-  const { isLoggedIn } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
+  // Not authenticated -> redirect to login
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
 
-  useEffect(() => {
-    if (!isLoggedIn) {
-      navigate('login', {
-        state: {
-          from: location.pathname
-        },
-        replace: true
-      });
-    }
-  }, [isLoggedIn, navigate, location]);
+  // Role check (optional)
+  if (role && user.role_name !== role) {
+    return <Navigate to="/unauthorized" replace />;
+  }
 
   return children;
 }
 
-AuthGuard.propTypes = { children: PropTypes.any };
+AuthGuard.propTypes = {
+  children: PropTypes.node,
+  role: PropTypes.string,
+};
