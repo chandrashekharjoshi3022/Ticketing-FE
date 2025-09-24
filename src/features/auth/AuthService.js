@@ -1,19 +1,22 @@
-import API from "../../api/axios";
+// src/features/auth/AuthService.js
+import API from '../../api/axios';
 
-const login = async (userData) => {
-  const res = await API.post("/auth/login", userData); // backend should set cookie
-  return res.data; // { user: {...} }
-};
-
-const logout = async () => {
-  const res = await API.post("/auth/logout");
-  return res.data;
+const login = async (data) => {
+  // backend should set httpOnly cookie on this response
+  const res = await API.post('/auth/login', data);
+  // normalize: always return { user: ... }
+  return { user: res.data.user ?? res.data };
 };
 
 const getMe = async () => {
-  const res = await API.get("/auth/me");
-  return res.data; // { user: {...} }
+  // IMPORTANT: use GET for idempotent “who am I” endpoint
+  const res = await API.get('/auth/me');
+  return { user: res.data.user ?? res.data };
 };
 
-const AuthService = { login, logout, getMe };
-export default AuthService;
+const logout = async () => {
+  const res = await API.post('/auth/logout');
+  return res.data;
+};
+
+export default { login, getMe, logout };
