@@ -10,12 +10,11 @@ import VendorsPages from 'pages/master/vender';
 import UsersPages from 'pages/master/users';
 import ItemsPages from 'pages/master/items';
 import TicketRaise from 'pages/tikitingtool/TicketRaise';
+import TicketReply from 'pages/tikitingtool/TicketReply';
 
 const MaintenanceError = Loadable(lazy(() => import('pages/maintenance/error/404')));
 const AppContactUS = Loadable(lazy(() => import('pages/contact-us')));
-// render - sample page
 const SamplePage = Loadable(lazy(() => import('pages/extra-pages/dashboard')));
-const OPR = Loadable(lazy(() => import('pages/opr1/oprMain')));
 
 const MainRoutes = {
   path: '/',
@@ -30,23 +29,18 @@ const MainRoutes = {
         }
       ]
     },
+
     {
       path: '/',
       element: <DashboardLayout />,
       children: [
         {
-          path: 'opr',
-          element: <OPR />
-        }
-      ]
-    },
-    {
-      path: '/',
-      element: <DashboardLayout />,
-      children: [
-        {
-          path: 'raise-ticket',
+          path: 'ticket/raise-ticket',
           element: <TicketRaise />
+        },
+        {
+          path: 'ticket/reply-ticket',
+          element: <TicketReply />
         }
       ]
     },
