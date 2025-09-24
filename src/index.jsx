@@ -31,6 +31,10 @@ import '@fontsource/public-sans/700.css';
 
 // project-imports
 import App from './App';
+import { Provider } from "react-redux";
+import { store } from "./app/store";
+
+
 import { ConfigProvider } from 'contexts/ConfigContext';
 import reportWebVitals from './reportWebVitals';
 
@@ -41,7 +45,9 @@ const root = createRoot(container);
 
 root.render(
   <ConfigProvider>
+     <Provider store={store}>
     <App />
+    </Provider>
   </ConfigProvider>
 );
 
