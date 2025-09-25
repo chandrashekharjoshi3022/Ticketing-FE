@@ -17,27 +17,29 @@ const normalizeTicket = (t, idx = 0) => ({
   // Add created_by field for filtering - using user_id from backend
   created_by: t.user_id ?? t.created_by ?? t.user?.id ?? 'unknown',
   // Add user info if available from backend
-  user: t.user ? {
-    id: t.user.user_id,
-    username: t.user.username,
-    email: t.user.email
-  } : null
+  user: t.user
+    ? {
+        id: t.user.user_id,
+        username: t.user.username,
+        email: t.user.email
+      }
+    : null
 });
 
 export const fetchTickets = createAsyncThunk('tickets/fetchAll', async (_, thunkAPI) => {
   try {
     const state = thunkAPI.getState();
     const userRole = state.auth.user?.role || 'user';
-    
+
     console.log(`Fetching tickets for role: ${userRole}`);
     const res = await TicketService.getTickets(userRole);
-    
+
     // Backend may return { tickets: [...] } or [...]
     const payload = res?.tickets ?? res?.data ?? res;
-    
+
     // Log for debugging
     console.log(`Received ${Array.isArray(payload) ? payload.length : 0} tickets for ${userRole}`);
-    
+
     return payload;
   } catch (err) {
     console.error('Error fetching tickets:', err);
@@ -92,7 +94,7 @@ const ticketSlice = createSlice({
     filterTicketsByUser: (state, action) => {
       const userId = action.payload;
       if (userId) {
-        state.tickets = state.tickets.filter(ticket => ticket.created_by === userId);
+        state.tickets = state.tickets.filter((ticket) => ticket.created_by === userId);
       }
     },
     // Reset tickets state
@@ -147,11 +149,13 @@ const ticketSlice = createSlice({
           files: d.files ?? (d.screenshot_url ? [d.screenshot_url] : []),
           replies: d.replies ?? d.replies_list ?? d.comments_list ?? [],
           created_by: d.user_id ?? d.created_by ?? d.user?.id ?? 'unknown',
-          user: d.user ? {
-            id: d.user.user_id,
-            username: d.user.username,
-            email: d.user.email
-          } : null
+          user: d.user
+            ? {
+                id: d.user.user_id,
+                username: d.user.username,
+                email: d.user.email
+              }
+            : null
         };
       })
       .addCase(fetchTicketDetails.rejected, (state, action) => {

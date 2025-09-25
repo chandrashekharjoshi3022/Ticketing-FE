@@ -30,13 +30,13 @@ const tickitingRaiseMenu = {
           url: '/ticket/raise-ticket',
           target: false
         },
-        {
-          id: 'Reply Ticket',
-          title: <FormattedMessage id="Reply Ticket" />,
-          type: 'item',
-          url: '/ticket/reply-ticket',
-          target: false
-        }
+        // {
+        //   id: 'Reply Ticket',
+        //   title: <FormattedMessage id="Reply Ticket" />,
+        //   type: 'item',
+        //   url: '/ticket/reply-ticket',
+        //   target: false
+        // }
       ]
     }
   ]

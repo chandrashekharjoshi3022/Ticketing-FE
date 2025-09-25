@@ -1,5 +1,5 @@
 // src/features/tickets/TicketService.js
-import API from "../../api/axios";
+import API from '../../api/axios';
 
 // Get tickets based on user role
 const getTicketsForAdmin = async () => {
@@ -13,7 +13,7 @@ const getTicketsForUser = async () => {
 };
 
 const getTickets = async (userRole) => {
-  if (userRole === 'admin' || userRole === 'administrator') {
+  if (userRole === 'admin') {
     return await getTicketsForAdmin();
   } else {
     return await getTicketsForUser();

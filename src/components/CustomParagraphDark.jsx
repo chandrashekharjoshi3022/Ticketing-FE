@@ -3,15 +3,16 @@ import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 
 const CustomParagrapha = styled(Typography)({
-  fontSize: '11px',
+  fontSize: '14px',
   color: '#333',
-  fontWeight: '600',
+  fontWeight: '600'
 });
 
 const CustomParagraphDark = ({ children, ...props }) => {
   return (
     <div>
-       <CustomParagrapha variant="body1"{...props}>{children}
+      <CustomParagrapha variant="body1" {...props}>
+        {children}
       </CustomParagrapha>
     </div>
   );

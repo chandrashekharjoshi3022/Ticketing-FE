@@ -7,7 +7,7 @@ import First from './first';
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems = {
-  items: [samplePage, tickitingRaiseMenu, masters , First]
+  items: [samplePage, tickitingRaiseMenu, masters ]
 };
 
 export default menuItems;

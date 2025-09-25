@@ -3,7 +3,7 @@ import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 
 const CustomParagraphLighta = styled(Typography)({
-  fontSize: '11px',
+  fontSize: '13px',
   color: '#555'
 });
 
