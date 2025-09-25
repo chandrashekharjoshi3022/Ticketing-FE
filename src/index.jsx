@@ -1,8 +1,9 @@
 // index.jsx
 import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
+import { Provider, useDispatch, useSelector } from 'react-redux';
 
-// styles (keep your existing imports)
+// styles
 import 'assets/fonts/inter/inter.css';
 import 'simplebar/dist/simplebar.css';
 import 'slick-carousel/slick/slick.css';
@@ -26,28 +27,40 @@ import '@fontsource/public-sans/700.css';
 
 // project imports
 import App from './App';
-import { Provider, useDispatch, useSelector } from 'react-redux';
 import { store } from './app/store';
 import { ConfigProvider } from 'contexts/ConfigContext';
 import Loader from 'components/Loader';
 import reportWebVitals from './reportWebVitals';
-
-// auth
 import { getMe } from './features/auth/authSlice';
 
-function InitApp({ children }) {
+function AuthWrapper({ children }) {
   const dispatch = useDispatch();
-  const { isInitialized, user } = useSelector((state) => state.auth);
+  const { isInitialized, isLoading } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    console.log('[InitApp] dispatching getMe()');
-    dispatch(getMe());
-  }, [dispatch]);
+    // Only call getMe if we haven't initialized yet and not currently loading
+    if (!isInitialized && !isLoading) {
+      console.log('[AuthWrapper] Initializing authentication...');
+      dispatch(getMe());
+    }
+  }, [dispatch, isInitialized, isLoading]);
 
-  // DEBUG: show transitions in console (remove after testing)
-  console.log('[InitApp] render -> isInitialized:', isInitialized, 'user:', user);
-
-  if (!isInitialized) return <Loader />;
+  // Show loader while checking authentication
+  if (!isInitialized || isLoading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        flexDirection: 'column',
+        gap: '16px'
+      }}>
+        <Loader />
+        <div>Checking authentication...</div>
+      </div>
+    );
+  }
 
   return children;
 }
@@ -58,9 +71,9 @@ const root = createRoot(container);
 root.render(
   <ConfigProvider>
     <Provider store={store}>
-      <InitApp>
+      <AuthWrapper>
         <App />
-      </InitApp>
+      </AuthWrapper>
     </Provider>
   </ConfigProvider>
 );

@@ -1,15 +1,25 @@
-// src/features/auth/authSlice.js (only the slice content)
+// src/features/auth/authSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import AuthService from './AuthService';
 
 export const login = createAsyncThunk('auth/login', async (data, thunkAPI) => {
-  try { return await AuthService.login(data); }
-  catch (err) { return thunkAPI.rejectWithValue(err.response?.data?.message || err.message); }
+  try { 
+    const response = await AuthService.login(data);
+    return response;
+  } catch (err) { 
+    return thunkAPI.rejectWithValue(err.response?.data?.message || err.message); 
+  }
 });
 
 export const getMe = createAsyncThunk('auth/getMe', async (_, thunkAPI) => {
-  try { return await AuthService.getMe(); }
-  catch (err) { return thunkAPI.rejectWithValue(null); }
+  try { 
+    const response = await AuthService.getMe();
+    return response;
+  } catch (err) { 
+    // For getMe, we don't want to show errors - just mark as initialized
+    console.log('getMe failed - user not authenticated');
+    return thunkAPI.rejectWithValue('Not authenticated');
+  }
 });
 
 export const logout = createAsyncThunk('auth/logout', async () => {
@@ -27,45 +37,92 @@ const initialState = {
 const authSlice = createSlice({
   name: 'auth',
   initialState,
-  reducers: {},
+  reducers: {
+    clearAuth: (state) => {
+      state.user = null;
+      state.isInitialized = true;
+      state.isLoading = false;
+      state.isError = false;
+      state.message = '';
+    },
+    setUser: (state, action) => {
+      state.user = action.payload;
+      state.isInitialized = true;
+    }
+  },
   extraReducers: (builder) => {
     builder
-      // login
-      .addCase(login.pending, (s) => {
-        s.isLoading = true;
-        s.isError = false;
+      // getMe - This is crucial for page refresh
+      .addCase(getMe.pending, (state) => {
+        state.isLoading = true;
+        state.isError = false;
+        state.message = '';
       })
-      .addCase(login.fulfilled, (s, a) => {
-        s.isLoading = false;
-        // Support both { user } and user direct returns
-        s.user = (a.payload && (a.payload.user ?? a.payload)) || null;
-        s.isInitialized = true;
+      .addCase(getMe.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload?.user || action.payload;
+        state.isInitialized = true;
+        state.isError = false;
+        state.message = '';
+        console.log('getMe successful:', state.user);
       })
-      .addCase(login.rejected, (s, a) => {
-        s.isLoading = false;
-        s.isError = true;
-        s.message = a.payload || a.error?.message;
-        s.isInitialized = true; // make sure init completes even on login failure
+      .addCase(getMe.rejected, (state, action) => {
+        state.isLoading = false;
+        state.user = null;
+        state.isInitialized = true;
+        state.isError = true;
+        state.message = action.payload;
+        console.log('getMe failed - user not authenticated');
       })
 
-      // getMe
-      .addCase(getMe.pending, (s) => {
-        s.isInitialized = false;
+      // login
+      .addCase(login.pending, (state) => {
+        state.isLoading = true;
+        state.isError = false;
+        state.message = '';
       })
-      .addCase(getMe.fulfilled, (s, a) => {
-        s.user = (a.payload && (a.payload.user ?? a.payload)) || null;
-        s.isInitialized = true;
+      .addCase(login.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload?.user || action.payload;
+        state.isInitialized = true;
+        state.isError = false;
+        state.message = '';
       })
-      .addCase(getMe.rejected, (s) => {
-        s.user = null;
-        s.isInitialized = true;
+      .addCase(login.rejected, (state, action) => {
+        state.isLoading = false;
+        state.user = null;
+        state.isError = true;
+        state.message = action.payload || 'Login failed';
+        state.isInitialized = true;
       })
 
       // logout
-      .addCase(logout.fulfilled, (s) => {
-        s.user = null;
+      .addCase(logout.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(logout.fulfilled, (state) => {
+        state.user = null;
+        state.isInitialized = true;
+        state.isLoading = false;
+        state.isError = false;
+        state.message = '';
+      })
+      .addCase(logout.rejected, (state) => {
+        state.user = null;
+        state.isInitialized = true;
+        state.isLoading = false;
       });
   }
 });
+
+export const { clearAuth, setUser } = authSlice.actions;
+
+// Selectors
+export const selectUserRole = (state) => state.auth.user?.role || 'user';
+export const selectCurrentUser = (state) => state.auth.user;
+export const selectIsInitialized = (state) => state.auth.isInitialized;
+export const selectAuthLoading = (state) => state.auth.isLoading;
+export const selectUser = (state) => state.auth.user;
+export const selectAuthError = (state) => state.auth.message;
 
 export default authSlice.reducer;
