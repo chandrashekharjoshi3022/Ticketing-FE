@@ -1,18 +1,47 @@
+// src/features/tickets/TicketService.js
 import API from "../../api/axios";
 
-const getAll = async () => {
-  const res = await API.get("/tickets");
+// Get tickets based on user role
+const getTicketsForAdmin = async () => {
+  const res = await API.get('admin/tickets');
   return res.data;
 };
 
-const create = async (ticketData) => {
-  const res = await API.post("/tickets", ticketData);
+const getTicketsForUser = async () => {
+  const res = await API.get('ticket/my-tickets'); // Using your new endpoint
   return res.data;
 };
 
-const reply = async ({ ticketId, message }) => {
-  const res = await API.post(`/tickets/${ticketId}/reply`, { message });
+const getTickets = async (userRole) => {
+  if (userRole === 'admin' || userRole === 'administrator') {
+    return await getTicketsForAdmin();
+  } else {
+    return await getTicketsForUser();
+  }
+};
+
+const getTicketDetails = async (ticketId) => {
+  const res = await API.get(`/ticket/${ticketId}`);
   return res.data;
 };
 
-export default { getAll, create, reply };
+const raiseTicket = async (formData) => {
+  const res = await API.post('/ticket/raise', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+  return res.data;
+};
+
+const replyToTicket = async ({ ticketId, message }) => {
+  const res = await API.post(`/ticket/${ticketId}/reply`, { message });
+  return res.data;
+};
+
+export default {
+  getTickets,
+  getTicketsForAdmin,
+  getTicketsForUser,
+  getTicketDetails,
+  raiseTicket,
+  replyToTicket
+};

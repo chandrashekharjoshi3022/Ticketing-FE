@@ -1,3 +1,4 @@
+// ProfileTab.jsx
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 
@@ -14,6 +15,7 @@ import { Card, Edit2, Logout, Profile, Profile2User } from 'iconsax-react';
 
 export default function ProfileTab({ handleLogout }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
+
   const handleListItemClick = (event, index) => {
     setSelectedIndex(index);
   };
@@ -55,4 +57,6 @@ export default function ProfileTab({ handleLogout }) {
   );
 }
 
-ProfileTab.propTypes = { handleLogout: PropTypes.func };
+ProfileTab.propTypes = { 
+  handleLogout: PropTypes.func 
+};

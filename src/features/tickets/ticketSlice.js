@@ -1,28 +1,204 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import TicketService from "./TicketService";
+// src/features/tickets/ticketSlice.js
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import TicketService from './TicketService';
 
-export const fetchTickets = createAsyncThunk("tickets/fetch", TicketService.getAll);
-export const createTicket = createAsyncThunk("tickets/create", TicketService.create);
-export const replyToTicket = createAsyncThunk("tickets/reply", TicketService.reply);
+// helpers
+const normalizeTicket = (t, idx = 0) => ({
+  id: t.ticket_id ?? t.id ?? idx + 1,
+  ticket_no: t.ticket_no ?? `TCKT-${t.ticket_id ?? t.id ?? idx + 1}`,
+  module: t.module ?? t.modules ?? t.moduleName ?? 'N/A',
+  submodule: t.sub_module ?? t.submodule ?? t.subModule ?? '',
+  category: t.category ?? '',
+  comments: t.comment ?? t.comments ?? t.description ?? '',
+  created_on: t.created_at ?? t.registration_date ?? t.createdOn ?? '',
+  updated_by: t.updated_by ?? t.updatedBy ?? t.updated ?? '',
+  status: t.status ?? 'Open',
+  files: t.files ?? (t.screenshot_url ? [t.screenshot_url] : []),
+  // Add created_by field for filtering - using user_id from backend
+  created_by: t.user_id ?? t.created_by ?? t.user?.id ?? 'unknown',
+  // Add user info if available from backend
+  user: t.user ? {
+    id: t.user.user_id,
+    username: t.user.username,
+    email: t.user.email
+  } : null
+});
+
+export const fetchTickets = createAsyncThunk('tickets/fetchAll', async (_, thunkAPI) => {
+  try {
+    const state = thunkAPI.getState();
+    const userRole = state.auth.user?.role || 'user';
+    
+    console.log(`Fetching tickets for role: ${userRole}`);
+    const res = await TicketService.getTickets(userRole);
+    
+    // Backend may return { tickets: [...] } or [...]
+    const payload = res?.tickets ?? res?.data ?? res;
+    
+    // Log for debugging
+    console.log(`Received ${Array.isArray(payload) ? payload.length : 0} tickets for ${userRole}`);
+    
+    return payload;
+  } catch (err) {
+    console.error('Error fetching tickets:', err);
+    return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
+  }
+});
+
+export const fetchTicketDetails = createAsyncThunk('tickets/fetchDetails', async (ticketId, thunkAPI) => {
+  try {
+    const res = await TicketService.getTicketDetails(ticketId);
+    const data = res?.ticket ?? res?.data ?? res;
+    return data;
+  } catch (err) {
+    return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
+  }
+});
+
+export const createTicket = createAsyncThunk('tickets/create', async (formData, thunkAPI) => {
+  try {
+    const res = await TicketService.raiseTicket(formData);
+    return res;
+  } catch (err) {
+    return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
+  }
+});
+
+export const replyToTicket = createAsyncThunk('tickets/reply', async ({ ticketId, message }, thunkAPI) => {
+  try {
+    const res = await TicketService.replyToTicket({ ticketId, message });
+    return { ticketId, reply: res };
+  } catch (err) {
+    return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
+  }
+});
+
+const initialState = {
+  tickets: [],
+  ticketDetails: null,
+  isLoading: false,
+  isError: false,
+  message: ''
+};
 
 const ticketSlice = createSlice({
-  name: "tickets",
-  initialState: { list: [], isLoading: false, error: null },
-  reducers: {},
+  name: 'tickets',
+  initialState,
+  reducers: {
+    clearTicketDetails: (state) => {
+      state.ticketDetails = null;
+    },
+    // Add reducer to filter tickets by user
+    filterTicketsByUser: (state, action) => {
+      const userId = action.payload;
+      if (userId) {
+        state.tickets = state.tickets.filter(ticket => ticket.created_by === userId);
+      }
+    },
+    // Reset tickets state
+    resetTickets: (state) => {
+      state.tickets = [];
+      state.ticketDetails = null;
+      state.isLoading = false;
+      state.isError = false;
+      state.message = '';
+    }
+  },
   extraReducers: (builder) => {
     builder
+      // fetchTickets
       .addCase(fetchTickets.pending, (state) => {
         state.isLoading = true;
+        state.isError = false;
+        state.message = '';
       })
       .addCase(fetchTickets.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.list = action.payload;
+        const payload = action.payload ?? [];
+        state.tickets = Array.isArray(payload) ? payload.map(normalizeTicket) : [];
+        console.log(`Tickets loaded: ${state.tickets.length} tickets`);
       })
       .addCase(fetchTickets.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message;
+        state.isError = true;
+        state.message = action.payload || action.error?.message;
+        console.error('Failed to fetch tickets:', action.payload);
+      })
+
+      // fetchTicketDetails
+      .addCase(fetchTicketDetails.pending, (state) => {
+        state.isLoading = true;
+        state.isError = false;
+        state.message = '';
+      })
+      .addCase(fetchTicketDetails.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const d = action.payload ?? {};
+        state.ticketDetails = {
+          ticket_id: d.ticket_id ?? d.id,
+          ticket_no: d.ticket_no ?? `TCKT-${d.ticket_id ?? d.id}`,
+          module: d.module,
+          submodule: d.sub_module ?? d.submodule,
+          category: d.category,
+          comment: d.comment ?? d.comments,
+          status: d.status,
+          created_on: d.created_at ?? d.created_on,
+          updated_by: d.updated_by ?? d.updatedBy,
+          files: d.files ?? (d.screenshot_url ? [d.screenshot_url] : []),
+          replies: d.replies ?? d.replies_list ?? d.comments_list ?? [],
+          created_by: d.user_id ?? d.created_by ?? d.user?.id ?? 'unknown',
+          user: d.user ? {
+            id: d.user.user_id,
+            username: d.user.username,
+            email: d.user.email
+          } : null
+        };
+      })
+      .addCase(fetchTicketDetails.rejected, (state, action) => {
+        state.isLoading = false;
+        state.ticketDetails = null;
+        state.isError = true;
+        state.message = action.payload || action.error?.message;
+      })
+
+      // createTicket
+      .addCase(createTicket.pending, (state) => {
+        state.isLoading = true;
+        state.isError = false;
+      })
+      .addCase(createTicket.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const created = action.payload?.ticket ?? action.payload ?? null;
+        if (created) {
+          state.tickets = [normalizeTicket(created), ...state.tickets];
+        }
+      })
+      .addCase(createTicket.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload || action.error?.message;
+      })
+
+      // replyToTicket
+      .addCase(replyToTicket.pending, (state) => {
+        state.isLoading = true;
+        state.isError = false;
+      })
+      .addCase(replyToTicket.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const ticketId = action.payload?.ticketId ?? action.meta?.arg?.ticketId;
+        const reply = action.payload?.reply ?? action.payload;
+        if (state.ticketDetails && state.ticketDetails.ticket_id == ticketId) {
+          state.ticketDetails.replies = [...(state.ticketDetails.replies || []), reply];
+        }
+      })
+      .addCase(replyToTicket.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isError = true;
+        state.message = action.payload || action.error?.message;
       });
-  },
+  }
 });
 
+export const { clearTicketDetails, filterTicketsByUser, resetTickets } = ticketSlice.actions;
 export default ticketSlice.reducer;

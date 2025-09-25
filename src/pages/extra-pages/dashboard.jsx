@@ -48,6 +48,13 @@ import KeyboardArrowDownOutlinedIcon from '@mui/icons-material/KeyboardArrowDown
 
 // ==============================|| SAMPLE PAGE ||============================== //
 
+
+// import { useEffect } from "react";
+// import { useDispatch, useSelector } from "react-redux";
+// import { fetchTickets } from "../../features/tickets/ticketSlice";
+
+
+
 export default function SamplePage() {
   const [openModal, setOpenModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
@@ -492,5 +499,15 @@ export default function SamplePage() {
         </Box>
       </Box>
     </MainCard>
+
+
+    // <div>
+    //   <h2>My Tickets</h2>
+    //   <ul>
+    //     {list.map((t) => (
+    //       <li key={t.ticket_id} style={{border:'1px solid red'}}> {t.ticket_id} {t.module} - {t.sub_module} - {t.category} - {t.status} - {t.comment}</li>
+    //     ))}
+    //   </ul>
+    // </div>
   );
 }

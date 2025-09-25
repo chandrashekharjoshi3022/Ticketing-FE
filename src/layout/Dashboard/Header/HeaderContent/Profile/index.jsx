@@ -1,6 +1,8 @@
+// ProfilePage.jsx
 import PropTypes from 'prop-types';
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useDispatch, useSelector } from 'react-redux'; // Add these imports
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -26,7 +28,12 @@ import Transitions from 'components/@extended/Transitions';
 import IconButton from 'components/@extended/IconButton';
 
 import { ThemeMode } from 'config';
-import useAuth from 'hooks/useAuth';
+// Remove useAuth import since we'll use Redux directly
+// import useAuth from 'hooks/useAuth';
+
+// Import Redux actions and selectors
+import { logout } from 'features/auth/authSlice'; // Adjust path as needed
+import { selectCurrentUser } from 'features/auth/authSlice'; // Adjust path as needed
 
 // assets
 import avatar1 from 'assets/images/users/avatar-6.png';
@@ -60,18 +67,36 @@ function a11yProps(index) {
 export default function ProfilePage() {
   const theme = useTheme();
   const navigate = useNavigate();
+  const dispatch = useDispatch(); // Add dispatch
 
-  const { logout, user } = useAuth();
+  // Get user from Redux instead of useAuth
+  const user = useSelector(selectCurrentUser);
+
   const handleLogout = async () => {
     try {
-      await logout();
-      navigate(`/login`, {
+      console.log('Dispatching logout action...');
+      
+      // Dispatch the logout action
+      await dispatch(logout()).unwrap();
+      
+      console.log('Logout successful, redirecting to login...');
+      
+      // Redirect to login page
+      navigate('/login', { 
+        replace: true,
         state: {
           from: ''
         }
       });
+      
+      // Clear any local storage
+      localStorage.clear();
+      sessionStorage.clear();
+      
     } catch (err) {
-      console.error(err);
+      console.error('Logout error:', err);
+      // Even if API fails, redirect to login
+      navigate('/login', { replace: true });
     }
   };
 
@@ -97,15 +122,6 @@ export default function ProfilePage() {
   return (
     <Box sx={{ flexShrink: 0, ml: 0.75 }}>
       <ButtonBase
-        // sx={{
-        //   p: 0.25,
-        //   borderRadius: 1,
-        //   '&:hover': { bgcolor: theme.palette.mode === ThemeMode.DARK ? 'secondary.light' : 'secondary.lighter' },
-        //   '&:focus-visible': {
-        //     outline: `2px solid ${theme.palette.secondary.dark}`,
-        //     outlineOffset: 2
-        //   }
-        // }}
         aria-label="open profile"
         ref={anchorRef}
         aria-controls={open ? 'profile-grow' : undefined}
@@ -143,9 +159,9 @@ export default function ProfilePage() {
                         <Stack direction="row" spacing={1.25} alignItems="center">
                           <Avatar alt="profile user" src={avatar1} />
                           <Stack>
-                            <Typography variant="subtitle1">{user?.name}</Typography>
+                            <Typography variant="subtitle1">{user?.username || user?.name || 'User'}</Typography>
                             <Typography variant="body2" color="secondary">
-                              UI/UX Designer
+                              {user?.role || 'User'}
                             </Typography>
                           </Stack>
                         </Stack>
