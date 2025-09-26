@@ -1,9 +1,8 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Box, Typography, Grid, Chip, Alert, Card, CardContent } from '@mui/material';
+import React, { useEffect } from 'react';
+import { Box, Typography, Grid, Chip, Card, CardContent } from '@mui/material';
 import MainCard from 'components/MainCard';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import PersonIcon from '@mui/icons-material/Person';
-import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchTickets } from '../../features/tickets/ticketSlice';
 
@@ -21,6 +20,7 @@ export default function SamplePage() {
 
   const totalTickets = tickets?.length || 0;
   const openTickets = tickets?.filter((t) => t.status === 'open').length || 0;
+  const pendingTickets = tickets?.filter((t) => t.status === 'Pending').length || 0;
   const closedTickets = tickets?.filter((t) => t.status === 'closed').length || 0;
 
   if (loading) {
@@ -80,6 +80,7 @@ export default function SamplePage() {
               </CardContent>
             </Card>
           </Grid>
+
           <Grid item xs={12} sm={3}>
             <Card>
               <CardContent>
@@ -93,13 +94,14 @@ export default function SamplePage() {
           <Grid item xs={12} sm={3}>
             <Card>
               <CardContent>
-                <Typography variant="h6">Open Tickets</Typography>
+                <Typography variant="h6">Pending Tickets</Typography>
                 <Typography variant="h4" color="success.main" fontWeight="bold">
-                  {openTickets}
+                  {pendingTickets}
                 </Typography>
               </CardContent>
             </Card>
           </Grid>
+
           <Grid item xs={12} sm={3}>
             <Card>
               <CardContent>
