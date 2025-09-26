@@ -40,9 +40,6 @@ export default function Navigation() {
   let remItems = [];
   let lastItemId;
 
-  //  first it checks menu item is more than giving HORIZONTAL_MAX_ITEM after that get lastItemid by giving horizontal max
-  // item and it sets horizontal menu by giving horizontal max item lastly slice menuItem from array and set into remItems
-
   if (lastItem && lastItem < menuItems.items.length) {
     lastItemId = menuItems.items[lastItem - 1].id;
     lastItemIndex = lastItem - 1;
@@ -61,7 +58,7 @@ export default function Navigation() {
       case 'group':
         if (item.url && item.id !== lastItemId) {
           return (
-            <List key={item.id} {...(isHorizontal && { sx: { mt: 0.5 } })}>
+            <List key={item.id} {...(isHorizontal && { sx: { mt: 0.5 } })} sx={{ paddingBottom: 0, paddingTop: 0 }}>
               {!isHorizontal && index !== 0 && <Divider sx={{ my: 0.5 }} />}
               <NavItem item={item} level={1} isParents />
             </List>
@@ -84,20 +81,21 @@ export default function Navigation() {
           />
         );
       default:
-        return (
-          <Typography key={item.id} variant="h6" color="error" align="center">
-            Fix - Navigation Group
-          </Typography>
-        );
+        return null;
+      // <Typography key={item.id} variant="h6" color="error" align="center">
+      //   Fix - Navigation Group
+      // </Typography>
     }
   });
 
   return (
     <Box
       sx={{
-        pt: drawerOpen ? (isHorizontal ? 0 : 2) : 0,
+        pt: drawerOpen ? (isHorizontal ? 0 : 0) : 0,
         ...(!isHorizontal && { '& > ul:first-of-type': { mt: 0 } }),
-        display: isHorizontal ? { xs: 'block', lg: 'flex' } : 'block'
+        display: isHorizontal ? { xs: 'block', lg: 'flex' } : 'block',
+        // background: '#B1C9DD',
+        // background: 'linear-gradient(270deg, rgba(204,220,235,1) 25%, rgba(197,215,232,1) 50%, rgba(165,184,202,1) 95%)'
       }}
     >
       {navGroups}

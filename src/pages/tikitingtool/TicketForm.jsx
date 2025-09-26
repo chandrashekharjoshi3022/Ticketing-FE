@@ -113,12 +113,11 @@ const TicketForm = () => {
           {errorMessage}
         </Alert>
       )}
-
-      <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmitClick} enableReinitialize>
-        {({ isSubmitting, resetForm, values, handleSubmit, setFieldValue }) => (
-          <>
-            <Form>
-              <Box padding={2} sx={{ backgroundColor: '#f8f9fa', borderRadius: 1, mb: 2 }}>
+      
+        <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmitClick} enableReinitialize>
+          {({ isSubmitting, resetForm, values, handleSubmit, setFieldValue }) => (
+            <>
+              <Form>
                 <Grid container spacing={2} alignItems="flex-start">
                   <Grid item xs={12} sm={6} md={3}>
                     <CustomParagraphLight>
@@ -258,24 +257,24 @@ const TicketForm = () => {
                     {isSubmitting ? 'Submitting...' : 'Submit Ticket'}
                   </SubmitButton>
                 </Box>
-              </Box>
-            </Form>
+              </Form>
 
-            <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)}>
-              <DialogTitle>Confirm Raise Ticket</DialogTitle>
-              <DialogContent>
-                <DialogContentText>Are you sure you want to raise this ticket? This action cannot be undone.</DialogContentText>
-              </DialogContent>
-              <DialogActions>
-                <NoButton onClick={() => setConfirmDialogOpen(false)}>Cancel</NoButton>
-                <YesButton onClick={handleConfirmSubmit} disabled={isLoading}>
-                  {isLoading ? 'Submitting...' : 'Yes, Raise Ticket'}
-                </YesButton>
-              </DialogActions>
-            </Dialog>
-          </>
-        )}
-      </Formik>
+              <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)}>
+                <DialogTitle>Confirm Raise Ticket</DialogTitle>
+                <DialogContent>
+                  <DialogContentText>Are you sure you want to raise this ticket? This action cannot be undone.</DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                  <NoButton onClick={() => setConfirmDialogOpen(false)}>Cancel</NoButton>
+                  <YesButton onClick={handleConfirmSubmit} disabled={isLoading}>
+                    {isLoading ? 'Submitting...' : 'Yes, Raise Ticket'}
+                  </YesButton>
+                </DialogActions>
+              </Dialog>
+            </>
+          )}
+        </Formik>
+     
     </Box>
   );
 };

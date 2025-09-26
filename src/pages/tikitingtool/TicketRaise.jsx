@@ -471,7 +471,7 @@ export default function TicketRaise() {
             {/* Role Information */}
 
             {!showTicketForm ? (
-              <Box >
+              <Box>
                 <Table sx={{ mb: 1 }}>{renderTableHeader('ticketView', 'Ticket Management')}</Table>
 
                 {showTableBodies.ticketView && (
@@ -528,7 +528,7 @@ export default function TicketRaise() {
                 )}
               </Box>
             ) : (
-              <Box sx={{ mt: 3 }}>
+              <Box>
                 <TicketForm onCancel={() => setShowTicketForm(false)} />
               </Box>
             )}

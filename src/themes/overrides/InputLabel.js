@@ -16,7 +16,7 @@ export default function InputLabel(theme) {
             background: theme.palette.background.paper,
             padding: '0 8px',
             marginLeft: -6,
-            lineHeight: '1.4375em'
+            lineHeight: '2.4375em'
           }
         }
       }

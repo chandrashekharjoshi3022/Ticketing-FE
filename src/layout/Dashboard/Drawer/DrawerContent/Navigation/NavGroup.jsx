@@ -267,7 +267,7 @@ export default function NavGroup({
               )}
             </>
           }
-          sx={{ mt: drawerOpen && menuCaption && item.title ? 1.5 : 0, py: 0, zIndex: 0 }}
+          sx={{ mt: drawerOpen && menuCaption && item.title ? 1 : 0, py: 0, zIndex: 0 }}
         >
           {navCollapse}
         </List>
@@ -277,7 +277,7 @@ export default function NavGroup({
             selected={isSelected}
             sx={{
               p: 1,
-              px: 1.5,
+              px: 1,
               my: 0.5,
               mr: 1,
               display: 'flex',
@@ -297,7 +297,7 @@ export default function NavGroup({
             <ListItemText
               sx={{ mr: 1 }}
               primary={
-                <Typography variant="h6" color={isSelected ? 'primary' : textColor} sx={{ fontWeight: isSelected ? 500 : 400 }}>
+                <Typography variant="h6" color={isSelected ? 'primary' : textColor} sx={{ fontWeight: isSelected ? 600 : 700 }}>
                   {currentItem.id === lastItemId ? <FormattedMessage id="more-items" /> : currentItem.title}
                 </Typography>
               }
@@ -309,7 +309,7 @@ export default function NavGroup({
                     <Paper
                       sx={{
                         mt: 0.5,
-                        py: 1.25,
+                        py: 0,
                         boxShadow: theme.customShadows.z1,
                         border: '1px solid ',
                         borderColor: 'divider',

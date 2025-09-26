@@ -4,7 +4,7 @@ import { styled } from '@mui/material/styles';
 
 const CustomSelect = styled(Select)({
   '& .MuiSelect-select': {
-    padding: '2px',
+    padding: '8px',
     fontSize: '11px' // Set font size for the selected value
   },
   '& .MuiMenuItem-root': {

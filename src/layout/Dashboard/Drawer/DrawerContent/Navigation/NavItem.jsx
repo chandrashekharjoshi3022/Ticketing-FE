@@ -47,7 +47,8 @@ export default function NavItem({ item, level, isParents = false }) {
   );
 
   const { pathname } = useLocation();
-  const isSelected = !!matchPath({ path: item?.link ? item.link : item.url, end: false }, pathname);
+  // const isSelected = !!matchPath({ path: item?.link ? item.link : item.url, end: true }, pathname);
+  const isSelected = !!matchPath({ path: item?.link ? item.link : item.url, end: true }, pathname);
 
   const textColor = mode === ThemeMode.DARK ? 'secondary.400' : 'secondary.main';
   const iconSelectedColor = 'primary.main';
@@ -55,17 +56,19 @@ export default function NavItem({ item, level, isParents = false }) {
   return (
     <>
       {menuOrientation === MenuOrientation.VERTICAL || downLG ? (
-        <Box sx={{ position: 'relative' }}>
+        <Box sx={{ position: 'relative', paddingTop: 0, paddingBottom: 0 }}>
           <ListItemButton
             component={Link}
             to={item.url}
             target={itemTarget}
             disabled={item.disabled}
             selected={isSelected}
+            paddingBottom={0}
+            paddingTop={0}
             sx={{
               zIndex: 1201,
               pl: drawerOpen ? `${level * 20}px` : 1.5,
-              py: !drawerOpen && level === 1 ? 1.25 : 1,
+              py: !drawerOpen && level === 1 ? 0 : 0.5,
               ...(drawerOpen && {
                 '&:hover': { bgcolor: 'transparent' },
                 '&.Mui-selected': { '&:hover': { bgcolor: 'transparent' }, bgcolor: 'transparent' }
@@ -75,8 +78,12 @@ export default function NavItem({ item, level, isParents = false }) {
                   mx: 1.25,
                   my: 0.5,
                   borderRadius: 1,
-                  '&:hover': { bgcolor: mode === ThemeMode.DARK ? 'divider' : 'secondary.200' },
-                  '&.Mui-selected': { color: iconSelectedColor, '&:hover': { color: iconSelectedColor } }
+                  '&:hover': { bgcolor: mode === ThemeMode.DARK ? 'divider' : 'rgba(0, 0, 0, 0.12)' },
+                  '&.Mui-selected': {
+                    backgroundColor: '#fafbfb',
+                    color: iconSelectedColor,
+                    '&:hover': { color: iconSelectedColor }
+                  }
                 }),
               ...(!drawerOpen && {
                 px: 2.75,
@@ -91,12 +98,13 @@ export default function NavItem({ item, level, isParents = false }) {
               <ListItemIcon
                 sx={{
                   minWidth: 38,
-                  color: isSelected ? iconSelectedColor : textColor,
+
+                  color: isSelected ? '#cd640d !important' : '#2c6095!important',
                   ...(!drawerOpen &&
                     level === 1 && {
                       borderRadius: 1,
-                      width: 46,
-                      height: 46,
+                      width: 30,
+                      height: 35,
                       alignItems: 'center',
                       justifyContent: 'center',
                       '&:hover': { bgcolor: mode === ThemeMode.DARK ? 'secondary.light' : 'secondary.200' }
@@ -117,7 +125,9 @@ export default function NavItem({ item, level, isParents = false }) {
             {!itemIcon && drawerOpen && (
               <ListItemIcon
                 sx={{
-                  minWidth: 30
+                  minWidth: 30,
+                  paddingTop: 0,
+                  marginLeft: 1
                 }}
               >
                 <Dot size={isSelected ? 6 : 5} color={isSelected ? 'primary' : 'secondary'} />
@@ -126,8 +136,9 @@ export default function NavItem({ item, level, isParents = false }) {
 
             {(drawerOpen || (!drawerOpen && level !== 1)) && (
               <ListItemText
+                sx={{ marginTop: '0px', marginBottom: '0px' }}
                 primary={
-                  <Typography variant="h6" sx={{ color: isSelected ? iconSelectedColor : textColor, fontWeight: isSelected ? 500 : 400 }}>
+                  <Typography variant="h6" sx={{ color: isSelected ? iconSelectedColor : textColor, fontWeight: isSelected ? 600 : 600 }}>
                     {item.title}
                   </Typography>
                 }
@@ -171,7 +182,7 @@ export default function NavItem({ item, level, isParents = false }) {
                     zIndex: 1202,
                     width: 20,
                     height: 20,
-                    p: 0.25,
+                    p: 0,
                     color: 'secondary.dark',
                     borderColor: isSelected ? 'primary.light' : 'secondary.light',
                     '&:hover': { borderColor: isSelected ? 'primary.main' : 'secondary.main' }
@@ -196,7 +207,7 @@ export default function NavItem({ item, level, isParents = false }) {
           sx={{
             zIndex: 1201,
             '&:hover': { bgcolor: 'transparent' },
-            ...(isParents && { color: textColor, p: 1, mr: 1 }),
+            ...(isParents && { color: textColor, p: 0, mr: 1 }),
             '&.Mui-selected': {
               bgcolor: 'transparent',
               color: iconSelectedColor,
@@ -207,7 +218,7 @@ export default function NavItem({ item, level, isParents = false }) {
           {itemIcon && (
             <ListItemIcon
               sx={{
-                minWidth: 36,
+                minWidth: 28,
                 ...(!drawerOpen && {
                   borderRadius: 1,
                   width: 36,
