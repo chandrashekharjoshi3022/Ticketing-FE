@@ -5,6 +5,10 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import PersonIcon from '@mui/icons-material/Person';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchTickets } from '../../features/tickets/ticketSlice';
+import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import LockIcon from '@mui/icons-material/Lock';
 
 export default function SamplePage() {
   const dispatch = useDispatch();
@@ -62,17 +66,23 @@ export default function SamplePage() {
         </Box>
       }
     >
-      <Box p={3}>
-        {/* Dashboard Title */}
-        <Typography variant="h4" gutterBottom fontWeight={600}>
-          {userRole === 'admin' ? 'Admin Dashboard' : 'User Dashboard'}
-        </Typography>
-
+      <Box p={1}>
         {/* Counts Section */}
         <Grid container spacing={2} mb={3}>
           <Grid item xs={12} sm={3}>
             <Card>
-              <CardContent>
+              <CardContent
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center'
+                }}
+              >
+                <Box>
+                  <ConfirmationNumberIcon color="primary" fontSize="large" />
+                </Box>
                 <Typography variant="h6">Total Tickets</Typography>
                 <Typography variant="h4" color="primary" fontWeight="bold">
                   {totalTickets}
@@ -83,7 +93,18 @@ export default function SamplePage() {
 
           <Grid item xs={12} sm={3}>
             <Card>
-              <CardContent>
+              <CardContent
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center'
+                }}
+              >
+                <Box>
+                  <LockOpenIcon color="success" fontSize="large" />
+                </Box>
                 <Typography variant="h6">Open Tickets</Typography>
                 <Typography variant="h4" color="success.main" fontWeight="bold">
                   {openTickets}
@@ -91,11 +112,23 @@ export default function SamplePage() {
               </CardContent>
             </Card>
           </Grid>
+
           <Grid item xs={12} sm={3}>
             <Card>
-              <CardContent>
+              <CardContent
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center'
+                }}
+              >
+                <Box>
+                  <ScheduleIcon color="warning" fontSize="large" />
+                </Box>
                 <Typography variant="h6">Pending Tickets</Typography>
-                <Typography variant="h4" color="success.main" fontWeight="bold">
+                <Typography variant="h4" color="warning.main" fontWeight="bold">
                   {pendingTickets}
                 </Typography>
               </CardContent>
@@ -104,7 +137,18 @@ export default function SamplePage() {
 
           <Grid item xs={12} sm={3}>
             <Card>
-              <CardContent>
+              <CardContent
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center'
+                }}
+              >
+                <Box>
+                  <LockIcon color="error" fontSize="large" />
+                </Box>
                 <Typography variant="h6">Closed Tickets</Typography>
                 <Typography variant="h4" color="error.main" fontWeight="bold">
                   {closedTickets}

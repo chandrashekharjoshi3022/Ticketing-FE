@@ -12,7 +12,6 @@ import Snackbar from 'components/@extended/Snackbar';
 import { JWTProvider as AuthProvider } from 'contexts/JWTContext';
 import 'scss/style.css';
 // RFQCONTEXT
-import { MyContextProvider } from 'contexts/RfqItemContex';
 
 // ==============================|| APP - THEME, ROUTER, LOCAL  ||============================== //
 
@@ -22,13 +21,8 @@ export default function App() {
       <Locales>
         <ScrollTop>
           <AuthProvider>
-            <MyContextProvider>
-              <RouterProvider
-                router={router}
-                fallbackElement={<div>Loading router...</div>}
-              />
-              <Snackbar />
-            </MyContextProvider>
+            <RouterProvider router={router} fallbackElement={<div>Loading router...</div>} />
+            <Snackbar />
           </AuthProvider>
         </ScrollTop>
       </Locales>
