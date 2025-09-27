@@ -9,6 +9,8 @@ const getTicketsForAdmin = async () => {
 
 const getTicketsForUser = async () => {
   const res = await API.get('ticket/my-tickets'); // Using your new endpoint
+
+  
   return res.data;
 };
 

@@ -80,6 +80,8 @@ const TicketForm = () => {
       formData.append('submodule', values.submodule);
       formData.append('category', values.category);
       formData.append('comment', values.comments);
+
+      formData.append('sla_id' , 1);
       (values.files || []).forEach((file) => formData.append('files', file));
 
       await dispatch(createTicket(formData)).unwrap();
