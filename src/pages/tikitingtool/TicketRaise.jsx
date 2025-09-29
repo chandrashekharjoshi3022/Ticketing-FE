@@ -131,9 +131,40 @@ export default function TicketRaise() {
     setShowTableBodies((prevState) => ({ ...prevState, [section]: !prevState[section] }));
   };
 
+  // const handleView = async (row) => {
+  //   // Check if user has permission to view this ticket
+  //   if (!isAdmin && row.created_by !== userId) {
+  //     window.alert('You do not have permission to view this ticket');
+  //     return;
+  //   }
+
+  //   setSelectedTicket(row);
+  //   setOpenModal(true);
+  //   setIsLoading(true);
+  //   try {
+  //     await dispatch(fetchTicketDetails(row.id)).unwrap();
+  //   } catch (err) {
+  //     console.error('Failed to load details', err);
+  //     window.alert('Failed to load ticket details');
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const handleView = async (row) => {
+    // Debug: Log the values to see what's happening
+    console.log('Permission check:', {
+      isAdmin,
+      rowUserId: row.user_id,
+      currentUserId: userId,
+      rowCreatedBy: row.created_by,
+      row
+    });
+
     // Check if user has permission to view this ticket
-    if (!isAdmin && row.created_by !== userId) {
+    // For admin: can view all tickets
+    // For user: can only view their own tickets (compare by user_id)
+    if (!isAdmin && row.user_id !== userId) {
       window.alert('You do not have permission to view this ticket');
       return;
     }
@@ -168,6 +199,42 @@ export default function TicketRaise() {
   };
 
   const handleTabChange = (event, newValue) => setActiveTab(newValue);
+  // const handleReplySubmit = async () => {
+  //   if (!ticketDetails?.ticket_id) return;
+  //   if (!replyMessage || replyMessage.trim() === '') {
+  //     return window.alert('Please enter a message');
+  //   }
+
+  //   // Check if user has permission to reply to this ticket
+  //   if (!isAdmin && ticketDetails.created_by !== userId) {
+  //     window.alert('You do not have permission to reply to this ticket');
+  //     return;
+  //   }
+
+  //   setIsSubmittingReply(true);
+  //   try {
+  //     await dispatch(
+  //       replyToTicket({
+  //         ticketId: ticketDetails.ticket_id,
+  //         message: replyMessage
+  //       })
+  //     ).unwrap();
+
+  //     await dispatch(fetchTicketDetails(ticketDetails.ticket_id)).unwrap();
+  //     await dispatch(fetchTickets()).unwrap();
+
+  //     setReplyMessage('');
+  //     setSuccessMessage('Reply sent successfully!');
+  //   } catch (err) {
+  //     console.error('Reply failed', err);
+  //     window.alert(err?.message || 'Failed to send reply');
+  //   } finally {
+  //     setIsSubmittingReply(false);
+  //   }
+  // };
+
+  // Filter tickets based on active tab (backend already filters by user role)
+
   const handleReplySubmit = async () => {
     if (!ticketDetails?.ticket_id) return;
     if (!replyMessage || replyMessage.trim() === '') {
@@ -175,7 +242,7 @@ export default function TicketRaise() {
     }
 
     // Check if user has permission to reply to this ticket
-    if (!isAdmin && ticketDetails.created_by !== userId) {
+    if (!isAdmin && ticketDetails.user_id !== userId) {
       window.alert('You do not have permission to reply to this ticket');
       return;
     }
@@ -202,7 +269,6 @@ export default function TicketRaise() {
     }
   };
 
-  // Filter tickets based on active tab (backend already filters by user role)
   const getFilteredTickets = () => {
     if (!tickets) return [];
 
@@ -252,42 +318,7 @@ export default function TicketRaise() {
     );
   };
 
-  // Add this helper function before the columns array
-  // const renderSLACell = (params, type = 'response') => {
-  //   const timeSeconds = type === 'response' ? params.row.response_time_seconds : params.row.resolve_time_seconds;
-  //   const targetMinutes = type === 'response' ? params.row.sla?.response_target_minutes : params.row.sla?.resolve_target_minutes;
-  //   const timestamp = type === 'response' ? params.row.response_at : params.row.resolved_at;
 
-  // console.log(params.row)
-  //   console.log(timeSeconds , "this is to check timeseconds")
-  //    console.log(targetMinutes , "this is to check targetMinutes")
-  //     console.log(timestamp , "this is to check timestamp")
-
-  //   const timeMinutes = timeSeconds / 60;
-  //   let color = 'gray';
-  //   let status = 'Not Set';
-
-  //   if (targetMinutes && timestamp) {
-  //     if (timeMinutes <= targetMinutes) {
-  //       color = 'green';
-  //       status = 'Within SLA';
-  //     } else if (timeMinutes <= targetMinutes * 1.1) {
-  //       color = 'orange';
-  //       status = 'Slightly Exceeded';
-  //     } else {
-  //       color = 'red';
-  //       status = 'Significantly Exceeded';
-  //     }
-  //   }
-
-  //   return (
-  //     <Tooltip title={`${status} (${timeMinutes.toFixed(1)} min / ${targetMinutes} min target)`}>
-  //       <Typography variant="body2" color={color} fontWeight="bold">
-  //         {formatDate(timestamp)}
-  //       </Typography>
-  //     </Tooltip>
-  //   );
-  // };
 
   const renderDateWithSLA = (params, type) => {
     const timeSeconds = type === 'response' ? params.row.response_time_seconds : params.row.resolve_time_seconds;
@@ -385,17 +416,29 @@ export default function TicketRaise() {
     // Show created by only for admin
     ...(isAdmin
       ? [
-          {
-            field: 'created_by',
-            headerName: 'Created By',
-            width: 120,
-            renderCell: (params) => (
-              <Typography variant="body2" fontStyle="italic">
-                {params.row.user?.username || params.value || 'Unknown'}
-              </Typography>
-            )
-          }
-        ]
+        // {
+        //   field: 'created_by',
+        //   headerName: 'Created By',
+        //   width: 120,
+        //   renderCell: (params) => (
+        //     <Typography variant="body2" fontStyle="italic">
+        //       {params.row.user?.username || params.value || 'Unknown'}
+        //     </Typography>
+        //   )
+        // }
+
+
+        {
+          field: 'created_by',
+          headerName: 'Created By',
+          width: 120,
+          renderCell: (params) => (
+            <Typography variant="body2" fontStyle="italic">
+              {params.value || 'Unknown'}
+            </Typography>
+          )
+        }
+      ]
       : []),
     {
       field: 'status',
@@ -753,13 +796,29 @@ export default function TicketRaise() {
                           status: ticketDetails.status || ''
                         },
                         // Then append all replies
-                        ...(ticketDetails.replies || []).map((r) => ({
-                          id: r.reply_id ?? r.id ?? Math.random(), // ensure unique ID
-                          comments: r.message ?? r.comment ?? '',
-                          created_by: r.sender_type === 'admin' ? 'Admin' : r.sender_id ?? r.sender?.username ?? 'User',
-                          created_on: r.created_at ?? r.created_on ?? r.createdAt ?? '',
-                          status: r.status ?? ''
-                        }))
+                        ...(ticketDetails.replies || []).map((r) => {
+                          // Determine the display name based on sender information
+                          let displayName = 'User';
+
+                          if (r.sender_type === 'system') {
+                            displayName = 'System';
+                          } else if (r.sender?.username) {
+                            // Use the actual username from sender object
+                            displayName = r.sender.username;
+                          } else if (r.sender_type === 'admin') {
+                            // Fallback for admin without sender object
+                            displayName = 'Admin';
+                          }
+                          // For user type without sender object, it will default to 'User'
+
+                          return {
+                            id: r.reply_id ?? r.id ?? Math.random(),
+                            comments: r.message ?? r.comment ?? '',
+                            created_by: displayName,
+                            created_on: r.created_at ?? r.created_on ?? r.createdAt ?? '',
+                            status: r.status ?? ''
+                          };
+                        })
                       ].map((row, index) => ({
                         ...row,
                         sr_no: index + 1 // add serial number
@@ -782,7 +841,7 @@ export default function TicketRaise() {
                     />
 
                     {/* Show reply section only if user has permission and ticket is not closed */}
-                    {(isAdmin || ticketDetails.created_by === userId) && ticketDetails.status !== 'Closed' && (
+                    {(isAdmin || ticketDetails.user_id === userId) && ticketDetails.status !== 'Closed' && (
                       <>
                         <Box sx={{ my: 3, backgroundColor: '#f8f9fa', borderRadius: 1 }}>
                           <CustomHeading>Add Your Comment </CustomHeading>
