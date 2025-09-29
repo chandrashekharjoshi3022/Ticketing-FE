@@ -20,7 +20,8 @@ import {
   Table,
   Chip,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Tooltip 
 } from '@mui/material';
 import MainCard from 'components/MainCard';
 import { DataGrid } from '@mui/x-data-grid';
@@ -251,6 +252,90 @@ export default function TicketRaise() {
     );
   };
 
+
+  // Add this helper function before the columns array
+// const renderSLACell = (params, type = 'response') => {
+//   const timeSeconds = type === 'response' ? params.row.response_time_seconds : params.row.resolve_time_seconds;
+//   const targetMinutes = type === 'response' ? params.row.sla?.response_target_minutes : params.row.sla?.resolve_target_minutes;
+//   const timestamp = type === 'response' ? params.row.response_at : params.row.resolved_at;
+
+// console.log(params.row)
+//   console.log(timeSeconds , "this is to check timeseconds")
+//    console.log(targetMinutes , "this is to check targetMinutes")
+//     console.log(timestamp , "this is to check timestamp")
+  
+//   const timeMinutes = timeSeconds / 60;
+//   let color = 'gray';
+//   let status = 'Not Set';
+  
+//   if (targetMinutes && timestamp) {
+//     if (timeMinutes <= targetMinutes) {
+//       color = 'green';
+//       status = 'Within SLA';
+//     } else if (timeMinutes <= targetMinutes * 1.1) {
+//       color = 'orange';
+//       status = 'Slightly Exceeded';
+//     } else {
+//       color = 'red';
+//       status = 'Significantly Exceeded';
+//     }
+//   }
+  
+//   return (
+//     <Tooltip title={`${status} (${timeMinutes.toFixed(1)} min / ${targetMinutes} min target)`}>
+//       <Typography variant="body2" color={color} fontWeight="bold">
+//         {formatDate(timestamp)}
+//       </Typography>
+//     </Tooltip>
+//   );
+// };
+
+
+// Add this helper function before the columns array
+const renderSLACell = (params, type = 'response') => {
+  // Debug logging to see what data we're getting
+  console.log('Ticket row data:', params.row);
+  console.log('SLA data:', params.row.sla);
+  
+  const timeSeconds = type === 'response' ? params.row.response_time_seconds : params.row.resolve_time_seconds;
+  const targetMinutes = type === 'response' ? params.row.sla?.response_target_minutes : params.row.sla?.resolve_target_minutes;
+  const timestamp = type === 'response' ? params.row.response_at : params.row.resolved_at;
+  
+  console.log(`Type: ${type}`, { timeSeconds, targetMinutes, timestamp });
+  
+  // If any of the required data is missing, show in gray
+  if (!timeSeconds || !targetMinutes || !timestamp) {
+    return (
+      <Typography variant="body2" color="gray" fontWeight="bold">
+        {timestamp ? formatDate(timestamp) : 'Not set'}
+      </Typography>
+    );
+  }
+  
+  const timeMinutes = timeSeconds / 60;
+  let color = 'gray';
+  let status = 'Not Set';
+  
+  if (timeMinutes <= targetMinutes) {
+    color = 'green';
+    status = 'Within SLA';
+  } else if (timeMinutes <= targetMinutes * 1.1) {
+    color = 'orange';
+    status = 'Slightly Exceeded';
+  } else {
+    color = 'red';
+    status = 'Significantly Exceeded';
+  }
+  
+  return (
+    <Tooltip title={`${status} (${timeMinutes.toFixed(1)} min / ${targetMinutes} min target)`}>
+      <Typography variant="body2" color={color} fontWeight="bold">
+        {formatDate(timestamp)}
+      </Typography>
+    </Tooltip>
+  );
+};
+
   // Columns definition
   const columns = [
     {
@@ -293,6 +378,19 @@ export default function TicketRaise() {
         return formatDate(params?.value);
       }
     },
+
+      {
+    field: 'response_at',
+    headerName: 'Response At',
+    width: 120,
+    renderCell: (params) => renderSLACell(params, 'response')
+  },
+  {
+    field: 'resolved_at',
+    headerName: 'Resolved At',
+    width: 120,
+    renderCell: (params) => renderSLACell(params, 'resolve')
+  },
     // Show created by only for admin
     ...(isAdmin
       ? [

@@ -3,6 +3,32 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import TicketService from './TicketService';
 
 // helpers
+// const normalizeTicket = (t, idx = 0) => ({
+//   id: t.ticket_id ?? t.id ?? idx + 1,
+//   ticket_no: t.ticket_no ?? `TCKT-${t.ticket_id ?? t.id ?? idx + 1}`,
+//   module: t.module ?? t.modules ?? t.moduleName ?? 'N/A',
+//   submodule: t.sub_module ?? t.submodule ?? t.subModule ?? '',
+//   category: t.category ?? '',
+//   comments: t.comment ?? t.comments ?? t.description ?? '',
+//   created_on: t.created_at ?? t.registration_date ?? t.createdOn ?? '',
+//   updated_by: t.updated_by ?? t.updatedBy ?? t.updated ?? '',
+//   status: t.status ?? 'Open',
+//   files: t.files ?? (t.screenshot_url ? [t.screenshot_url] : []),
+//   // Add created_by field for filtering - using user_id from backend
+//   created_by: t.user_id ?? t.created_by ?? t.user?.id ?? 'unknown',
+//   // Add user info if available from backend
+//   user: t.user
+//     ? {
+//         id: t.user.user_id,
+//         username: t.user.username,
+//         email: t.user.email
+//       }
+//     : null
+// });
+
+
+
+// Update the normalizeTicket function in ticketSlice.js
 const normalizeTicket = (t, idx = 0) => ({
   id: t.ticket_id ?? t.id ?? idx + 1,
   ticket_no: t.ticket_no ?? `TCKT-${t.ticket_id ?? t.id ?? idx + 1}`,
@@ -23,7 +49,15 @@ const normalizeTicket = (t, idx = 0) => ({
         username: t.user.username,
         email: t.user.email
       }
-    : null
+    : null,
+  // ADD THESE SLA PROPERTIES:
+  response_at: t.response_at,
+  response_time_seconds: t.response_time_seconds,
+  resolved_at: t.resolved_at,
+  resolve_time_seconds: t.resolve_time_seconds,
+  sla: t.sla, // Include the entire SLA object
+  response_sla_met: t.response_sla_met,
+  resolve_sla_met: t.resolve_sla_met
 });
 
 export const fetchTickets = createAsyncThunk('tickets/fetchAll', async (_, thunkAPI) => {
@@ -133,31 +167,66 @@ const ticketSlice = createSlice({
         state.isError = false;
         state.message = '';
       })
-      .addCase(fetchTicketDetails.fulfilled, (state, action) => {
-        state.isLoading = false;
-        const d = action.payload ?? {};
-        state.ticketDetails = {
-          ticket_id: d.ticket_id ?? d.id,
-          ticket_no: d.ticket_no ?? `TCKT-${d.ticket_id ?? d.id}`,
-          module: d.module,
-          submodule: d.sub_module ?? d.submodule,
-          category: d.category,
-          comment: d.comment ?? d.comments,
-          status: d.status,
-          created_on: d.created_at ?? d.created_on,
-          updated_by: d.updated_by ?? d.updatedBy,
-          files: d.files ?? (d.screenshot_url ? [d.screenshot_url] : []),
-          replies: d.replies ?? d.replies_list ?? d.comments_list ?? [],
-          created_by: d.user_id ?? d.created_by ?? d.user?.id ?? 'unknown',
-          user: d.user
-            ? {
-                id: d.user.user_id,
-                username: d.user.username,
-                email: d.user.email
-              }
-            : null
-        };
-      })
+      // .addCase(fetchTicketDetails.fulfilled, (state, action) => {
+      //   state.isLoading = false;
+      //   const d = action.payload ?? {};
+      //   state.ticketDetails = {
+      //     ticket_id: d.ticket_id ?? d.id,
+      //     ticket_no: d.ticket_no ?? `TCKT-${d.ticket_id ?? d.id}`,
+      //     module: d.module,
+      //     submodule: d.sub_module ?? d.submodule,
+      //     category: d.category,
+      //     comment: d.comment ?? d.comments,
+      //     status: d.status,
+      //     created_on: d.created_at ?? d.created_on,
+      //     updated_by: d.updated_by ?? d.updatedBy,
+      //     files: d.files ?? (d.screenshot_url ? [d.screenshot_url] : []),
+      //     replies: d.replies ?? d.replies_list ?? d.comments_list ?? [],
+      //     created_by: d.user_id ?? d.created_by ?? d.user?.id ?? 'unknown',
+      //     user: d.user
+      //       ? {
+      //           id: d.user.user_id,
+      //           username: d.user.username,
+      //           email: d.user.email
+      //         }
+      //       : null
+      //   };
+      // })
+
+      // Update the fetchTicketDetails.fulfilled case in ticketSlice.js
+.addCase(fetchTicketDetails.fulfilled, (state, action) => {
+  state.isLoading = false;
+  const d = action.payload ?? {};
+  state.ticketDetails = {
+    ticket_id: d.ticket_id ?? d.id,
+    ticket_no: d.ticket_no ?? `TCKT-${d.ticket_id ?? d.id}`,
+    module: d.module,
+    submodule: d.sub_module ?? d.submodule,
+    category: d.category,
+    comment: d.comment ?? d.comments,
+    status: d.status,
+    created_on: d.created_at ?? d.created_on,
+    updated_by: d.updated_by ?? d.updatedBy,
+    files: d.files ?? (d.screenshot_url ? [d.screenshot_url] : []),
+    replies: d.replies ?? d.replies_list ?? d.comments_list ?? [],
+    created_by: d.user_id ?? d.created_by ?? d.user?.id ?? 'unknown',
+    user: d.user
+      ? {
+          id: d.user.user_id,
+          username: d.user.username,
+          email: d.user.email
+        }
+      : null,
+    // ADD THESE SLA PROPERTIES:
+    response_at: d.response_at,
+    response_time_seconds: d.response_time_seconds,
+    resolved_at: d.resolved_at,
+    resolve_time_seconds: d.resolve_time_seconds,
+    sla: d.sla,
+    response_sla_met: d.response_sla_met,
+    resolve_sla_met: d.resolve_sla_met
+  };
+})
       .addCase(fetchTicketDetails.rejected, (state, action) => {
         state.isLoading = false;
         state.ticketDetails = null;
