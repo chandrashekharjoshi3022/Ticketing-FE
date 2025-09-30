@@ -782,36 +782,8 @@ export default function TicketRaise() {
                     </Grid>
 
                     <Divider sx={{ my: 1 }} />
-                    <Box display="flex" alignItems="center" justifyContent="space-between">
+                    <Box>
                       <CustomHeading>Conversation History</CustomHeading>
-
-                      <Box display="flex" alignItems="center" gap={2}>
-                        {/* Upload Button */}
-                        <input
-                          accept="image/*"
-                          style={{ display: 'none' }}
-                          id="upload-screenshot"
-                          type="file"
-                          onChange={handleFileUpload}
-                        />
-                        <label htmlFor="upload-screenshot">
-                          <Button variant="outlined" size="small" component="span" startIcon={<UploadFileIcon />}>
-                            Upload Screenshot
-                          </Button>
-                        </label>
-
-                        <FormControl size="small" sx={{ minWidth: 150 }}>
-                          <Select value={status} onChange={(e) => setStatus(e.target.value)} displayEmpty>
-                            <MenuItem value="">
-                              <em style={{ color: '#888' }}>Status</em>
-                            </MenuItem>
-                            <MenuItem value="open">Open</MenuItem>
-                            <MenuItem value="in_progress">In Progress</MenuItem>
-                            <MenuItem value="resolved">Resolved</MenuItem>
-                            <MenuItem value="closed">Closed</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Box>
                     </Box>
 
                     <DataGrid
@@ -888,8 +860,38 @@ export default function TicketRaise() {
                     {/* Show reply section only if user has permission and ticket is not closed */}
                     {(isAdmin || ticketDetails.user_id === userId) && ticketDetails.status !== 'Closed' && (
                       <>
-                        <Box sx={{ my: 3, backgroundColor: '#f8f9fa', borderRadius: 1 }}>
-                          <CustomHeading>Add Your Comment </CustomHeading>
+                        <Box display="flex" alignItems="center" justifyContent="space-between">
+                          <CustomHeading>Add Your Comment</CustomHeading>
+
+                          <Box display="flex" alignItems="center" gap={2}>
+                            {/* Upload Button */}
+                            <input
+                              accept="image/*"
+                              style={{ display: 'none' }}
+                              id="upload-screenshot"
+                              type="file"
+                              onChange={handleFileUpload}
+                            />
+                            <label htmlFor="upload-screenshot">
+                              <Button variant="outlined" size="small" component="span" startIcon={<UploadFileIcon />}>
+                                Upload Screenshot
+                              </Button>
+                            </label>
+
+                            <FormControl size="small" sx={{ minWidth: 150 }}>
+                              <Select value={status} onChange={(e) => setStatus(e.target.value)} displayEmpty>
+                                <MenuItem value="">
+                                  <em style={{ color: '#888' }}>Status</em>
+                                </MenuItem>
+                                <MenuItem value="open">Open</MenuItem>
+                                <MenuItem value="in_progress">In Progress</MenuItem>
+                                <MenuItem value="resolved">Resolved</MenuItem>
+                                <MenuItem value="closed">Closed</MenuItem>
+                              </Select>
+                            </FormControl>
+                          </Box>
+                        </Box>
+                        <Box sx={{ backgroundColor: '#f8f9fa', borderRadius: 1 }}>
                           <ReactQuill
                             value={replyMessage}
                             onChange={setReplyMessage}
