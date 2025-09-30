@@ -41,7 +41,7 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import PersonIcon from '@mui/icons-material/Person';
 import ReplyIcon from '@mui/icons-material/Reply';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
-import { formatDate } from 'components/DateFormate';
+import { formatDate, formatDateTime, formatDateTimeSplit } from 'components/DateFormate';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchTickets, fetchTicketDetails, createTicket, replyToTicket, clearTicketDetails } from '../../features/tickets/ticketSlice';
 import { selectUserRole, selectCurrentUser, selectIsInitialized } from '../../features/auth/authSlice';
@@ -298,10 +298,10 @@ export default function TicketRaise() {
 
   const getStatusChip = (status) => {
     const statusConfig = {
-      Open: { color: 'success', icon: <PendingActionsIcon sx={{ fontSize: 16 }} /> },
-      Pending: { color: 'warning', icon: <PendingActionsIcon sx={{ fontSize: 16 }} /> },
-      Closed: { color: 'error', icon: <CloseIcon sx={{ fontSize: 16 }} /> },
-      Resolved: { color: 'info', icon: <ReplyIcon sx={{ fontSize: 16 }} /> }
+      Open: { color: 'success' },
+      Pending: { color: 'warning' },
+      Closed: { color: 'error' },
+      Resolved: { color: 'info' }
     };
 
     const config = statusConfig[status] || statusConfig.Open;
@@ -318,47 +318,75 @@ export default function TicketRaise() {
     );
   };
 
-
+  // const renderDateWithSLA = (params, type) => {
+  //   const timeSeconds = type === 'response' ? params.row.response_time_seconds : params.row.resolve_time_seconds;
+  //   const targetMinutes = type === 'response' ? params.row.sla?.response_target_minutes : params.row.sla?.resolve_target_minutes;
+  //   const timestamp = type === 'response' ? params.row.response_at : params.row.resolved_at;
+  //   console.log(`Type: ${type}`, { timeSeconds, targetMinutes, timestamp });
+  //   if (!timeSeconds || !targetMinutes || !timestamp) {
+  //     return (
+  //       <Typography variant="body2" color="gray" fontWeight="bold">
+  //         {timestamp ? formatDate(timestamp) : 'Not set'}
+  //       </Typography>
+  //     );
+  //   }
+  //   const timeMinutes = timeSeconds / 60;
+  //   let color = 'gray';
+  //   let status = 'Not Set';
+  //   if (timeMinutes <= targetMinutes) {
+  //     color = 'green';
+  //     status = 'Within SLA';
+  //   } else if (timeMinutes <= targetMinutes * 1.1) {
+  //     color = 'orange';
+  //     status = 'Slightly Exceeded';
+  //   } else {
+  //     color = 'red';
+  //     status = 'Significantly Exceeded';
+  //   }
+  //   return (
+  //     <Typography variant="body2" style={{ color }} fontWeight="bold">
+  //       {`${formatDate(timestamp)} - ${status} (${timeMinutes.toFixed(1)} min / ${targetMinutes} min target)`}
+  //     </Typography>
+  //   );
+  // };
 
   const renderDateWithSLA = (params, type) => {
     const timeSeconds = type === 'response' ? params.row.response_time_seconds : params.row.resolve_time_seconds;
-
     const targetMinutes = type === 'response' ? params.row.sla?.response_target_minutes : params.row.sla?.resolve_target_minutes;
-
     const timestamp = type === 'response' ? params.row.response_at : params.row.resolved_at;
-
-    console.log(`Type: ${type}`, { timeSeconds, targetMinutes, timestamp });
-
-    if (!timeSeconds || !targetMinutes || !timestamp) {
-      return (
-        <Typography variant="body2" color="gray" fontWeight="bold">
-          {timestamp ? formatDate(timestamp) : 'Not set'}
-        </Typography>
-      );
-    }
-
     const timeMinutes = timeSeconds / 60;
     let color = 'gray';
-    let status = 'Not Set';
-
-    if (timeMinutes <= targetMinutes) {
-      color = 'green';
-      status = 'Within SLA';
-    } else if (timeMinutes <= targetMinutes * 1.1) {
-      color = 'orange';
-      status = 'Slightly Exceeded';
-    } else {
-      color = 'red';
-      status = 'Significantly Exceeded';
-    }
+    let status = '-';
 
     return (
-      <Typography variant="body2" style={{ color }} fontWeight="bold">
-        {`${formatDate(timestamp)} - ${status} (${timeMinutes.toFixed(1)} min / ${targetMinutes} min target)`}
-      </Typography>
+      <Tooltip title={`SLA Time ${targetMinutes || 'N/A'} Min`} arrow>
+        <Typography variant="body2" style={{ color }} fontWeight="bold">
+          {console.log('timeSeconds || !targetMinutes', timeSeconds, targetMinutes)}
+
+          {!timeSeconds || !targetMinutes
+            ? (() => {
+                const dt = formatDateTime(timestamp);
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span>{status}</span>
+                  </div>
+                );
+              })()
+            : (() => {
+                const dt = formatDateTime(timestamp);
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span>{dt.date}</span>
+                    <span>
+                      {dt.time} ({timeMinutes.toFixed(1)} min)
+                    </span>
+                  </div>
+                );
+              })()}
+        </Typography>
+      </Tooltip>
     );
   };
-
   // Columns definition
   const columns = [
     {
@@ -379,17 +407,15 @@ export default function TicketRaise() {
       headerName: 'Comments',
       width: 250,
       renderCell: (params) => (
-        <Typography
-          variant="body2"
-          sx={{
+        <div
+          style={{
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden'
           }}
-        >
-          {params.value}
-        </Typography>
+          dangerouslySetInnerHTML={{ __html: params.value }}
+        />
       )
     },
     {
@@ -397,48 +423,47 @@ export default function TicketRaise() {
       headerName: 'Created On',
       width: 120,
       renderCell: (params) => {
-        return formatDate(params?.value);
+        return formatDateTimeSplit(params?.value);
       }
     },
 
     {
       field: 'response_at',
-      headerName: 'Response At',
+      headerName: 'Response On',
       width: 200,
       renderCell: (params) => renderDateWithSLA(params, 'response')
     },
     {
       field: 'resolved_at',
-      headerName: 'Resolved At',
+      headerName: 'Resolved On',
       width: 200,
       renderCell: (params) => renderDateWithSLA(params, 'resolve')
     },
     // Show created by only for admin
     ...(isAdmin
       ? [
-        // {
-        //   field: 'created_by',
-        //   headerName: 'Created By',
-        //   width: 120,
-        //   renderCell: (params) => (
-        //     <Typography variant="body2" fontStyle="italic">
-        //       {params.row.user?.username || params.value || 'Unknown'}
-        //     </Typography>
-        //   )
-        // }
+          // {
+          //   field: 'created_by',
+          //   headerName: 'Created By',
+          //   width: 120,
+          //   renderCell: (params) => (
+          //     <Typography variant="body2" fontStyle="italic">
+          //       {params.row.user?.username || params.value || 'Unknown'}
+          //     </Typography>
+          //   )
+          // }
 
-
-        {
-          field: 'created_by',
-          headerName: 'Created By',
-          width: 120,
-          renderCell: (params) => (
-            <Typography variant="body2" fontStyle="italic">
-              {params.value || 'Unknown'}
-            </Typography>
-          )
-        }
-      ]
+          {
+            field: 'created_by',
+            headerName: 'Created By',
+            width: 120,
+            renderCell: (params) => (
+              <Typography variant="body2" fontStyle="italic">
+                {params.value || 'Unknown'}
+              </Typography>
+            )
+          }
+        ]
       : []),
     {
       field: 'status',
