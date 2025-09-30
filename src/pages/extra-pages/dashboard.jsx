@@ -23,9 +23,9 @@ export default function SamplePage() {
   }, [dispatch]);
 
   const totalTickets = tickets?.length || 0;
-  const openTickets = tickets?.filter((t) => t.status === 'open').length || 0;
+  const openTickets = tickets?.filter((t) => t.status === 'Open').length || 0;
   const pendingTickets = tickets?.filter((t) => t.status === 'Pending').length || 0;
-  const closedTickets = tickets?.filter((t) => t.status === 'closed').length || 0;
+  const closedTickets = tickets?.filter((t) => t.status === 'Closed').length || 0;
 
   if (loading) {
     return (
