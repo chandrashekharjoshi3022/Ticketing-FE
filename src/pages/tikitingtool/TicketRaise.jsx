@@ -863,8 +863,8 @@ export default function TicketRaise() {
                         <Box display="flex" alignItems="center" justifyContent="space-between">
                           <CustomHeading>Add Your Comment</CustomHeading>
 
-                          <Box display="flex" alignItems="center" gap={2}>
-                            {/* Upload Button */}
+                          {/* <Box display="flex" alignItems="center" gap={2}>
+                          
                             <input
                               accept="image/*"
                               style={{ display: 'none' }}
@@ -889,7 +889,7 @@ export default function TicketRaise() {
                                 <MenuItem value="closed">Closed</MenuItem>
                               </Select>
                             </FormControl>
-                          </Box>
+                          </Box> */}
                         </Box>
                         <Box sx={{ backgroundColor: '#f8f9fa', borderRadius: 1 }}>
                           <ReactQuill
@@ -909,7 +909,7 @@ export default function TicketRaise() {
                           <Button
                             variant="contained"
                             onClick={handleReplySubmit}
-                            // disabled={isSubmittingReply || !replyMessage.trim()}
+                        
                             startIcon={isSubmittingReply ? <CircularProgress size={16} /> : <ReplyIcon />}
                           >
                             {isSubmittingReply ? 'Sending...' : 'Send Reply'}

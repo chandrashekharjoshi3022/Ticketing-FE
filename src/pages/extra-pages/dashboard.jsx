@@ -24,8 +24,9 @@ export default function SamplePage() {
 
   const totalTickets = tickets?.length || 0;
   const openTickets = tickets?.filter((t) => t.status === 'Open').length || 0;
-  const pendingTickets = tickets?.filter((t) => t.status === 'Pending').length || 0;
+  const pendingTickets = tickets?.filter((t) => t.status === 'In Progress').length || 0;
   const closedTickets = tickets?.filter((t) => t.status === 'Closed').length || 0;
+  const ResolvedTickets = tickets?.filter((t) => t.status === 'Resolved').length || 0;
 
   if (loading) {
     return (
@@ -152,6 +153,28 @@ export default function SamplePage() {
                 <Typography variant="h6">Closed Tickets</Typography>
                 <Typography variant="h4" color="error.main" fontWeight="bold">
                   {closedTickets}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+            <Grid item xs={12} sm={3}>
+            <Card>
+              <CardContent
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center'
+                }}
+              >
+               <Box>
+                  <LockOpenIcon color="success" fontSize="large" />
+                </Box>
+                <Typography variant="h6">Resolved Tickets</Typography>
+                <Typography variant="h4" color="error.main" fontWeight="bold">
+                  {ResolvedTickets}
                 </Typography>
               </CardContent>
             </Card>
