@@ -318,75 +318,54 @@ export default function TicketRaise() {
     );
   };
 
-  // const renderDateWithSLA = (params, type) => {
-  //   const timeSeconds = type === 'response' ? params.row.response_time_seconds : params.row.resolve_time_seconds;
-  //   const targetMinutes = type === 'response' ? params.row.sla?.response_target_minutes : params.row.sla?.resolve_target_minutes;
-  //   const timestamp = type === 'response' ? params.row.response_at : params.row.resolved_at;
-  //   console.log(`Type: ${type}`, { timeSeconds, targetMinutes, timestamp });
-  //   if (!timeSeconds || !targetMinutes || !timestamp) {
-  //     return (
-  //       <Typography variant="body2" color="gray" fontWeight="bold">
-  //         {timestamp ? formatDate(timestamp) : 'Not set'}
-  //       </Typography>
-  //     );
-  //   }
-  //   const timeMinutes = timeSeconds / 60;
-  //   let color = 'gray';
-  //   let status = 'Not Set';
-  //   if (timeMinutes <= targetMinutes) {
-  //     color = 'green';
-  //     status = 'Within SLA';
-  //   } else if (timeMinutes <= targetMinutes * 1.1) {
-  //     color = 'orange';
-  //     status = 'Slightly Exceeded';
-  //   } else {
-  //     color = 'red';
-  //     status = 'Significantly Exceeded';
-  //   }
-  //   return (
-  //     <Typography variant="body2" style={{ color }} fontWeight="bold">
-  //       {`${formatDate(timestamp)} - ${status} (${timeMinutes.toFixed(1)} min / ${targetMinutes} min target)`}
-  //     </Typography>
-  //   );
-  // };
-
   const renderDateWithSLA = (params, type) => {
     const timeSeconds = type === 'response' ? params.row.response_time_seconds : params.row.resolve_time_seconds;
+
     const targetMinutes = type === 'response' ? params.row.sla?.response_target_minutes : params.row.sla?.resolve_target_minutes;
+
     const timestamp = type === 'response' ? params.row.response_at : params.row.resolved_at;
+
+    if (!timeSeconds || !targetMinutes || !timestamp) {
+      return (
+        <Tooltip title="No SLA data" arrow>
+          <Typography variant="body2" color="gray" fontWeight="bold">
+            {timestamp ? formatDate(timestamp) : '-'}
+          </Typography>
+        </Tooltip>
+      );
+    }
+
     const timeMinutes = timeSeconds / 60;
     let color = 'gray';
     let status = '-';
 
-    return (
-      <Tooltip title={`SLA Time ${targetMinutes || 'N/A'} Min`} arrow>
-        <Typography variant="body2" style={{ color }} fontWeight="bold">
-          {console.log('timeSeconds || !targetMinutes', timeSeconds, targetMinutes)}
+    if (timeMinutes <= targetMinutes) {
+      color = 'green';
+      status = 'Within SLA';
+    } else if (timeMinutes <= targetMinutes * 1.1) {
+      color = 'orange';
+      status = 'Slightly Exceeded';
+    } else {
+      color = 'red';
+      status = 'Significantly Exceeded';
+    }
 
-          {!timeSeconds || !targetMinutes
-            ? (() => {
-                const dt = formatDateTime(timestamp);
-                return (
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span>{status}</span>
-                  </div>
-                );
-              })()
-            : (() => {
-                const dt = formatDateTime(timestamp);
-                return (
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span>{dt.date}</span>
-                    <span>
-                      {dt.time} ({timeMinutes.toFixed(1)} min)
-                    </span>
-                  </div>
-                );
-              })()}
+    const dt = formatDateTime(timestamp); // returns { date, time }
+
+    return (
+      <Tooltip title={`SLA Time: ${targetMinutes} min`} arrow>
+        <Typography variant="body2" style={{ color }} fontWeight="bold" component="div">
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span>{dt.date}</span>
+            <span>
+              {dt.time} ({timeMinutes.toFixed(1)} min )
+            </span>
+          </div>
         </Typography>
       </Tooltip>
     );
   };
+
   // Columns definition
   const columns = [
     {
