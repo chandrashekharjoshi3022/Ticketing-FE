@@ -21,7 +21,11 @@ import {
   Chip,
   Alert,
   CircularProgress,
-  Tooltip
+  Tooltip,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select
 } from '@mui/material';
 import MainCard from 'components/MainCard';
 import { DataGrid } from '@mui/x-data-grid';
@@ -46,6 +50,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchTickets, fetchTicketDetails, createTicket, replyToTicket, clearTicketDetails } from '../../features/tickets/ticketSlice';
 import { selectUserRole, selectCurrentUser, selectIsInitialized } from '../../features/auth/authSlice';
 import TicketForm from './TicketForm';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 
 export default function TicketRaise() {
   const navigate = useNavigate();
@@ -82,7 +87,7 @@ export default function TicketRaise() {
   const [isSubmittingReply, setIsSubmittingReply] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [showTicketForm, setShowTicketForm] = useState(false);
-
+  const [status, setStatus] = useState('');
   // Check if user is admin
   const isAdmin = userRole === 'admin';
   const userId = currentUser?.id;
@@ -317,7 +322,14 @@ export default function TicketRaise() {
       />
     );
   };
-
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      console.log('Uploaded file:', file);
+      console.log('Selected status:', status);
+      // 👉 Handle upload + status together here
+    }
+  };
   const renderDateWithSLA = (params, type) => {
     const timeSeconds = type === 'response' ? params.row.response_time_seconds : params.row.resolve_time_seconds;
 
@@ -770,8 +782,37 @@ export default function TicketRaise() {
                     </Grid>
 
                     <Divider sx={{ my: 1 }} />
+                    <Box display="flex" alignItems="center" justifyContent="space-between">
+                      <CustomHeading>Conversation History</CustomHeading>
 
-                    <CustomHeading>Conversation History</CustomHeading>
+                      <Box display="flex" alignItems="center" gap={2}>
+                        {/* Upload Button */}
+                        <input
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          id="upload-screenshot"
+                          type="file"
+                          onChange={handleFileUpload}
+                        />
+                        <label htmlFor="upload-screenshot">
+                          <Button variant="outlined" size="small" component="span" startIcon={<UploadFileIcon />}>
+                            Upload Screenshot
+                          </Button>
+                        </label>
+
+                        <FormControl size="small" sx={{ minWidth: 150 }}>
+                          <Select value={status} onChange={(e) => setStatus(e.target.value)} displayEmpty>
+                            <MenuItem value="">
+                              <em style={{ color: '#888' }}>Status</em>
+                            </MenuItem>
+                            <MenuItem value="open">Open</MenuItem>
+                            <MenuItem value="in_progress">In Progress</MenuItem>
+                            <MenuItem value="resolved">Resolved</MenuItem>
+                            <MenuItem value="closed">Closed</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Box>
+                    </Box>
 
                     <DataGrid
                       autoHeight
