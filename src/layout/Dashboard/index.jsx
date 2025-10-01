@@ -50,23 +50,22 @@ export default function MainLayout() {
         <Header />
         {!isHorizontal ? <Drawer /> : <HorizontalBar />}
 
-        <Box component="main" sx={{ width: `calc(100% - ${DRAWER_WIDTH}px)`, flexGrow: 1, p: { xs: 2, md: 3 } }}>
-          <Toolbar sx={{ mt: isHorizontal ? 8 : 'inherit', mb: isHorizontal ? 2 : 'inherit' }} />
-          <Container
-            maxWidth={container ? 'xl' : false}
+        <Box component="main" sx={{ width: `calc(100% - ${DRAWER_WIDTH - 25}px)`, flexGrow: 1 }}>
+          <Toolbar />
+          <Box
+            fullWidth
             sx={{
               xs: 0,
-              ...(container && { px: { xs: 0, md: 2 } }),
+              px: { xs: 0, md: 0 },
               position: 'relative',
               minHeight: 'calc(100vh - 110px)',
+              maxWidth: '100vw',
               display: 'flex',
-              flexDirection: 'column'
+              flexDirection: 'column',
             }}
           >
-            <Breadcrumbs />
             <Outlet />
-            <Footer />
-          </Container>
+          </Box>
         </Box>
       </Box>
     </AuthGuard>

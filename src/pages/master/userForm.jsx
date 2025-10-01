@@ -25,6 +25,8 @@ import { Formik, Field, Form, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import SubmitButton from 'components/CustomSubmitBtn';
 import CancelButton from 'components/CustomCancelButton';
+import FieldPadding from 'components/FieldPadding';
+import SelectFieldPadding from 'components/selectFieldPadding';
 
 const initialFormValues = {
   userName: '',
@@ -202,17 +204,6 @@ export default function UserForm({ onClose, formMode }) {
         </TableCell>
       </TableRow>
     </TableHead>
-  );
-
-  // Simple styled components for the form
-  const FieldPadding = ({ field, form, ...props }) => (
-    <TextField {...field} {...props} size="small" sx={{ '& .MuiInputBase-input': { padding: '8px 12px' } }} />
-  );
-
-  const SelectFieldPadding = ({ field, form, children, ...props }) => (
-    <Select {...field} {...props} size="small" sx={{ '& .MuiSelect-select': { padding: '8px 12px' } }}>
-      {children}
-    </Select>
   );
 
   const CustomNumberField = ({ field, form, ...props }) => (
@@ -532,15 +523,10 @@ export default function UserForm({ onClose, formMode }) {
             </Table>
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
-              <SubmitButton
-                variant="contained"
-                type="submit"
-                disabled={isSubmitting}
-             
-              >
+              <SubmitButton variant="contained" type="submit" disabled={isSubmitting}>
                 {formMode === 'create' ? 'Submit' : 'Update'}
               </SubmitButton>
-              <CancelButton  type="button" onClick={onClose}>
+              <CancelButton type="button" onClick={onClose}>
                 Cancel
               </CancelButton>
             </Box>

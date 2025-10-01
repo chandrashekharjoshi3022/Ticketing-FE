@@ -38,17 +38,9 @@ export default function Header() {
 
   // common header
   const mainHeader = (
-    <Toolbar sx={{ px: { xs: 2, sm: 4.5, lg: 8 } }}>
+    <Toolbar sx={{ px: { xs: 2, sm: 4, lg: 4 } }}>
       {!isHorizontal ? (
-        <IconButton
-          aria-label="open drawer"
-          onClick={() => handlerDrawerOpen(!drawerOpen)}
-          edge="start"
-          color="secondary"
-          // variant="light"
-          // size="large"
-          // sx={{ color: 'secondary.main', bgcolor: drawerOpen ? iconBackColorOpen : iconBackColor, ml: { xs: 0, lg: -2 }, p: 1 }}
-        >
+        <IconButton aria-label="open drawer" onClick={() => handlerDrawerOpen(!drawerOpen)} edge="start" color="secondary">
           <HambergerMenu />
         </IconButton>
       ) : null}
@@ -61,12 +53,19 @@ export default function Header() {
     position: 'fixed',
     elevation: 0,
     sx: {
-      bgcolor: alpha(theme.palette.background.default, 0.8),
+      // bgcolor: '#B1C9DD',
+      // background:
+      //   'linear-gradient(180deg, rgba(204,220,235,1) 25%, rgba(197,215,232,1) 50%, rgba(187,207,227,1) 75%, rgba(176,199,221,1) 88%)',
+      background: '#A7AAE1',
+
       backdropFilter: 'blur(8px)',
-      zIndex: 1200,
+      // zIndex: 9999,
       width: isHorizontal
         ? '100%'
-        : { xs: '100%', lg: drawerOpen ? `calc(100% - ${DRAWER_WIDTH}px)` : `calc(100% - ${MINI_DRAWER_WIDTH}px)` }
+        : { xs: '100%', lg: drawerOpen ? `calc(100% - ${DRAWER_WIDTH - 25}px)` : `calc(100% - ${MINI_DRAWER_WIDTH - 25}px)` },
+      height: '50px',
+      display: 'flex',
+      justifyContent: 'center'
     }
   };
 

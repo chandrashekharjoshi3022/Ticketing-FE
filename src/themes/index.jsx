@@ -53,15 +53,12 @@ export default function ThemeCustomization({ children }) {
       direction: themeDirection,
       mixins: {
         toolbar: {
-          minHeight: HEADER_HEIGHT,
-          paddingTop: 8,
-          paddingBottom: 8
+          minHeight: '50px',
+          paddingTop: 4,
+          paddingBottom: 4
         }
       },
       palette: theme.palette,
-      shape: {
-        borderRadius: 8
-      },
       customShadows: themeCustomShadows,
       typography: themeTypography
     }),

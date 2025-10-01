@@ -45,8 +45,8 @@ export default function CustomAppBar() {
         sx={{
           top: HEADER_HEIGHT,
           height: HEADER_HEIGHT,
-          bgcolor: alpha(theme.palette.background.default, 0.8),
-          backdropFilter: 'blur(8px)',
+          // bgcolor: alpha(theme.palette.background.default, 0.8),
+          // backdropFilter: 'blur(8px)',
           width: '100%',
           justifyContent: 'center',
           borderTop: `1px solid ${theme.palette.divider}`,

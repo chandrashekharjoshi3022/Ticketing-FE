@@ -51,6 +51,7 @@ import { fetchTickets, fetchTicketDetails, createTicket, replyToTicket, clearTic
 import { selectUserRole, selectCurrentUser, selectIsInitialized } from '../../features/auth/authSlice';
 import TicketForm from './TicketForm';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
+import ImageCell from './ImageCell';
 
 export default function TicketRaise() {
   const navigate = useNavigate();
@@ -390,9 +391,10 @@ export default function TicketRaise() {
         </Typography>
       )
     },
-    { field: 'module', headerName: 'Module', width: 120 },
-    { field: 'submodule', headerName: 'Sub Module', width: 200 },
-    { field: 'category', headerName: 'Category', width: 200 },
+    { field: 'category', headerName: 'Category', width: 120 },
+    { field: 'submodule', headerName: 'Sub Category', width: 200 },
+    { field: 'issueType', headerName: 'Issue Type', width: 200 },
+    { field: 'priority', headerName: 'Priority', width: 200 },
     {
       field: 'comments',
       headerName: 'Comments',
@@ -412,7 +414,7 @@ export default function TicketRaise() {
     {
       field: 'created_on',
       headerName: 'Created On',
-      width: 120,
+      width: 110,
       renderCell: (params) => {
         return formatDateTimeSplit(params?.value);
       }
@@ -509,13 +511,19 @@ export default function TicketRaise() {
         />
       )
     },
+    {
+      field: 'allImages',
+      headerName: 'Images',
+      width: 200,
+      renderCell: (params) => <ImageCell images={params.value || []} />
+    },
     { field: 'created_by', headerName: 'Created By', width: 120 },
     {
       field: 'created_on',
       headerName: 'Created On',
-      width: 130,
+      width: 110,
       renderCell: (params) => {
-        return formatDate(params?.value);
+        return formatDateTimeSplit(params?.value);
       }
     }
     // {
@@ -527,7 +535,7 @@ export default function TicketRaise() {
   ];
 
   const renderTableHeader = (sectionName, sectionLabel) => (
-    <TableHead sx={{ backgroundColor: '#EAF1F6', borderBottom: '2px solid #ddd' }}>
+    <TableHead sx={{ backgroundColor: '#f1f2ff', borderBottom: '2px solid #ddd' }}>
       <TableRow>
         <TableCell sx={{ padding: 0, paddingLeft: '16px' }} colSpan={12}>
           <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -576,19 +584,19 @@ export default function TicketRaise() {
               <Box display="flex" alignItems="center" gap={1}>
                 <Typography variant="h4" fontWeight={600}>
                   <PendingActionsIcon sx={{ mr: 1, verticalAlign: 'bottom' }} />
-                  Ticket Management
+                  {showTicketForm ? ' Raise Ticket ' : ' Raise Ticket View'}
                 </Typography>
                 <Box display="flex" alignItems="center" gap={1} sx={{ ml: 2 }}>
                   <Typography variant="body2" color="textSecondary">
                     Welcome, {currentUser?.username}
                   </Typography>
-                  <Chip
+                  {/* <Chip
                     icon={isAdmin ? <AdminPanelSettingsIcon /> : <PersonIcon />}
                     label={isAdmin ? 'admin' : 'User'}
                     color={isAdmin ? 'primary' : 'default'}
                     size="small"
                     variant="outlined"
-                  />
+                  /> */}
                 </Box>
               </Box>
               <Box>
@@ -620,7 +628,7 @@ export default function TicketRaise() {
 
             {!showTicketForm ? (
               <Box>
-                <Table sx={{ mb: 1 }}>{renderTableHeader('ticketView', 'Ticket Management')}</Table>
+                <Table sx={{ mb: 1 }}>{renderTableHeader('ticketView', '')}</Table>
 
                 {showTableBodies.ticketView && (
                   <Paper sx={{ mb: 2, boxShadow: 2 }}>
@@ -737,7 +745,9 @@ export default function TicketRaise() {
                       </Grid>
                       <Grid item xs={12} md={3}>
                         <CustomParagraphDark>Created On:</CustomParagraphDark>
-                        <CustomParagraphLight>{ticketDetails.created_on ? formatDate(ticketDetails.created_on) : '-'}</CustomParagraphLight>
+                        <CustomParagraphLight>
+                          {ticketDetails.created_on ? formatDateTimeSplit(ticketDetails.created_on) : '-'}
+                        </CustomParagraphLight>
                       </Grid>
                       {isAdmin && (
                         <Grid item xs={12} md={2}>
@@ -863,8 +873,7 @@ export default function TicketRaise() {
                         <Box display="flex" alignItems="center" justifyContent="space-between">
                           <CustomHeading>Add Your Comment</CustomHeading>
 
-                          {/* <Box display="flex" alignItems="center" gap={2}>
-                          
+                          <Box display="flex" alignItems="center" gap={2}>
                             <input
                               accept="image/*"
                               style={{ display: 'none' }}
@@ -889,7 +898,7 @@ export default function TicketRaise() {
                                 <MenuItem value="closed">Closed</MenuItem>
                               </Select>
                             </FormControl>
-                          </Box> */}
+                          </Box>
                         </Box>
                         <Box sx={{ backgroundColor: '#f8f9fa', borderRadius: 1 }}>
                           <ReactQuill
@@ -909,7 +918,6 @@ export default function TicketRaise() {
                           <Button
                             variant="contained"
                             onClick={handleReplySubmit}
-                        
                             startIcon={isSubmittingReply ? <CircularProgress size={16} /> : <ReplyIcon />}
                           >
                             {isSubmittingReply ? 'Sending...' : 'Send Reply'}

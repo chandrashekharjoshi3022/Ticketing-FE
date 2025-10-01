@@ -11,9 +11,19 @@ import Typography from '@mui/material/Typography';
 
 // project-imports
 import useConfig from 'hooks/useConfig';
+import { padding } from '@mui/system';
+import { color } from 'framer-motion';
 
 // header style
-const headerSX = { p: 2.5, '& .MuiCardHeader-action': { m: '0px auto', alignSelf: 'center' } };
+const headerSX = {
+  pl: 1,
+  pr: 1,
+  pt: 0.2,
+  pb: 0.2,
+  bgcolor: '#dee0ff',
+  color: 'black',
+  '& .MuiCardHeader-action': { m: '0px 0px', alignSelf: 'center' }
+};
 
 // ==============================|| CUSTOM - MAIN CARD ||============================== //
 
@@ -30,7 +40,7 @@ function MainCard(
     elevation,
     secondary,
     shadow,
-    sx = {},
+    sx = { padding: 0 },
     title,
     codeHighlight = false,
     codeString,
@@ -48,9 +58,10 @@ function MainCard(
       ref={ref}
       {...others}
       sx={{
+        backgroundColor: '#fafbfb',
         position: 'relative',
         border: border ? '1px solid' : 'none',
-        borderRadius: 1.5,
+        margin: '6px',
         borderColor: theme.palette.divider,
         ...(((themeContrast && boxShadow) || shadow) && {
           boxShadow: shadow ? shadow : theme.customShadows.z1
@@ -58,7 +69,7 @@ function MainCard(
         ...(codeHighlight && {
           '& pre': {
             m: 0,
-            p: '12px !important',
+            p: '5px !important',
             fontFamily: theme.typography.fontFamily,
             fontSize: '0.75rem'
           }
@@ -80,15 +91,15 @@ function MainCard(
     >
       {/* card header and action */}
       {!darkTitle && title && (
-        <CardHeader sx={headerSX} titleTypographyProps={{ variant: 'subtitle1' }} title={title} action={secondary} subheader={subheader} />
+        <CardHeader sx={headerSX} titleTypographyProps={{ variant: 'h5' }} title={title} action={secondary} subheader={subheader} />
       )}
-      {darkTitle && title && <CardHeader sx={headerSX} title={<Typography variant="h4">{title}</Typography>} action={secondary} />}
+      {darkTitle && title && <CardHeader sx={headerSX} title={<Typography variant="h5">{title}</Typography>} action={secondary} />}
 
       {/* content & header divider */}
       {title && divider && <Divider />}
 
       {/* card content */}
-      {content && <CardContent sx={contentSX}>{children}</CardContent>}
+      {content && <CardContent sx={{ padding: 1, paddingBottom: '0 !important' }}>{children}</CardContent>}
       {!content && children}
 
       {/* card footer - clipboard & highlighter  */}

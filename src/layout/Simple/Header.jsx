@@ -81,7 +81,7 @@ export default function Header({ layout = 'landing', ...others }) {
       <AppBar
         sx={{
           bgcolor: alpha(theme.palette.background.default, 0.1),
-          backdropFilter: 'blur(8px)',
+          // backdropFilter: 'blur(8px)',
           color: theme.palette.text.primary,
           boxShadow: 'none'
         }}
@@ -179,9 +179,9 @@ export default function Header({ layout = 'landing', ...others }) {
               <Typography sx={{ textAlign: 'left', display: 'inline-block' }}>
                 <Logo to="/" />
               </Typography>
-              <Stack direction="row" spacing={2}>
+              <Stack direction="row" spacing={1}>
                 {layout === 'component' && (
-                  <Button variant="outlined" color="warning" component={RouterLink} to={APP_DEFAULT_PATH} sx={{ mt: 0.25 }}>
+                  <Button variant="outlined" color="warning" component={RouterLink} to={APP_DEFAULT_PATH} sx={{ mt: 0.1 }}>
                     Dashboard
                   </Button>
                 )}
