@@ -306,11 +306,12 @@ export default function TicketRaise() {
     if (!tickets) return [];
 
     let filtered = tickets;
-
     // Apply status filter
     if (activeTab !== 'All') {
       filtered = filtered.filter((ticket) => ticket.status === activeTab);
     }
+
+    
 
     return filtered;
   };
@@ -435,10 +436,10 @@ export default function TicketRaise() {
         </Typography>
       )
     },
-    { field: 'category', headerName: 'Category', width: 120 },
+    { field: 'module', headerName: 'Category', width: 120 },
     { field: 'submodule', headerName: 'Sub Category', width: 200 },
-    { field: 'issueType', headerName: 'Issue Type', width: 200 },
-    { field: 'priority', headerName: 'Priority', width: 200 },
+    { field: 'category', headerName: 'Issue Type', width: 200 },
+    // { field: 'priority', headerName: 'Priority', width: 200 },
     {
       field: 'comments',
       headerName: 'Comments',
@@ -900,13 +901,13 @@ export default function TicketRaise() {
                       disableColumnMenu
                     />
 
-                    {/* Show reply section only if user has permission and ticket is not closed */}
+                   
                     {(isAdmin || ticketDetails.user_id === userId) && ticketDetails.status !== 'Closed' && (
                       <>
-                        {/* <Box display="flex" alignItems="center" justifyContent="space-between">
+                       <Box display="flex" alignItems="center" justifyContent="space-between">
                           <CustomHeading>Add Your Comment</CustomHeading>
 
-                          <Box display="flex" alignItems="center" gap={2}>
+                          {/* <Box display="flex" alignItems="center" gap={2}>
                             <input
                               accept="image/*"
                               style={{ display: 'none' }}
@@ -931,7 +932,72 @@ export default function TicketRaise() {
                                 <MenuItem value="closed">Closed</MenuItem>
                               </Select>
                             </FormControl>
-                          </Box>
+                          </Box> */}
+
+                          <Box display="flex" alignItems="center" gap={2}>
+  {/* Multiple file upload */}
+  <input
+    accept="image/*,.pdf,.doc,.docx"
+    style={{ display: 'none' }}
+    id="upload-screenshot"
+    type="file"
+    multiple
+    onChange={handleFileUpload}
+  />
+  <label htmlFor="upload-screenshot">
+    <Button variant="outlined" size="small" component="span" startIcon={<UploadFileIcon />}>
+      Upload Files ({attachedFiles.length})
+    </Button>
+  </label>
+
+  {/* Status dropdown - Fixed version */}
+  <FormControl size="small" sx={{ minWidth: 150 }}>
+    <InputLabel>Status</InputLabel>
+    <Select
+      value={status}
+      onChange={(e) => setStatus(e.target.value)}
+      label="Status"
+    >
+      <MenuItem value="">
+        <em>Select Status</em>
+      </MenuItem>
+
+      {/* For regular users - only show Closed option */}
+      {!isAdmin && (
+        <MenuItem value="Closed">Closed</MenuItem>
+      )}
+
+      {/* For admin users - show all status options as array (no Fragment) */}
+      {isAdmin && [
+        <MenuItem key="Open" value="Open">Open</MenuItem>,
+        <MenuItem key="In Progress" value="In Progress">In Progress</MenuItem>,
+        <MenuItem key="Pending" value="Pending">Pending</MenuItem>,
+        <MenuItem key="Resolved" value="Resolved">Resolved</MenuItem>,
+        <MenuItem key="Closed" value="Closed">Closed</MenuItem>
+      ]}
+    </Select>
+  </FormControl>
+
+  {/* Assign dropdown (admin only) */}
+  {isAdmin && (
+    <FormControl size="small" sx={{ minWidth: 150 }}>
+      <InputLabel>Assign to</InputLabel>
+      <Select
+        value={assign}
+        onChange={(e) => setAssign(e.target.value)}
+        label="Assign to"
+      >
+        <MenuItem value="">
+          <em>Select Assignee</em>
+        </MenuItem>
+        <MenuItem value="rohan">Rohan</MenuItem>
+        <MenuItem value="amit">Amit</MenuItem>
+        <MenuItem value="chandra">Chandra</MenuItem>
+        <MenuItem value="pooja">Pooja</MenuItem>
+      </Select>
+    </FormControl>
+  )}
+</Box>
                         </Box>
                         <Box sx={{ backgroundColor: '#f8f9fa', borderRadius: 1 }}>
                           <ReactQuill
