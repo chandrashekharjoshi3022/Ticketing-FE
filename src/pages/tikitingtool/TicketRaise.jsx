@@ -142,6 +142,49 @@ export default function TicketRaise() {
   };
 
 
+  // In your TicketRaise.jsx, update the rows creation:
+
+
+
+    // --- Build conversation rows safely only when ticketDetails exists ---
+  const conversationRows = React.useMemo(() => {
+    if (!ticketDetails) return [];
+
+    // Initial ticket comment with its documents
+    const initialRow = {
+      id: `initial-${ticketDetails.ticket_id ?? 't'}`,
+      comments: ticketDetails.comment ?? '',
+      created_by: ticketDetails.created_by ?? ticketDetails.creator?.username ?? 'User',
+      created_on: ticketDetails.created_on ?? ticketDetails.createdAt ?? '',
+      status: ticketDetails.status ?? '',
+      allImages: ticketDetails.documents ?? ticketDetails.images ?? [] // ticket-level documents
+    };
+
+    const replyRows = (ticketDetails.replies || []).map((reply, index) => {
+      let displayName = 'User';
+      if (reply.sender_type === 'system') {
+        displayName = 'System';
+      } else if (reply.sender?.username) {
+        displayName = reply.sender.username;
+      } else if (reply.sender_type === 'admin') {
+        displayName = 'Admin';
+      }
+
+      return {
+        id: reply.reply_id ?? `reply-${index}`,
+        comments: reply.message ?? reply.comment ?? '',
+        created_by: displayName,
+        created_on: reply.created_at ?? reply.created_on ?? '',
+        status: reply.status ?? '',
+        allImages: reply.documents ?? reply.images ?? [] // reply-specific documents
+      };
+    });
+
+    return [initialRow, ...replyRows].map((row, i) => ({ ...row, sr_no: i + 1 }));
+  }, [ticketDetails]);
+
+
+
 
   const handleView = async (row) => {
     // Debug: Log the values to see what's happening
@@ -311,7 +354,7 @@ export default function TicketRaise() {
       filtered = filtered.filter((ticket) => ticket.status === activeTab);
     }
 
-    
+
 
     return filtered;
   };
@@ -794,16 +837,21 @@ export default function TicketRaise() {
                         <Box sx={{ marginLeft: '10px' }} dangerouslySetInnerHTML={{ __html: ticketDetails.comment }} />
                       </Grid>
 
-                      {ticketDetails.files && ticketDetails.files.length > 0 && (
+
+
+
+
+
+                      {ticketDetails.documents && ticketDetails.documents.length > 0 && (
                         <Grid item xs={12}>
                           <CustomParagraphDark>Attachments:</CustomParagraphDark>
                           <Grid container spacing={1} sx={{ mt: 1 }}>
-                            {ticketDetails.files.map((imgUrl, index) => (
-                              <Grid item xs={6} sm={4} md={3} key={index}>
+                            {ticketDetails.documents.map((doc, index) => (
+                              <Grid item xs={6} sm={4} md={3} key={doc.document_id || index}>
                                 <Box
                                   component="img"
-                                  src={imgUrl}
-                                  alt={`Attachment ${index + 1}`}
+                                  src={doc.doc_base64} // Direct path from database
+                                  alt={doc.doc_name}
                                   sx={{
                                     width: '100%',
                                     height: 120,
@@ -816,13 +864,22 @@ export default function TicketRaise() {
                                       opacity: 0.8
                                     }
                                   }}
-                                  onClick={() => window.open(imgUrl, '_blank')}
+                                  onClick={() => window.open(doc.doc_base64, '_blank')}
+                                  onError={(e) => {
+                                    console.error('Failed to load image:', doc.doc_base64);
+                                    e.target.style.display = 'none';
+                                  }}
                                 />
+                                <Typography variant="caption" display="block" textAlign="center">
+                                  {doc.doc_name}
+                                </Typography>
                               </Grid>
                             ))}
                           </Grid>
                         </Grid>
                       )}
+
+
                     </Grid>
 
                     <Divider sx={{ my: 1 }} />
@@ -830,7 +887,7 @@ export default function TicketRaise() {
                       <CustomHeading>Conversation History</CustomHeading>
                     </Box>
 
-                    <DataGrid
+                    {/* <DataGrid
                       autoHeight
                       getRowHeight={() => 'auto'}
                       sx={{
@@ -899,12 +956,50 @@ export default function TicketRaise() {
                       ]}
                       hideFooter
                       disableColumnMenu
-                    />
+                    /> */}
 
-                   
+
+                  
+
+<DataGrid
+  autoHeight
+  getRowHeight={() => 'auto'}
+  sx={{
+    '& .MuiDataGrid-cell': {
+      border: '1px solid rgba(224, 224, 224, 1)',
+      display: 'flex',
+      alignItems: 'center'
+    },
+    '& .MuiDataGrid-columnHeader': {
+      backgroundColor: '#f5f5f5',
+      border: '1px solid rgba(224, 224, 224, 1)',
+      height: '40px'
+    },
+    mb: 3,
+    mt: 1
+  }}
+  rows={conversationRows} // Use the conversationRows we defined
+  columns={[
+    {
+      field: 'sr_no',
+      headerName: 'Sr. No.',
+      width: 70,
+      renderCell: (params) => (
+        <Typography variant="body2" fontWeight="bold">
+          {params.value}
+        </Typography>
+      )
+    },
+    ...commentColumn.filter((col) => col.field !== 'id') // exclude old id column
+  ]}
+  hideFooter
+  disableColumnMenu
+/>
+
+
                     {(isAdmin || ticketDetails.user_id === userId) && ticketDetails.status !== 'Closed' && (
                       <>
-                       <Box display="flex" alignItems="center" justifyContent="space-between">
+                        <Box display="flex" alignItems="center" justifyContent="space-between">
                           <CustomHeading>Add Your Comment</CustomHeading>
 
                           {/* <Box display="flex" alignItems="center" gap={2}>
@@ -935,69 +1030,69 @@ export default function TicketRaise() {
                           </Box> */}
 
                           <Box display="flex" alignItems="center" gap={2}>
-  {/* Multiple file upload */}
-  <input
-    accept="image/*,.pdf,.doc,.docx"
-    style={{ display: 'none' }}
-    id="upload-screenshot"
-    type="file"
-    multiple
-    onChange={handleFileUpload}
-  />
-  <label htmlFor="upload-screenshot">
-    <Button variant="outlined" size="small" component="span" startIcon={<UploadFileIcon />}>
-      Upload Files ({attachedFiles.length})
-    </Button>
-  </label>
+                            {/* Multiple file upload */}
+                            <input
+                              accept="image/*,.pdf,.doc,.docx"
+                              style={{ display: 'none' }}
+                              id="upload-screenshot"
+                              type="file"
+                              multiple
+                              onChange={handleFileUpload}
+                            />
+                            <label htmlFor="upload-screenshot">
+                              <Button variant="outlined" size="small" component="span" startIcon={<UploadFileIcon />}>
+                                Upload Files ({attachedFiles.length})
+                              </Button>
+                            </label>
 
-  {/* Status dropdown - Fixed version */}
-  <FormControl size="small" sx={{ minWidth: 150 }}>
-    <InputLabel>Status</InputLabel>
-    <Select
-      value={status}
-      onChange={(e) => setStatus(e.target.value)}
-      label="Status"
-    >
-      <MenuItem value="">
-        <em>Select Status</em>
-      </MenuItem>
+                            {/* Status dropdown - Fixed version */}
+                            <FormControl size="small" sx={{ minWidth: 150 }}>
+                              <InputLabel>Status</InputLabel>
+                              <Select
+                                value={status}
+                                onChange={(e) => setStatus(e.target.value)}
+                                label="Status"
+                              >
+                                <MenuItem value="">
+                                  <em>Select Status</em>
+                                </MenuItem>
 
-      {/* For regular users - only show Closed option */}
-      {!isAdmin && (
-        <MenuItem value="Closed">Closed</MenuItem>
-      )}
+                                {/* For regular users - only show Closed option */}
+                                {!isAdmin && (
+                                  <MenuItem value="Closed">Closed</MenuItem>
+                                )}
 
-      {/* For admin users - show all status options as array (no Fragment) */}
-      {isAdmin && [
-        <MenuItem key="Open" value="Open">Open</MenuItem>,
-        <MenuItem key="In Progress" value="In Progress">In Progress</MenuItem>,
-        <MenuItem key="Pending" value="Pending">Pending</MenuItem>,
-        <MenuItem key="Resolved" value="Resolved">Resolved</MenuItem>,
-        <MenuItem key="Closed" value="Closed">Closed</MenuItem>
-      ]}
-    </Select>
-  </FormControl>
+                                {/* For admin users - show all status options as array (no Fragment) */}
+                                {isAdmin && [
+                                  <MenuItem key="Open" value="Open">Open</MenuItem>,
+                                  <MenuItem key="In Progress" value="In Progress">In Progress</MenuItem>,
+                                  <MenuItem key="Pending" value="Pending">Pending</MenuItem>,
+                                  <MenuItem key="Resolved" value="Resolved">Resolved</MenuItem>,
+                                  <MenuItem key="Closed" value="Closed">Closed</MenuItem>
+                                ]}
+                              </Select>
+                            </FormControl>
 
-  {/* Assign dropdown (admin only) */}
-  {isAdmin && (
-    <FormControl size="small" sx={{ minWidth: 150 }}>
-      <InputLabel>Assign to</InputLabel>
-      <Select
-        value={assign}
-        onChange={(e) => setAssign(e.target.value)}
-        label="Assign to"
-      >
-        <MenuItem value="">
-          <em>Select Assignee</em>
-        </MenuItem>
-        <MenuItem value="rohan">Rohan</MenuItem>
-        <MenuItem value="amit">Amit</MenuItem>
-        <MenuItem value="chandra">Chandra</MenuItem>
-        <MenuItem value="pooja">Pooja</MenuItem>
-      </Select>
-    </FormControl>
-  )}
-</Box>
+                            {/* Assign dropdown (admin only) */}
+                            {isAdmin && (
+                              <FormControl size="small" sx={{ minWidth: 150 }}>
+                                <InputLabel>Assign to</InputLabel>
+                                <Select
+                                  value={assign}
+                                  onChange={(e) => setAssign(e.target.value)}
+                                  label="Assign to"
+                                >
+                                  <MenuItem value="">
+                                    <em>Select Assignee</em>
+                                  </MenuItem>
+                                  <MenuItem value="rohan">Rohan</MenuItem>
+                                  <MenuItem value="amit">Amit</MenuItem>
+                                  <MenuItem value="chandra">Chandra</MenuItem>
+                                  <MenuItem value="pooja">Pooja</MenuItem>
+                                </Select>
+                              </FormControl>
+                            )}
+                          </Box>
                         </Box>
                         <Box sx={{ backgroundColor: '#f8f9fa', borderRadius: 1 }}>
                           <ReactQuill
