@@ -1,22 +1,51 @@
 import { Button, Box } from '@mui/material';
 import MainCard from 'components/MainCard';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 import Icon from '@mdi/react';
 import { mdiTagEdit } from '@mdi/js';
-import axios from 'axios';
 import UserForm from './userForm';
-import { BASE_URL } from 'AppConstants';
+import PlusButton from 'components/CustomButton';
 
 export default function UsersPages() {
   const [showOprForm, setShowOprForm] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [formMode, setFormMode] = useState('create');
-  const [userData, setUserData] = useState([]);
 
-  useEffect(() => {
-    getUserData();
-  }, []);
+  // Hard-coded user data
+  const userData = [
+    {
+      id: 1,
+      userName: 'John Doe',
+      email: 'john@example.com',
+      phoneNo: '1234567890',
+      currentAddress: '123 Street, City, State, Country, 12345',
+      permanentAddress: '456 Street, City, State, Country, 67890',
+      dob: '1990-01-01',
+      designation: 'Manager',
+      department: 'Sales',
+      resigDate: '2025-01-01',
+      role: 'Admin',
+      status: 'Active',
+      remark: 'No remarks'
+    },
+    {
+      id: 2,
+      userName: 'Jane Smith',
+      email: 'jane@example.com',
+      phoneNo: '0987654321',
+      currentAddress: '789 Street, City, State, Country, 54321',
+      permanentAddress: '321 Street, City, State, Country, 98765',
+      dob: '1992-05-12',
+      designation: 'Developer',
+      department: 'IT',
+      resigDate: '2025-02-15',
+      role: 'User',
+      status: 'Inactive',
+      remark: 'On leave'
+    }
+    // Add more users as needed
+  ];
 
   // Define columns
   const columns = [
@@ -38,37 +67,16 @@ export default function UsersPages() {
       headerName: 'Actions',
       width: 120,
       renderCell: (params) => (
-        <Button color="primary" onClick={() => handleEdit(params.row.id)} startIcon={<Icon path={mdiTagEdit} size={1} />}>
+        <Button
+          color="primary"
+          onClick={() => handleEdit(params.row.id)}
+          
+        >
           Edit
         </Button>
       )
     }
   ];
-  const getUserData = async () => {
-    try {
-      const response = await axios.get(`${BASE_URL}/api/user/users`);
-      const userData = response.data.users.map((user) => ({
-        id: user.id,
-        userName: `${user.first_name} ${user.last_name}`,
-        email: user.email,
-        phoneNo: user.phone_number,
-        currentAddress: `${user.address_line11} ${user.address_line12} ${user.city}${user.state}${user.country}${user.postal_code}`,
-        permanentAddress: `${user.address_line21} ${user.address_line22} ${user.city1}${user.state1}${user.country1}${user.postal_code1}`,
-        dob: user.date_of_birth,
-        designation: user.designation,
-        department: user.department,
-        resigDate: user.registration_date,
-        role: user.role,
-        status: user.is_active ? 'Active' : 'Inactive',
-        remark: user.notes
-      }));
-
-      setUserData(userData);
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      // Handle error state
-    }
-  };
 
   const handleCreateOpr = () => {
     setSelectedUser(null);
@@ -95,13 +103,9 @@ export default function UsersPages() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {!showOprForm ? <span>User List</span> : <span>Create User</span>}
           {!showOprForm ? (
-            <Button color="primary" className="plus-btn-color" onClick={handleCreateOpr}>
-              + Create User
-            </Button>
+            <PlusButton label=" + Create User" onClick={handleCreateOpr} />
           ) : (
-            <Button color="primary" className="plus-btn-color" onClick={handleCloseForm}>
-              Back
-            </Button>
+            <PlusButton label="Back" onClick={handleCloseForm} />
           )}
         </Box>
       }

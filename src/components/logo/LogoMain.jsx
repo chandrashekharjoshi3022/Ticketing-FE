@@ -50,7 +50,7 @@ export default function LogoMain() {
         />
       </svg> */}
       {/* <div className="d-flex align-items-center justify-content-center"> */}
-      <img src={theme.palette.mode === 'dark' ? '/Images/LogoB.png' : '/Images/LogoB.png'} alt="icon logo" width="130" height={80} />
+      <img src={theme.palette.mode === 'dark' ? '/Images/LogoB.png' : '/Images/LogoB.png'} alt="icon logo" width="150" height={50} />
       {/* </div> */}
     </>
   );

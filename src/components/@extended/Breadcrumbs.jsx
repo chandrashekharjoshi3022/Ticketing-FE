@@ -173,7 +173,7 @@ export default function Breadcrumbs({
     );
 
     let tempContent = (
-      <MuiBreadcrumbs aria-label="breadcrumb" maxItems={maxItems || 8} separator={separatorIcon}>
+      <MuiBreadcrumbs sx={{ backgroundColor: '#A7AAE1' }} aria-label="breadcrumb" maxItems={maxItems || 8} separator={separatorIcon}>
         <Typography
           component={Link}
           to="/"

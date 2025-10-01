@@ -8,7 +8,7 @@ import SimpleBar from 'components/third-party/SimpleBar';
 export default function DrawerContent() {
   return (
     <>
-      <SimpleBar sx={{ '& .simplebar-content': { display: 'flex', flexDirection: 'column' } }}>
+      <SimpleBar sx={{ '& .simplebar-content': { display: 'flex', flexDirection: 'column', height: '100vh' } }}>
         <Navigation />
       </SimpleBar>
       <NavUser />

@@ -51,7 +51,7 @@ import { fetchTickets, fetchTicketDetails, createTicket, replyToTicket, clearTic
 import { selectUserRole, selectCurrentUser, selectIsInitialized } from '../../features/auth/authSlice';
 import TicketForm from './TicketForm';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
-import { assign } from 'lodash';
+import ImageCell from './ImageCell';
 
 export default function TicketRaise() {
   const navigate = useNavigate();
@@ -435,9 +435,10 @@ export default function TicketRaise() {
         </Typography>
       )
     },
-    { field: 'module', headerName: 'Module', width: 120 },
-    { field: 'submodule', headerName: 'Sub Module', width: 200 },
-    { field: 'category', headerName: 'Category', width: 200 },
+    { field: 'category', headerName: 'Category', width: 120 },
+    { field: 'submodule', headerName: 'Sub Category', width: 200 },
+    { field: 'issueType', headerName: 'Issue Type', width: 200 },
+    { field: 'priority', headerName: 'Priority', width: 200 },
     {
       field: 'comments',
       headerName: 'Comments',
@@ -457,7 +458,7 @@ export default function TicketRaise() {
     {
       field: 'created_on',
       headerName: 'Created On',
-      width: 120,
+      width: 110,
       renderCell: (params) => {
         return formatDateTimeSplit(params?.value);
       }
@@ -543,13 +544,19 @@ export default function TicketRaise() {
         />
       )
     },
+    {
+      field: 'allImages',
+      headerName: 'Images',
+      width: 200,
+      renderCell: (params) => <ImageCell images={params.value || []} />
+    },
     { field: 'created_by', headerName: 'Created By', width: 120 },
     {
       field: 'created_on',
       headerName: 'Created On',
-      width: 130,
+      width: 110,
       renderCell: (params) => {
-        return formatDate(params?.value);
+        return formatDateTimeSplit(params?.value);
       }
     }
     // {
@@ -561,7 +568,7 @@ export default function TicketRaise() {
   ];
 
   const renderTableHeader = (sectionName, sectionLabel) => (
-    <TableHead sx={{ backgroundColor: '#EAF1F6', borderBottom: '2px solid #ddd' }}>
+    <TableHead sx={{ backgroundColor: '#f1f2ff', borderBottom: '2px solid #ddd' }}>
       <TableRow>
         <TableCell sx={{ padding: 0, paddingLeft: '16px' }} colSpan={12}>
           <Box display="flex" justifyContent="space-between" alignItems="center">
@@ -610,19 +617,19 @@ export default function TicketRaise() {
               <Box display="flex" alignItems="center" gap={1}>
                 <Typography variant="h4" fontWeight={600}>
                   <PendingActionsIcon sx={{ mr: 1, verticalAlign: 'bottom' }} />
-                  Ticket Management
+                  {showTicketForm ? ' Raise Ticket ' : ' Raise Ticket View'}
                 </Typography>
                 <Box display="flex" alignItems="center" gap={1} sx={{ ml: 2 }}>
                   <Typography variant="body2" color="textSecondary">
                     Welcome, {currentUser?.username}
                   </Typography>
-                  <Chip
+                  {/* <Chip
                     icon={isAdmin ? <AdminPanelSettingsIcon /> : <PersonIcon />}
                     label={isAdmin ? 'admin' : 'User'}
                     color={isAdmin ? 'primary' : 'default'}
                     size="small"
                     variant="outlined"
-                  />
+                  /> */}
                 </Box>
               </Box>
               <Box>
@@ -654,7 +661,7 @@ export default function TicketRaise() {
 
             {!showTicketForm ? (
               <Box>
-                <Table sx={{ mb: 1 }}>{renderTableHeader('ticketView', 'Ticket Management')}</Table>
+                <Table sx={{ mb: 1 }}>{renderTableHeader('ticketView', '')}</Table>
 
                 {showTableBodies.ticketView && (
                   <Paper sx={{ mb: 2, boxShadow: 2 }}>
@@ -771,7 +778,9 @@ export default function TicketRaise() {
                       </Grid>
                       <Grid item xs={12} md={3}>
                         <CustomParagraphDark>Created On:</CustomParagraphDark>
-                        <CustomParagraphLight>{ticketDetails.created_on ? formatDate(ticketDetails.created_on) : '-'}</CustomParagraphLight>
+                        <CustomParagraphLight>
+                          {ticketDetails.created_on ? formatDateTimeSplit(ticketDetails.created_on) : '-'}
+                        </CustomParagraphLight>
                       </Grid>
                       {isAdmin && (
                         <Grid item xs={12} md={2}>
@@ -898,7 +907,6 @@ export default function TicketRaise() {
                           <CustomHeading>Add Your Comment</CustomHeading>
 
                           <Box display="flex" alignItems="center" gap={2}>
-                          
                             <input
                               accept="image/*"
                               style={{ display: 'none' }}
@@ -923,134 +931,8 @@ export default function TicketRaise() {
                                 <MenuItem value="closed">Closed</MenuItem>
                               </Select>
                             </FormControl>
-
-
-                            { isAdmin && <FormControl size="small" sx={{ minWidth: 150 }}>
-                              <Select value={assign} onChange={(e) => setAssign(e.target.value)} displayEmpty>
-                                <MenuItem value="">
-                                  <em style={{ color: '#888' }}>Assign to</em>
-                                </MenuItem>
-                                <MenuItem value="rohan">Rohan</MenuItem>
-                                <MenuItem value="amit">Amit</MenuItem>
-                                <MenuItem value="chandra">Chandra</MenuItem>
-                                <MenuItem value="pooja">Pooja</MenuItem>
-                              </Select>
-                            </FormControl>
-
-                            }
                           </Box>
-                        </Box> */}
-
-
-                        {/* In the reply section, update the file upload and add file display */}
-                        <Box display="flex" alignItems="center" justifyContent="space-between">
-                          <CustomHeading>Add Your Comment</CustomHeading>
-
-
-                          {/* Status and Assignment Section */}
-{/* Status and Assignment Section */}
-<Box display="flex" alignItems="center" gap={2}>
-  {/* Multiple file upload */}
-  <input
-    accept="image/*,.pdf,.doc,.docx"
-    style={{ display: 'none' }}
-    id="upload-screenshot"
-    type="file"
-    multiple
-    onChange={handleFileUpload}
-  />
-  <label htmlFor="upload-screenshot">
-    <Button variant="outlined" size="small" component="span" startIcon={<UploadFileIcon />}>
-      Upload Files ({attachedFiles.length})
-    </Button>
-  </label>
-
-  {/* Status dropdown - Fixed version */}
-  <FormControl size="small" sx={{ minWidth: 150 }}>
-    <InputLabel>Status</InputLabel>
-    <Select
-      value={status}
-      onChange={(e) => setStatus(e.target.value)}
-      label="Status"
-    >
-      <MenuItem value="">
-        <em>Select Status</em>
-      </MenuItem>
-
-      {/* For regular users - only show Closed option */}
-      {!isAdmin && (
-        <MenuItem value="Closed">Closed</MenuItem>
-      )}
-
-      {/* For admin users - show all status options as array (no Fragment) */}
-      {isAdmin && [
-        <MenuItem key="Open" value="Open">Open</MenuItem>,
-        <MenuItem key="In Progress" value="In Progress">In Progress</MenuItem>,
-        <MenuItem key="Pending" value="Pending">Pending</MenuItem>,
-        <MenuItem key="Resolved" value="Resolved">Resolved</MenuItem>,
-        <MenuItem key="Closed" value="Closed">Closed</MenuItem>
-      ]}
-    </Select>
-  </FormControl>
-
-  {/* Assign dropdown (admin only) */}
-  {isAdmin && (
-    <FormControl size="small" sx={{ minWidth: 150 }}>
-      <InputLabel>Assign to</InputLabel>
-      <Select
-        value={assign}
-        onChange={(e) => setAssign(e.target.value)}
-        label="Assign to"
-      >
-        <MenuItem value="">
-          <em>Select Assignee</em>
-        </MenuItem>
-        <MenuItem value="rohan">Rohan</MenuItem>
-        <MenuItem value="amit">Amit</MenuItem>
-        <MenuItem value="chandra">Chandra</MenuItem>
-        <MenuItem value="pooja">Pooja</MenuItem>
-      </Select>
-    </FormControl>
-  )}
-</Box>
-
-{/* Status Change Preview */}
-{/* {status && (
-  <Box sx={{ mb: 2, p: 1, backgroundColor: '#e8f5e8', borderRadius: 1, border: '1px solid #4caf50' }}>
-    <Typography variant="subtitle2" fontWeight="bold" color="success.main">
-      Status will be changed to: <strong>{status}</strong>
-    </Typography>
-    {!isAdmin && status === 'Closed' && (
-      <Typography variant="caption" color="textSecondary" display="block">
-        Note: As a user, you can only close tickets. Contact admin for other status changes.
-      </Typography>
-    )}
-  </Box>
-)} */}
-
-                         
                         </Box>
-
-                        {/* Show attached files preview */}
-                        {attachedFiles.length > 0 && (
-                          <Box sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
-                            <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-                              Attached Files:
-                            </Typography>
-                            <Grid container spacing={1}>
-                              {attachedFiles.map((file, index) => (
-                                <Grid item key={index}>
-                                  <Chip
-                                    label={file.name}
-                                    onDelete={() => removeAttachedFile(index)}
-                                    variant="outlined"
-                                    size="small"
-                                  />
-                                </Grid>
-                              ))}
-                            </Grid>
-                          </Box>
-                        )}
                         <Box sx={{ backgroundColor: '#f8f9fa', borderRadius: 1 }}>
                           <ReactQuill
                             value={replyMessage}
@@ -1069,7 +951,6 @@ export default function TicketRaise() {
                           <Button
                             variant="contained"
                             onClick={handleReplySubmit}
-
                             startIcon={isSubmittingReply ? <CircularProgress size={16} /> : <ReplyIcon />}
                           >
                             {isSubmittingReply ? 'Sending...' : 'Send Reply'}
