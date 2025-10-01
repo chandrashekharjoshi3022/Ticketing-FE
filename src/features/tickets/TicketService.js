@@ -34,8 +34,17 @@ const raiseTicket = async (formData) => {
   return res.data;
 };
 
-const replyToTicket = async ({ ticketId, message }) => {
-  const res = await API.post(`/ticket/${ticketId}/reply`, { message });
+// const replyToTicket = async ({ ticketId, message }) => {
+//   const res = await API.post(`/ticket/${ticketId}/reply`, { message });
+//   return res.data;
+// };
+
+const replyToTicket = async ({ ticketId, formData }) => {
+  const res = await API.post(`/ticket/${ticketId}/reply`, formData, {
+    headers: { 
+      'Content-Type': 'multipart/form-data' 
+    }
+  });
   return res.data;
 };
 

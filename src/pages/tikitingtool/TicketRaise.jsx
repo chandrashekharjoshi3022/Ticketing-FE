@@ -51,6 +51,7 @@ import { fetchTickets, fetchTicketDetails, createTicket, replyToTicket, clearTic
 import { selectUserRole, selectCurrentUser, selectIsInitialized } from '../../features/auth/authSlice';
 import TicketForm from './TicketForm';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
+import { assign } from 'lodash';
 
 export default function TicketRaise() {
   const navigate = useNavigate();
@@ -88,6 +89,10 @@ export default function TicketRaise() {
   const [successMessage, setSuccessMessage] = useState('');
   const [showTicketForm, setShowTicketForm] = useState(false);
   const [status, setStatus] = useState('');
+  const [assign, setAssign] = useState('')
+  const [attachedFiles, setAttachedFiles] = useState([]); // For multiple files
+
+
   // Check if user is admin
   const isAdmin = userRole === 'admin';
   const userId = currentUser?.id;
@@ -136,25 +141,7 @@ export default function TicketRaise() {
     setShowTableBodies((prevState) => ({ ...prevState, [section]: !prevState[section] }));
   };
 
-  // const handleView = async (row) => {
-  //   // Check if user has permission to view this ticket
-  //   if (!isAdmin && row.created_by !== userId) {
-  //     window.alert('You do not have permission to view this ticket');
-  //     return;
-  //   }
 
-  //   setSelectedTicket(row);
-  //   setOpenModal(true);
-  //   setIsLoading(true);
-  //   try {
-  //     await dispatch(fetchTicketDetails(row.id)).unwrap();
-  //   } catch (err) {
-  //     console.error('Failed to load details', err);
-  //     window.alert('Failed to load ticket details');
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
 
   const handleView = async (row) => {
     // Debug: Log the values to see what's happening
@@ -187,10 +174,23 @@ export default function TicketRaise() {
     }
   };
 
+  // const handleCloseModal = () => {
+  //   setOpenModal(false);
+  //   setSelectedTicket(null);
+  //   setReplyMessage('');
+  //   dispatch(clearTicketDetails());
+  //   setSuccessMessage('');
+  // };
+
+
+  // Update handleCloseModal to reset all states
   const handleCloseModal = () => {
     setOpenModal(false);
     setSelectedTicket(null);
     setReplyMessage('');
+    setStatus('');
+    setAssign('');
+    setAttachedFiles([]);
     dispatch(clearTicketDetails());
     setSuccessMessage('');
   };
@@ -204,6 +204,8 @@ export default function TicketRaise() {
   };
 
   const handleTabChange = (event, newValue) => setActiveTab(newValue);
+
+
   // const handleReplySubmit = async () => {
   //   if (!ticketDetails?.ticket_id) return;
   //   if (!replyMessage || replyMessage.trim() === '') {
@@ -211,7 +213,7 @@ export default function TicketRaise() {
   //   }
 
   //   // Check if user has permission to reply to this ticket
-  //   if (!isAdmin && ticketDetails.created_by !== userId) {
+  //   if (!isAdmin && ticketDetails.user_id !== userId) {
   //     window.alert('You do not have permission to reply to this ticket');
   //     return;
   //   }
@@ -238,8 +240,6 @@ export default function TicketRaise() {
   //   }
   // };
 
-  // Filter tickets based on active tab (backend already filters by user role)
-
   const handleReplySubmit = async () => {
     if (!ticketDetails?.ticket_id) return;
     if (!replyMessage || replyMessage.trim() === '') {
@@ -253,18 +253,43 @@ export default function TicketRaise() {
     }
 
     setIsSubmittingReply(true);
+
     try {
+      // Create FormData to handle file uploads
+      const formData = new FormData();
+      formData.append('message', replyMessage);
+
+      // Append status if changed
+      if (status) {
+        formData.append('status', status);
+      }
+
+      // Append assignee if changed (admin only)
+      if (isAdmin && assign) {
+        formData.append('assigned_to', assign);
+      }
+
+      // Append multiple files
+      attachedFiles.forEach((file, index) => {
+        formData.append(`files`, file);
+      });
+
       await dispatch(
         replyToTicket({
           ticketId: ticketDetails.ticket_id,
-          message: replyMessage
+          formData: formData // Pass FormData instead of just message
         })
       ).unwrap();
 
+      // Refresh data
       await dispatch(fetchTicketDetails(ticketDetails.ticket_id)).unwrap();
       await dispatch(fetchTickets()).unwrap();
 
+      // Reset form state
       setReplyMessage('');
+      setStatus('');
+      setAssign('');
+      setAttachedFiles([]);
       setSuccessMessage('Reply sent successfully!');
     } catch (err) {
       console.error('Reply failed', err);
@@ -273,6 +298,9 @@ export default function TicketRaise() {
       setIsSubmittingReply(false);
     }
   };
+
+
+
 
   const getFilteredTickets = () => {
     if (!tickets) return [];
@@ -322,14 +350,31 @@ export default function TicketRaise() {
       />
     );
   };
+  // const handleFileUpload = (e) => {
+  //   const file = e.target.files[0];
+  //   if (file) {
+  //     console.log('Uploaded file:', file);
+  //     console.log('Selected status:', status);
+  //     // 👉 Handle upload + status together here
+  //   }
+  // };
+
+
   const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      console.log('Uploaded file:', file);
-      console.log('Selected status:', status);
-      // 👉 Handle upload + status together here
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      setAttachedFiles(files);
+      console.log('Uploaded files:', files);
     }
   };
+
+
+  const removeAttachedFile = (index) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+
+
   const renderDateWithSLA = (params, type) => {
     const timeSeconds = type === 'response' ? params.row.response_time_seconds : params.row.resolve_time_seconds;
 
@@ -433,28 +478,17 @@ export default function TicketRaise() {
     // Show created by only for admin
     ...(isAdmin
       ? [
-          // {
-          //   field: 'created_by',
-          //   headerName: 'Created By',
-          //   width: 120,
-          //   renderCell: (params) => (
-          //     <Typography variant="body2" fontStyle="italic">
-          //       {params.row.user?.username || params.value || 'Unknown'}
-          //     </Typography>
-          //   )
-          // }
-
-          {
-            field: 'created_by',
-            headerName: 'Created By',
-            width: 120,
-            renderCell: (params) => (
-              <Typography variant="body2" fontStyle="italic">
-                {params.value || 'Unknown'}
-              </Typography>
-            )
-          }
-        ]
+        {
+          field: 'created_by',
+          headerName: 'Created By',
+          width: 120,
+          renderCell: (params) => (
+            <Typography variant="body2" fontStyle="italic">
+              {params.value || 'Unknown'}
+            </Typography>
+          )
+        }
+      ]
       : []),
     {
       field: 'status',
@@ -643,7 +677,7 @@ export default function TicketRaise() {
                     >
                       <Tab label={`All (${statusCounts.All})`} value="All" />
                       <Tab label={`Open (${statusCounts.Open})`} value="Open" />
-                      <Tab label={`Pending (${statusCounts.Pending})`} value="Pending" />
+                      <Tab label={`In Progress (${statusCounts.Pending})`} value="In Progress" />
                       <Tab label={`Closed (${statusCounts.Closed})`} value="Closed" />
                     </Tabs>
 
@@ -860,10 +894,10 @@ export default function TicketRaise() {
                     {/* Show reply section only if user has permission and ticket is not closed */}
                     {(isAdmin || ticketDetails.user_id === userId) && ticketDetails.status !== 'Closed' && (
                       <>
-                        <Box display="flex" alignItems="center" justifyContent="space-between">
+                        {/* <Box display="flex" alignItems="center" justifyContent="space-between">
                           <CustomHeading>Add Your Comment</CustomHeading>
 
-                          {/* <Box display="flex" alignItems="center" gap={2}>
+                          <Box display="flex" alignItems="center" gap={2}>
                           
                             <input
                               accept="image/*"
@@ -889,8 +923,134 @@ export default function TicketRaise() {
                                 <MenuItem value="closed">Closed</MenuItem>
                               </Select>
                             </FormControl>
-                          </Box> */}
+
+
+                            { isAdmin && <FormControl size="small" sx={{ minWidth: 150 }}>
+                              <Select value={assign} onChange={(e) => setAssign(e.target.value)} displayEmpty>
+                                <MenuItem value="">
+                                  <em style={{ color: '#888' }}>Assign to</em>
+                                </MenuItem>
+                                <MenuItem value="rohan">Rohan</MenuItem>
+                                <MenuItem value="amit">Amit</MenuItem>
+                                <MenuItem value="chandra">Chandra</MenuItem>
+                                <MenuItem value="pooja">Pooja</MenuItem>
+                              </Select>
+                            </FormControl>
+
+                            }
+                          </Box>
+                        </Box> */}
+
+
+                        {/* In the reply section, update the file upload and add file display */}
+                        <Box display="flex" alignItems="center" justifyContent="space-between">
+                          <CustomHeading>Add Your Comment</CustomHeading>
+
+
+                          {/* Status and Assignment Section */}
+{/* Status and Assignment Section */}
+<Box display="flex" alignItems="center" gap={2}>
+  {/* Multiple file upload */}
+  <input
+    accept="image/*,.pdf,.doc,.docx"
+    style={{ display: 'none' }}
+    id="upload-screenshot"
+    type="file"
+    multiple
+    onChange={handleFileUpload}
+  />
+  <label htmlFor="upload-screenshot">
+    <Button variant="outlined" size="small" component="span" startIcon={<UploadFileIcon />}>
+      Upload Files ({attachedFiles.length})
+    </Button>
+  </label>
+
+  {/* Status dropdown - Fixed version */}
+  <FormControl size="small" sx={{ minWidth: 150 }}>
+    <InputLabel>Status</InputLabel>
+    <Select
+      value={status}
+      onChange={(e) => setStatus(e.target.value)}
+      label="Status"
+    >
+      <MenuItem value="">
+        <em>Select Status</em>
+      </MenuItem>
+
+      {/* For regular users - only show Closed option */}
+      {!isAdmin && (
+        <MenuItem value="Closed">Closed</MenuItem>
+      )}
+
+      {/* For admin users - show all status options as array (no Fragment) */}
+      {isAdmin && [
+        <MenuItem key="Open" value="Open">Open</MenuItem>,
+        <MenuItem key="In Progress" value="In Progress">In Progress</MenuItem>,
+        <MenuItem key="Pending" value="Pending">Pending</MenuItem>,
+        <MenuItem key="Resolved" value="Resolved">Resolved</MenuItem>,
+        <MenuItem key="Closed" value="Closed">Closed</MenuItem>
+      ]}
+    </Select>
+  </FormControl>
+
+  {/* Assign dropdown (admin only) */}
+  {isAdmin && (
+    <FormControl size="small" sx={{ minWidth: 150 }}>
+      <InputLabel>Assign to</InputLabel>
+      <Select
+        value={assign}
+        onChange={(e) => setAssign(e.target.value)}
+        label="Assign to"
+      >
+        <MenuItem value="">
+          <em>Select Assignee</em>
+        </MenuItem>
+        <MenuItem value="rohan">Rohan</MenuItem>
+        <MenuItem value="amit">Amit</MenuItem>
+        <MenuItem value="chandra">Chandra</MenuItem>
+        <MenuItem value="pooja">Pooja</MenuItem>
+      </Select>
+    </FormControl>
+  )}
+</Box>
+
+{/* Status Change Preview */}
+{/* {status && (
+  <Box sx={{ mb: 2, p: 1, backgroundColor: '#e8f5e8', borderRadius: 1, border: '1px solid #4caf50' }}>
+    <Typography variant="subtitle2" fontWeight="bold" color="success.main">
+      Status will be changed to: <strong>{status}</strong>
+    </Typography>
+    {!isAdmin && status === 'Closed' && (
+      <Typography variant="caption" color="textSecondary" display="block">
+        Note: As a user, you can only close tickets. Contact admin for other status changes.
+      </Typography>
+    )}
+  </Box>
+)} */}
+
+                         
                         </Box>
+
+                        {/* Show attached files preview */}
+                        {attachedFiles.length > 0 && (
+                          <Box sx={{ mb: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+                            <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                              Attached Files:
+                            </Typography>
+                            <Grid container spacing={1}>
+                              {attachedFiles.map((file, index) => (
+                                <Grid item key={index}>
+                                  <Chip
+                                    label={file.name}
+                                    onDelete={() => removeAttachedFile(index)}
+                                    variant="outlined"
+                                    size="small"
+                                  />
+                                </Grid>
+                              ))}
+                            </Grid>
+                          </Box>
+                        )}
                         <Box sx={{ backgroundColor: '#f8f9fa', borderRadius: 1 }}>
                           <ReactQuill
                             value={replyMessage}
@@ -909,7 +1069,7 @@ export default function TicketRaise() {
                           <Button
                             variant="contained"
                             onClick={handleReplySubmit}
-                        
+
                             startIcon={isSubmittingReply ? <CircularProgress size={16} /> : <ReplyIcon />}
                           >
                             {isSubmittingReply ? 'Sending...' : 'Send Reply'}

@@ -222,14 +222,52 @@ export const createTicket = createAsyncThunk('tickets/create', async (formData, 
   }
 });
 
-export const replyToTicket = createAsyncThunk('tickets/reply', async ({ ticketId, message }, thunkAPI) => {
-  try {
-    const res = await TicketService.replyToTicket({ ticketId, message });
-    return { ticketId, reply: res };
-  } catch (err) {
-    return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
+// export const replyToTicket = createAsyncThunk('tickets/reply', async ({ ticketId, message }, thunkAPI) => {
+//   try {
+//     const res = await TicketService.replyToTicket({ ticketId, message });
+//     return { ticketId, reply: res };
+//   } catch (err) {
+//     return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
+//   }
+// });
+
+
+// In your ticketSlice.js - update the replyToTicket async thunk
+// export const replyToTicket = createAsyncThunk(
+//   'tickets/replyToTicket',
+//   async ({ ticketId, formData }, { rejectWithValue }) => {
+//     try {
+//       const response = await axios.post(`/api/tickets/${ticketId}/reply`, formData, {
+//         headers: {
+//           'Content-Type': 'multipart/form-data',
+//         },
+//       });
+//       return response.data;
+//     } catch (error) {
+//       return rejectWithValue(error.response.data);
+//     }
+//   }
+// );
+
+
+// In your ticketSlice.js - update the replyToTicket async thunk
+export const replyToTicket = createAsyncThunk(
+  'tickets/replyToTicket',
+  async ({ ticketId, formData }, { rejectWithValue }) => {
+    try {
+      // Use TicketService instead of direct axios call
+      const response = await TicketService.replyToTicket({ ticketId, formData });
+      return response;
+    } catch (error) {
+      // Improved error handling
+      return rejectWithValue(
+        error.response?.data?.message || 
+        error.message || 
+        'Failed to send reply'
+      );
+    }
   }
-});
+);
 
 const initialState = {
   tickets: [],
@@ -523,26 +561,56 @@ const ticketSlice = createSlice({
 
 
       // Update the replyToTicket.fulfilled case in ticketSlice.js
-      .addCase(replyToTicket.fulfilled, (state, action) => {
-        state.isLoading = false;
-        const ticketId = action.payload?.ticketId ?? action.meta?.arg?.ticketId;
-        const reply = action.payload?.reply ?? action.payload;
+      // .addCase(replyToTicket.fulfilled, (state, action) => {
+      //   state.isLoading = false;
+      //   const ticketId = action.payload?.ticketId ?? action.meta?.arg?.ticketId;
+      //   const reply = action.payload?.reply ?? action.payload;
 
-        if (state.ticketDetails && state.ticketDetails.ticket_id == ticketId) {
-          // Make sure the reply has the proper structure with sender
-          const replyWithSender = {
-            ...reply,
-            // Ensure sender object is properly structured
-            sender: reply.sender ? {
-              user_id: reply.sender.user_id,
-              username: reply.sender.username,
-              email: reply.sender.email
-            } : null
-          };
+      //   if (state.ticketDetails && state.ticketDetails.ticket_id == ticketId) {
+      //     // Make sure the reply has the proper structure with sender
+      //     const replyWithSender = {
+      //       ...reply,
+      //       // Ensure sender object is properly structured
+      //       sender: reply.sender ? {
+      //         user_id: reply.sender.user_id,
+      //         username: reply.sender.username,
+      //         email: reply.sender.email
+      //       } : null
+      //     };
 
-          state.ticketDetails.replies = [...(state.ticketDetails.replies || []), replyWithSender];
-        }
-      })
+      //     state.ticketDetails.replies = [...(state.ticketDetails.replies || []), replyWithSender];
+      //   }
+      // })
+
+      // Update the replyToTicket.fulfilled case in ticketSlice.js
+.addCase(replyToTicket.fulfilled, (state, action) => {
+  state.isLoading = false;
+  
+  // Handle both response formats
+  const response = action.payload;
+  const ticketId = response?.ticketId || action.meta?.arg?.ticketId;
+  const replyData = response?.reply || response;
+  
+  if (state.ticketDetails && state.ticketDetails.ticket_id == ticketId) {
+    // Make sure the reply has the proper structure with sender
+    const replyWithSender = {
+      ...replyData,
+      // Ensure sender object is properly structured
+      sender: replyData.sender ? {
+        user_id: replyData.sender.user_id,
+        username: replyData.sender.username,
+        email: replyData.sender.email
+      } : null
+    };
+
+    state.ticketDetails.replies = [...(state.ticketDetails.replies || []), replyWithSender];
+    
+    // Also update the ticket status if it was changed in the reply
+    if (replyData.ticket && replyData.ticket.status) {
+      state.ticketDetails.status = replyData.ticket.status;
+    }
+  }
+})
       .addCase(replyToTicket.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
