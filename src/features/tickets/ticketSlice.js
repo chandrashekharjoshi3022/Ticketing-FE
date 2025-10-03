@@ -2,144 +2,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import TicketService from './TicketService';
 
-// helpers
-// const normalizeTicket = (t, idx = 0) => ({
-//   id: t.ticket_id ?? t.id ?? idx + 1,
-//   ticket_no: t.ticket_no ?? `TCKT-${t.ticket_id ?? t.id ?? idx + 1}`,
-//   module: t.module ?? t.modules ?? t.moduleName ?? 'N/A',
-//   submodule: t.sub_module ?? t.submodule ?? t.subModule ?? '',
-//   category: t.category ?? '',
-//   comments: t.comment ?? t.comments ?? t.description ?? '',
-//   created_on: t.created_at ?? t.registration_date ?? t.createdOn ?? '',
-//   updated_by: t.updated_by ?? t.updatedBy ?? t.updated ?? '',
-//   status: t.status ?? 'Open',
-//   files: t.files ?? (t.screenshot_url ? [t.screenshot_url] : []),
-//   // Add created_by field for filtering - using user_id from backend
-//   created_by: t.user_id ?? t.created_by ?? t.user?.id ?? 'unknown',
-//   // Add user info if available from backend
-//   user: t.user
-//     ? {
-//         id: t.user.user_id,
-//         username: t.user.username,
-//         email: t.user.email
-//       }
-//     : null
-// });
-
-
-
-// Update the normalizeTicket function in ticketSlice.js
-// const normalizeTicket = (t, idx = 0) => ({
-//   id: t.ticket_id ?? t.id ?? idx + 1,
-//   ticket_no: t.ticket_no ?? `TCKT-${t.ticket_id ?? t.id ?? idx + 1}`,
-//   module: t.module ?? t.modules ?? t.moduleName ?? 'N/A',
-//   submodule: t.sub_module ?? t.submodule ?? t.subModule ?? '',
-//   category: t.category ?? '',
-//   comments: t.comment ?? t.comments ?? t.description ?? '',
-//   created_on: t.created_at ?? t.registration_date ?? t.createdOn ?? '',
-//   updated_by: t.updated_by ?? t.updatedBy ?? t.updated ?? '',
-//   status: t.status ?? 'Open',
-//   files: t.files ?? (t.screenshot_url ? [t.screenshot_url] : []),
-//   // Add created_by field for filtering - using user_id from backend
-//   created_by: t.user_id ?? t.created_by ?? t.user?.id ?? 'unknown',
-//   // Add user info if available from backend
-//   user: t.user
-//     ? {
-//         id: t.user.user_id,
-//         username: t.user.username,
-//         email: t.user.email
-//       }
-//     : null,
-//   // ADD THESE SLA PROPERTIES:
-//   response_at: t.response_at,
-//   response_time_seconds: t.response_time_seconds,
-//   resolved_at: t.resolved_at,
-//   resolve_time_seconds: t.resolve_time_seconds,
-//   sla: t.sla, // Include the entire SLA object
-//   response_sla_met: t.response_sla_met,
-//   resolve_sla_met: t.resolve_sla_met
-// });
-
-
-// Update the normalizeTicket function in ticketSlice.js
-// const normalizeTicket = (t, idx = 0) => ({
-//   id: t.ticket_id ?? t.id ?? idx + 1,
-//   ticket_no: t.ticket_no ?? `TCKT-${t.ticket_id ?? t.id ?? idx + 1}`,
-//   module: t.module ?? t.modules ?? t.moduleName ?? 'N/A',
-//   submodule: t.sub_module ?? t.submodule ?? t.subModule ?? '',
-//   category: t.category ?? '',
-//   comments: t.comment ?? t.comments ?? t.description ?? '',
-//   created_on: t.created_at ?? t.registration_date ?? t.createdOn ?? '',
-//   updated_by: t.updated_by ?? t.updatedBy ?? t.updated ?? '',
-//   status: t.status ?? 'Open',
-//   files: t.files ?? (t.screenshot_url ? [t.screenshot_url] : []),
-//   // Use creator data from the API response
-//   created_by: t.creator?.username ?? t.user?.username ?? t.created_by ?? 'unknown',
-//   // Add user info from creator
-//   user: t.creator
-//     ? {
-//         id: t.creator.user_id,
-//         username: t.creator.username,
-//         email: t.creator.email
-//       }
-//     : t.user
-//     ? {
-//         id: t.user.user_id,
-//         username: t.user.username,
-//         email: t.user.email
-//       }
-//     : null,
-//   // SLA properties
-//   response_at: t.response_at,
-//   response_time_seconds: t.response_time_seconds,
-//   resolved_at: t.resolved_at,
-//   resolve_time_seconds: t.resolve_time_seconds,
-//   sla: t.sla,
-//   response_sla_met: t.response_sla_met,
-//   resolve_sla_met: t.resolve_sla_met
-// });
-
-
-// Update the normalizeTicket function in ticketSlice.js
-// const normalizeTicket = (t, idx = 0) => ({
-//   id: t.ticket_id ?? t.id ?? idx + 1,
-//   ticket_no: t.ticket_no ?? `TCKT-${t.ticket_id ?? t.id ?? idx + 1}`,
-//   module: t.module ?? t.modules ?? t.moduleName ?? 'N/A',
-//   submodule: t.sub_module ?? t.submodule ?? t.subModule ?? '',
-//   category: t.category ?? '',
-//   comments: t.comment ?? t.comments ?? t.description ?? '',
-//   created_on: t.created_at ?? t.registration_date ?? t.createdOn ?? '',
-//   updated_by: t.updated_by ?? t.updatedBy ?? t.updated ?? '',
-//   status: t.status ?? 'Open',
-//   files: t.files ?? (t.screenshot_url ? [t.screenshot_url] : []),
-//   // Use creator data from the API response
-//   created_by: t.creator?.username ?? t.user?.username ?? t.created_by ?? 'unknown',
-//   // Add user_id for permission checks
-//   user_id: t.user_id ?? t.creator?.user_id ?? t.user?.user_id,
-//   // Add user info from creator
-//   user: t.creator
-//     ? {
-//         id: t.creator.user_id,
-//         username: t.creator.username,
-//         email: t.creator.email
-//       }
-//     : t.user
-//     ? {
-//         id: t.user.user_id,
-//         username: t.user.username,
-//         email: t.user.email
-//       }
-//     : null,
-//   // SLA properties
-//   response_at: t.response_at,
-//   response_time_seconds: t.response_time_seconds,
-//   resolved_at: t.resolved_at,
-//   resolve_time_seconds: t.resolve_time_seconds,
-//   sla: t.sla,
-//   response_sla_met: t.response_sla_met,
-//   resolve_sla_met: t.resolve_sla_met
-// });
-
 
 const normalizeTicket = (t, idx = 0) => ({
   id: t.ticket_id ?? t.id ?? idx + 1,
@@ -147,16 +9,15 @@ const normalizeTicket = (t, idx = 0) => ({
   module: t.module ?? t.modules ?? t.moduleName ?? 'N/A',
   submodule: t.sub_module ?? t.submodule ?? t.subModule ?? '',
   category: t.category ?? '',
+  issue_name: t.issue_name ?? '',
+  priority: t.priority ?? 'Medium',
   comments: t.comment ?? t.comments ?? t.description ?? '',
   created_on: t.created_at ?? t.registration_date ?? t.createdOn ?? '',
   updated_by: t.updated_by ?? t.updatedBy ?? t.updated ?? '',
   status: t.status ?? 'Open',
   files: t.files ?? (t.screenshot_url ? [t.screenshot_url] : []),
-  // Use username for display
   created_by: t.created_by_username ?? t.creator?.username ?? t.user?.username ?? t.created_by ?? 'Unknown',
-  // Use user_id for permission checks
   user_id: t.user_id ?? t.creator?.user_id ?? t.user?.user_id,
-  // Add user info from creator
   user: t.creator
     ? {
       id: t.creator.user_id,
@@ -170,15 +31,20 @@ const normalizeTicket = (t, idx = 0) => ({
         email: t.user.email
       }
       : null,
-  // SLA properties
   response_at: t.response_at,
   response_time_seconds: t.response_time_seconds,
   resolved_at: t.resolved_at,
   resolve_time_seconds: t.resolve_time_seconds,
   sla: t.sla,
   response_sla_met: t.response_sla_met,
-  resolve_sla_met: t.resolve_sla_met
+  resolve_sla_met: t.resolve_sla_met,
+  // Include documents for initial ticket
+  documents: t.documents ?? t.ticket_documents ?? []
 });
+
+
+
+
 
 
 
@@ -203,51 +69,38 @@ export const fetchTickets = createAsyncThunk('tickets/fetchAll', async (_, thunk
   }
 });
 
+
+
+
 export const fetchTicketDetails = createAsyncThunk('tickets/fetchDetails', async (ticketId, thunkAPI) => {
   try {
     const res = await TicketService.getTicketDetails(ticketId);
     const data = res?.ticket ?? res?.data ?? res;
+    console.log("API Response for ticket details:", data); // Check if documents are here
     return data;
   } catch (err) {
     return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
   }
 });
 
+
+// In your ticketSlice.js - update the createTicket async thunk
 export const createTicket = createAsyncThunk('tickets/create', async (formData, thunkAPI) => {
   try {
+    console.log('Creating ticket with formData...');
     const res = await TicketService.raiseTicket(formData);
+    console.log('Ticket creation response:', res);
     return res;
   } catch (err) {
-    return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
+    console.error('Ticket creation error in slice:', err);
+    const errorMessage = err.response?.data?.message || err.message || 'Failed to raise ticket. Please try again.';
+    return thunkAPI.rejectWithValue(errorMessage);
   }
 });
 
-// export const replyToTicket = createAsyncThunk('tickets/reply', async ({ ticketId, message }, thunkAPI) => {
-//   try {
-//     const res = await TicketService.replyToTicket({ ticketId, message });
-//     return { ticketId, reply: res };
-//   } catch (err) {
-//     return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
-//   }
-// });
 
 
-// In your ticketSlice.js - update the replyToTicket async thunk
-// export const replyToTicket = createAsyncThunk(
-//   'tickets/replyToTicket',
-//   async ({ ticketId, formData }, { rejectWithValue }) => {
-//     try {
-//       const response = await axios.post(`/api/tickets/${ticketId}/reply`, formData, {
-//         headers: {
-//           'Content-Type': 'multipart/form-data',
-//         },
-//       });
-//       return response.data;
-//     } catch (error) {
-//       return rejectWithValue(error.response.data);
-//     }
-//   }
-// );
+
 
 
 // In your ticketSlice.js - update the replyToTicket async thunk
@@ -327,198 +180,62 @@ const ticketSlice = createSlice({
         state.isError = false;
         state.message = '';
       })
-      // .addCase(fetchTicketDetails.fulfilled, (state, action) => {
-      //   state.isLoading = false;
-      //   const d = action.payload ?? {};
-      //   state.ticketDetails = {
-      //     ticket_id: d.ticket_id ?? d.id,
-      //     ticket_no: d.ticket_no ?? `TCKT-${d.ticket_id ?? d.id}`,
-      //     module: d.module,
-      //     submodule: d.sub_module ?? d.submodule,
-      //     category: d.category,
-      //     comment: d.comment ?? d.comments,
-      //     status: d.status,
-      //     created_on: d.created_at ?? d.created_on,
-      //     updated_by: d.updated_by ?? d.updatedBy,
-      //     files: d.files ?? (d.screenshot_url ? [d.screenshot_url] : []),
-      //     replies: d.replies ?? d.replies_list ?? d.comments_list ?? [],
-      //     created_by: d.user_id ?? d.created_by ?? d.user?.id ?? 'unknown',
-      //     user: d.user
-      //       ? {
-      //           id: d.user.user_id,
-      //           username: d.user.username,
-      //           email: d.user.email
-      //         }
-      //       : null
-      //   };
-      // })
-
-      // Update the fetchTicketDetails.fulfilled case in ticketSlice.js
-      // .addCase(fetchTicketDetails.fulfilled, (state, action) => {
-      //   state.isLoading = false;
-      //   const d = action.payload ?? {};
-      //   state.ticketDetails = {
-      //     ticket_id: d.ticket_id ?? d.id,
-      //     ticket_no: d.ticket_no ?? `TCKT-${d.ticket_id ?? d.id}`,
-      //     module: d.module,
-      //     submodule: d.sub_module ?? d.submodule,
-      //     category: d.category,
-      //     comment: d.comment ?? d.comments,
-      //     status: d.status,
-      //     created_on: d.created_at ?? d.created_on,
-      //     updated_by: d.updated_by ?? d.updatedBy,
-      //     files: d.files ?? (d.screenshot_url ? [d.screenshot_url] : []),
-      //     replies: d.replies ?? d.replies_list ?? d.comments_list ?? [],
-      //     created_by: d.user_id ?? d.created_by ?? d.user?.id ?? 'unknown',
-      //     user: d.user
-      //       ? {
-      //           id: d.user.user_id,
-      //           username: d.user.username,
-      //           email: d.user.email
-      //         }
-      //       : null,
-      //     // ADD THESE SLA PROPERTIES:
-      //     response_at: d.response_at,
-      //     response_time_seconds: d.response_time_seconds,
-      //     resolved_at: d.resolved_at,
-      //     resolve_time_seconds: d.resolve_time_seconds,
-      //     sla: d.sla,
-      //     response_sla_met: d.response_sla_met,
-      //     resolve_sla_met: d.resolve_sla_met
-      //   };
-      // })
 
 
-      // Update the fetchTicketDetails.fulfilled case in ticketSlice.js
-      // .addCase(fetchTicketDetails.fulfilled, (state, action) => {
-      //   state.isLoading = false;
-      //   const d = action.payload ?? {};
-      //   state.ticketDetails = {
-      //     ticket_id: d.ticket_id ?? d.id,
-      //     ticket_no: d.ticket_no ?? `TCKT-${d.ticket_id ?? d.id}`,
-      //     module: d.module,
-      //     submodule: d.sub_module ?? d.submodule,
-      //     category: d.category,
-      //     comment: d.comment ?? d.comments,
-      //     status: d.status,
-      //     created_on: d.created_at ?? d.created_on,
-      //     updated_by: d.updated_by ?? d.updatedBy,
-      //     files: d.files ?? (d.screenshot_url ? [d.screenshot_url] : []),
-      //     replies: d.replies ?? d.replies_list ?? d.comments_list ?? [],
-      //     // Use creator data from the API response
-      //     created_by: d.creator?.username ?? d.user?.username ?? d.created_by ?? 'unknown',
-      //     user: d.creator
-      //       ? {
-      //           id: d.creator.user_id,
-      //           username: d.creator.username,
-      //           email: d.creator.email
-      //         }
-      //       : d.user
-      //       ? {
-      //           id: d.user.user_id,
-      //           username: d.user.username,
-      //           email: d.user.email
-      //         }
-      //       : null,
-      //     // SLA properties
-      //     response_at: d.response_at,
-      //     response_time_seconds: d.response_time_seconds,
-      //     resolved_at: d.resolved_at,
-      //     resolve_time_seconds: d.resolve_time_seconds,
-      //     sla: d.sla,
-      //     response_sla_met: d.response_sla_met,
-      //     resolve_sla_met: d.resolve_sla_met
-      //   };
-      // })
+    
 
-
-      // Update the fetchTicketDetails.fulfilled case in ticketSlice.js
-      // .addCase(fetchTicketDetails.fulfilled, (state, action) => {
-      //   state.isLoading = false;
-      //   const d = action.payload ?? {};
-      //   state.ticketDetails = {
-      //     ticket_id: d.ticket_id ?? d.id,
-      //     ticket_no: d.ticket_no ?? `TCKT-${d.ticket_id ?? d.id}`,
-      //     module: d.module,
-      //     submodule: d.sub_module ?? d.submodule,
-      //     category: d.category,
-      //     comment: d.comment ?? d.comments,
-      //     status: d.status,
-      //     created_on: d.created_at ?? d.created_on,
-      //     updated_by: d.updated_by ?? d.updatedBy,
-      //     files: d.files ?? (d.screenshot_url ? [d.screenshot_url] : []),
-      //     replies: d.replies ?? d.replies_list ?? d.comments_list ?? [],
-      //     // Use creator data from the API response
-      //     created_by: d.creator?.username ?? d.user?.username ?? d.created_by ?? 'unknown',
-      //     // Add user_id for permission checks
-      //     user_id: d.user_id ?? d.creator?.user_id ?? d.user?.user_id,
-      //     user: d.creator
-      //       ? {
-      //           id: d.creator.user_id,
-      //           username: d.creator.username,
-      //           email: d.creator.email
-      //         }
-      //       : d.user
-      //       ? {
-      //           id: d.user.user_id,
-      //           username: d.user.username,
-      //           email: d.user.email
-      //         }
-      //       : null,
-      //     // SLA properties
-      //     response_at: d.response_at,
-      //     response_time_seconds: d.response_time_seconds,
-      //     resolved_at: d.resolved_at,
-      //     resolve_time_seconds: d.resolve_time_seconds,
-      //     sla: d.sla,
-      //     response_sla_met: d.response_sla_met,
-      //     resolve_sla_met: d.resolve_sla_met
-      //   };
-      // })
 
 
       .addCase(fetchTicketDetails.fulfilled, (state, action) => {
-        state.isLoading = false;
-        const d = action.payload ?? {};
-        state.ticketDetails = {
-          ticket_id: d.ticket_id ?? d.id,
-          ticket_no: d.ticket_no ?? `TCKT-${d.ticket_id ?? d.id}`,
-          module: d.module,
-          submodule: d.sub_module ?? d.submodule,
-          category: d.category,
-          comment: d.comment ?? d.comments,
-          status: d.status,
-          created_on: d.created_at ?? d.created_on,
-          updated_by: d.updated_by ?? d.updatedBy,
-          files: d.files ?? (d.screenshot_url ? [d.screenshot_url] : []),
-          replies: d.replies ?? d.replies_list ?? d.comments_list ?? [],
-          // Use username for display
-          created_by: d.created_by_username ?? d.creator?.username ?? d.user?.username ?? d.created_by ?? 'Unknown',
-          // Use user_id for permission checks
-          user_id: d.user_id ?? d.creator?.user_id ?? d.user?.user_id,
-          user: d.creator
-            ? {
-              id: d.creator.user_id,
-              username: d.creator.username,
-              email: d.creator.email
-            }
-            : d.user
-              ? {
-                id: d.user.user_id,
-                username: d.user.username,
-                email: d.user.email
-              }
-              : null,
-          // SLA properties
-          response_at: d.response_at,
-          response_time_seconds: d.response_time_seconds,
-          resolved_at: d.resolved_at,
-          resolve_time_seconds: d.resolve_time_seconds,
-          sla: d.sla,
-          response_sla_met: d.response_sla_met,
-          resolve_sla_met: d.resolve_sla_met
-        };
-      })
+  state.isLoading = false;
+  const d = action.payload ?? {};
+  console.log("Normalizing ticket details with documents:", d.documents); // Check if documents exist
+  
+  state.ticketDetails = {
+    ticket_id: d.ticket_id ?? d.id,
+    ticket_no: d.ticket_no ?? `TCKT-${d.ticket_id ?? d.id}`,
+    module: d.module,
+    submodule: d.sub_module ?? d.submodule,
+    category: d.category,
+    comment: d.comment ?? d.comments,
+    status: d.status,
+    created_on: d.created_at ?? d.created_on,
+    updated_by: d.updated_by ?? d.updatedBy,
+    files: d.files ?? (d.screenshot_url ? [d.screenshot_url] : []),
+    replies: d.replies ?? d.replies_list ?? d.comments_list ?? [],
+    // Use username for display
+    created_by: d.created_by_username ?? d.creator?.username ?? d.user?.username ?? d.created_by ?? 'Unknown',
+    // Use user_id for permission checks
+    user_id: d.user_id ?? d.creator?.user_id ?? d.user?.user_id,
+    user: d.creator
+      ? {
+        id: d.creator.user_id,
+        username: d.creator.username,
+        email: d.creator.email
+      }
+      : d.user
+        ? {
+          id: d.user.user_id,
+          username: d.user.username,
+          email: d.user.email
+        }
+        : null,
+    // SLA properties
+    response_at: d.response_at,
+    response_time_seconds: d.response_time_seconds,
+    resolved_at: d.resolved_at,
+    resolve_time_seconds: d.resolve_time_seconds,
+    sla: d.sla,
+    response_sla_met: d.response_sla_met,
+    resolve_sla_met: d.resolve_sla_met,
+    // ADD THIS LINE - Include documents
+    documents: d.documents ?? []
+  };
+})
+
+
+
+      
 
       .addCase(fetchTicketDetails.rejected, (state, action) => {
         state.isLoading = false;
@@ -532,13 +249,32 @@ const ticketSlice = createSlice({
         state.isLoading = true;
         state.isError = false;
       })
-      .addCase(createTicket.fulfilled, (state, action) => {
-        state.isLoading = false;
-        const created = action.payload?.ticket ?? action.payload ?? null;
-        if (created) {
-          state.tickets = [normalizeTicket(created), ...state.tickets];
-        }
-      })
+      // .addCase(createTicket.fulfilled, (state, action) => {
+      //   state.isLoading = false;
+      //   const created = action.payload?.ticket ?? action.payload ?? null;
+      //   if (created) {
+      //     state.tickets = [normalizeTicket(created), ...state.tickets];
+      //   }
+      // })
+
+
+      // In your ticketSlice.js - update the createTicket.fulfilled case
+.addCase(createTicket.fulfilled, (state, action) => {
+  state.isLoading = false;
+  state.isError = false;
+  state.message = '';
+  
+  const response = action.payload;
+  console.log('createTicket fulfilled response:', response);
+  
+  // Handle different response formats
+  const createdTicket = response?.ticket ?? response?.data ?? response;
+  
+  if (createdTicket) {
+    // Add the new ticket to the beginning of the list
+    state.tickets = [normalizeTicket(createdTicket), ...state.tickets];
+  }
+})
       .addCase(createTicket.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
@@ -550,37 +286,7 @@ const ticketSlice = createSlice({
         state.isLoading = true;
         state.isError = false;
       })
-      // .addCase(replyToTicket.fulfilled, (state, action) => {
-      //   state.isLoading = false;
-      //   const ticketId = action.payload?.ticketId ?? action.meta?.arg?.ticketId;
-      //   const reply = action.payload?.reply ?? action.payload;
-      //   if (state.ticketDetails && state.ticketDetails.ticket_id == ticketId) {
-      //     state.ticketDetails.replies = [...(state.ticketDetails.replies || []), reply];
-      //   }
-      // })
 
-
-      // Update the replyToTicket.fulfilled case in ticketSlice.js
-      // .addCase(replyToTicket.fulfilled, (state, action) => {
-      //   state.isLoading = false;
-      //   const ticketId = action.payload?.ticketId ?? action.meta?.arg?.ticketId;
-      //   const reply = action.payload?.reply ?? action.payload;
-
-      //   if (state.ticketDetails && state.ticketDetails.ticket_id == ticketId) {
-      //     // Make sure the reply has the proper structure with sender
-      //     const replyWithSender = {
-      //       ...reply,
-      //       // Ensure sender object is properly structured
-      //       sender: reply.sender ? {
-      //         user_id: reply.sender.user_id,
-      //         username: reply.sender.username,
-      //         email: reply.sender.email
-      //       } : null
-      //     };
-
-      //     state.ticketDetails.replies = [...(state.ticketDetails.replies || []), replyWithSender];
-      //   }
-      // })
 
       // Update the replyToTicket.fulfilled case in ticketSlice.js
 .addCase(replyToTicket.fulfilled, (state, action) => {

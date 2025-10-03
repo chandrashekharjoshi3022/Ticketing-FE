@@ -27,11 +27,28 @@ const getTicketDetails = async (ticketId) => {
   return res.data;
 };
 
+// const raiseTicket = async (formData) => {
+//   const res = await API.post('/ticket/raise', formData, {
+//     headers: { 'Content-Type': 'multipart/form-data' }
+//   });
+//   return res.data;
+// };
+
+
+
 const raiseTicket = async (formData) => {
-  const res = await API.post('/ticket/raise', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  });
-  return res.data;
+  try {
+    const res = await API.post('/ticket/raise', formData, {
+      headers: { 
+        'Content-Type': 'multipart/form-data',
+      }
+    });
+    return res.data;
+  } catch (error) {
+    console.error('TicketService - raiseTicket error:', error);
+    // Throw the error with proper message for the slice to handle
+    throw error;
+  }
 };
 
 // const replyToTicket = async ({ ticketId, message }) => {

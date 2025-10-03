@@ -25,7 +25,9 @@ import {
   FormControl,
   InputLabel,
   MenuItem,
-  Select
+  Select,
+  Card,
+  CardContent // Add this import
 } from '@mui/material';
 import MainCard from 'components/MainCard';
 import { DataGrid } from '@mui/x-data-grid';
@@ -45,12 +47,13 @@ import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import PersonIcon from '@mui/icons-material/Person';
 import ReplyIcon from '@mui/icons-material/Reply';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import DeleteIcon from '@mui/icons-material/Delete'; // Add this import
 import { formatDate, formatDateTime, formatDateTimeSplit } from 'components/DateFormate';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchTickets, fetchTicketDetails, createTicket, replyToTicket, clearTicketDetails } from '../../features/tickets/ticketSlice';
 import { selectUserRole, selectCurrentUser, selectIsInitialized } from '../../features/auth/authSlice';
 import TicketForm from './TicketForm';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ImageCell from './ImageCell';
 
 export default function TicketRaise() {
@@ -58,7 +61,16 @@ export default function TicketRaise() {
   const theme = useTheme();
   const dispatch = useDispatch();
 
-  // Redux state
+  // Add the missing getFileIcon function
+  const getFileIcon = (fileType) => {
+    if (fileType.startsWith('image/')) return '🖼️';
+    if (fileType === 'application/pdf') return '📄';
+    if (fileType.includes('word')) return '📝';
+    if (fileType.includes('excel') || fileType.includes('spreadsheet')) return '📊';
+    return '📎';
+  };
+
+  // Rest of your component code remains the same...
   const {
     tickets,
     ticketDetails,
@@ -90,8 +102,7 @@ export default function TicketRaise() {
   const [showTicketForm, setShowTicketForm] = useState(false);
   const [status, setStatus] = useState('');
   const [assign, setAssign] = useState('')
-  const [attachedFiles, setAttachedFiles] = useState([]); // For multiple files
-
+  const [attachedFiles, setAttachedFiles] = useState([]);
 
   // Check if user is admin
   const isAdmin = userRole === 'admin';
@@ -141,12 +152,7 @@ export default function TicketRaise() {
     setShowTableBodies((prevState) => ({ ...prevState, [section]: !prevState[section] }));
   };
 
-
-  // In your TicketRaise.jsx, update the rows creation:
-
-
-
-    // --- Build conversation rows safely only when ticketDetails exists ---
+  // Updated conversationRows with proper image handling
   const conversationRows = React.useMemo(() => {
     if (!ticketDetails) return [];
 
@@ -157,7 +163,7 @@ export default function TicketRaise() {
       created_by: ticketDetails.created_by ?? ticketDetails.creator?.username ?? 'User',
       created_on: ticketDetails.created_on ?? ticketDetails.createdAt ?? '',
       status: ticketDetails.status ?? '',
-      allImages: ticketDetails.documents ?? ticketDetails.images ?? [] // ticket-level documents
+      allImages: ticketDetails.documents ?? [] // ticket-level documents
     };
 
     const replyRows = (ticketDetails.replies || []).map((reply, index) => {
@@ -176,18 +182,14 @@ export default function TicketRaise() {
         created_by: displayName,
         created_on: reply.created_at ?? reply.created_on ?? '',
         status: reply.status ?? '',
-        allImages: reply.documents ?? reply.images ?? [] // reply-specific documents
+        allImages: reply.documents ?? [] // reply-specific documents
       };
     });
 
     return [initialRow, ...replyRows].map((row, i) => ({ ...row, sr_no: i + 1 }));
   }, [ticketDetails]);
 
-
-
-
   const handleView = async (row) => {
-    // Debug: Log the values to see what's happening
     console.log('Permission check:', {
       isAdmin,
       rowUserId: row.user_id,
@@ -196,9 +198,6 @@ export default function TicketRaise() {
       row
     });
 
-    // Check if user has permission to view this ticket
-    // For admin: can view all tickets
-    // For user: can only view their own tickets (compare by user_id)
     if (!isAdmin && row.user_id !== userId) {
       window.alert('You do not have permission to view this ticket');
       return;
@@ -217,16 +216,6 @@ export default function TicketRaise() {
     }
   };
 
-  // const handleCloseModal = () => {
-  //   setOpenModal(false);
-  //   setSelectedTicket(null);
-  //   setReplyMessage('');
-  //   dispatch(clearTicketDetails());
-  //   setSuccessMessage('');
-  // };
-
-
-  // Update handleCloseModal to reset all states
   const handleCloseModal = () => {
     setOpenModal(false);
     setSelectedTicket(null);
@@ -238,50 +227,7 @@ export default function TicketRaise() {
     setSuccessMessage('');
   };
 
-  const initialValues = {
-    modules: '',
-    submodule: '',
-    category: '',
-    files: [],
-    comments: ''
-  };
-
   const handleTabChange = (event, newValue) => setActiveTab(newValue);
-
-
-  // const handleReplySubmit = async () => {
-  //   if (!ticketDetails?.ticket_id) return;
-  //   if (!replyMessage || replyMessage.trim() === '') {
-  //     return window.alert('Please enter a message');
-  //   }
-
-  //   // Check if user has permission to reply to this ticket
-  //   if (!isAdmin && ticketDetails.user_id !== userId) {
-  //     window.alert('You do not have permission to reply to this ticket');
-  //     return;
-  //   }
-
-  //   setIsSubmittingReply(true);
-  //   try {
-  //     await dispatch(
-  //       replyToTicket({
-  //         ticketId: ticketDetails.ticket_id,
-  //         message: replyMessage
-  //       })
-  //     ).unwrap();
-
-  //     await dispatch(fetchTicketDetails(ticketDetails.ticket_id)).unwrap();
-  //     await dispatch(fetchTickets()).unwrap();
-
-  //     setReplyMessage('');
-  //     setSuccessMessage('Reply sent successfully!');
-  //   } catch (err) {
-  //     console.error('Reply failed', err);
-  //     window.alert(err?.message || 'Failed to send reply');
-  //   } finally {
-  //     setIsSubmittingReply(false);
-  //   }
-  // };
 
   const handleReplySubmit = async () => {
     if (!ticketDetails?.ticket_id) return;
@@ -289,7 +235,6 @@ export default function TicketRaise() {
       return window.alert('Please enter a message');
     }
 
-    // Check if user has permission to reply to this ticket
     if (!isAdmin && ticketDetails.user_id !== userId) {
       window.alert('You do not have permission to reply to this ticket');
       return;
@@ -298,37 +243,31 @@ export default function TicketRaise() {
     setIsSubmittingReply(true);
 
     try {
-      // Create FormData to handle file uploads
       const formData = new FormData();
       formData.append('message', replyMessage);
 
-      // Append status if changed
       if (status) {
         formData.append('status', status);
       }
 
-      // Append assignee if changed (admin only)
       if (isAdmin && assign) {
         formData.append('assigned_to', assign);
       }
 
-      // Append multiple files
-      attachedFiles.forEach((file, index) => {
-        formData.append(`files`, file);
+      attachedFiles.forEach((file) => {
+        formData.append('files', file);
       });
 
       await dispatch(
         replyToTicket({
           ticketId: ticketDetails.ticket_id,
-          formData: formData // Pass FormData instead of just message
+          formData: formData
         })
       ).unwrap();
 
-      // Refresh data
       await dispatch(fetchTicketDetails(ticketDetails.ticket_id)).unwrap();
       await dispatch(fetchTickets()).unwrap();
 
-      // Reset form state
       setReplyMessage('');
       setStatus('');
       setAssign('');
@@ -344,24 +283,70 @@ export default function TicketRaise() {
 
 
 
+  console.log(ticketDetails, "here we are cheking the ticket details")
+  // const handleFileUpload = (e) => {
+  //   const files = Array.from(e.target.files);
+  //   if (files.length > 0) {
+  //     setAttachedFiles(files);
+  //     console.log('Uploaded files:', files);
+  //   }
+  // };
+
+
+  const handleFileUpload = (e) => {
+    const newFiles = Array.from(e.target.files);
+    if (newFiles.length === 0) return;
+
+    // Check for duplicates by name and size
+    const existingFiles = attachedFiles || [];
+    const uniqueNewFiles = newFiles.filter(newFile =>
+      !existingFiles.some(existingFile =>
+        existingFile.name === newFile.name &&
+        existingFile.size === newFile.size &&
+        existingFile.lastModified === newFile.lastModified
+      )
+    );
+
+    if (uniqueNewFiles.length === 0) {
+      setErrorMessage('Some files are already selected');
+      return;
+    }
+
+    // Append new files to existing files
+    const updatedFiles = [...existingFiles, ...uniqueNewFiles];
+    setAttachedFiles(updatedFiles);
+
+    // Reset file input to allow selecting same files again
+    e.target.value = '';
+
+    // Clear error message if files were added successfully
+    if (uniqueNewFiles.length > 0) {
+      setErrorMessage('');
+    }
+  };
+
+
+
+  const removeAttachedFile = (index) => {
+    setAttachedFiles(prev => {
+      const newFiles = prev.filter((_, i) => i !== index);
+      return newFiles;
+    });
+  };
 
   const getFilteredTickets = () => {
     if (!tickets) return [];
 
     let filtered = tickets;
-    // Apply status filter
     if (activeTab !== 'All') {
       filtered = filtered.filter((ticket) => ticket.status === activeTab);
     }
-
-
 
     return filtered;
   };
 
   const filteredRows = getFilteredTickets();
 
-  // Get status counts for tabs
   const getStatusCounts = () => {
     return {
       All: tickets.length,
@@ -394,36 +379,10 @@ export default function TicketRaise() {
       />
     );
   };
-  // const handleFileUpload = (e) => {
-  //   const file = e.target.files[0];
-  //   if (file) {
-  //     console.log('Uploaded file:', file);
-  //     console.log('Selected status:', status);
-  //     // 👉 Handle upload + status together here
-  //   }
-  // };
-
-
-  const handleFileUpload = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length > 0) {
-      setAttachedFiles(files);
-      console.log('Uploaded files:', files);
-    }
-  };
-
-
-  const removeAttachedFile = (index) => {
-    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
-
 
   const renderDateWithSLA = (params, type) => {
     const timeSeconds = type === 'response' ? params.row.response_time_seconds : params.row.resolve_time_seconds;
-
     const targetMinutes = type === 'response' ? params.row.sla?.response_target_minutes : params.row.sla?.resolve_target_minutes;
-
     const timestamp = type === 'response' ? params.row.response_at : params.row.resolved_at;
 
     if (!timeSeconds || !targetMinutes || !timestamp) {
@@ -451,7 +410,7 @@ export default function TicketRaise() {
       status = 'Significantly Exceeded';
     }
 
-    const dt = formatDateTime(timestamp); // returns { date, time }
+    const dt = formatDateTime(timestamp);
 
     return (
       <Tooltip title={`SLA Time: ${targetMinutes} min`} arrow>
@@ -482,7 +441,6 @@ export default function TicketRaise() {
     { field: 'module', headerName: 'Category', width: 120 },
     { field: 'submodule', headerName: 'Sub Category', width: 200 },
     { field: 'category', headerName: 'Issue Type', width: 200 },
-    // { field: 'priority', headerName: 'Priority', width: 200 },
     {
       field: 'comments',
       headerName: 'Comments',
@@ -507,7 +465,6 @@ export default function TicketRaise() {
         return formatDateTimeSplit(params?.value);
       }
     },
-
     {
       field: 'response_at',
       headerName: 'Response On',
@@ -520,7 +477,6 @@ export default function TicketRaise() {
       width: 200,
       renderCell: (params) => renderDateWithSLA(params, 'resolve')
     },
-    // Show created by only for admin
     ...(isAdmin
       ? [
         {
@@ -603,12 +559,6 @@ export default function TicketRaise() {
         return formatDateTimeSplit(params?.value);
       }
     }
-    // {
-    //   field: 'status',
-    //   headerName: 'Status',
-    //   width: 100,
-    //   renderCell: (params) => getStatusChip(params.value)
-    // }
   ];
 
   const renderTableHeader = (sectionName, sectionLabel) => (
@@ -667,13 +617,6 @@ export default function TicketRaise() {
                   <Typography variant="body2" color="textSecondary">
                     Welcome, {currentUser?.username}
                   </Typography>
-                  {/* <Chip
-                    icon={isAdmin ? <AdminPanelSettingsIcon /> : <PersonIcon />}
-                    label={isAdmin ? 'admin' : 'User'}
-                    color={isAdmin ? 'primary' : 'default'}
-                    size="small"
-                    variant="outlined"
-                  /> */}
                 </Box>
               </Box>
               <Box>
@@ -687,21 +630,17 @@ export default function TicketRaise() {
           }
         >
           <Box sx={{ height: '85dvh', overflowY: 'auto', overflowX: 'hidden' }}>
-            {/* Success Message */}
             {successMessage && (
               <Alert severity="success" sx={{ mb: 2 }}>
                 {successMessage}
               </Alert>
             )}
 
-            {/* Error Message */}
             {ticketsError && (
               <Alert severity="error" sx={{ mb: 2 }}>
                 {ticketsError}
               </Alert>
             )}
-
-            {/* Role Information */}
 
             {!showTicketForm ? (
               <Box>
@@ -751,7 +690,7 @@ export default function TicketRaise() {
                             </Typography>
                           )
                         },
-                        ...columns.filter((col) => col.field !== 'id') // exclude old id column
+                        ...columns.filter((col) => col.field !== 'id')
                       ]}
                       loading={ticketsLoading}
                       pageSizeOptions={[10, 25, 50]}
@@ -765,6 +704,7 @@ export default function TicketRaise() {
                 <TicketForm onCancel={() => setShowTicketForm(false)} />
               </Box>
             )}
+
             {/* Ticket Details Modal */}
             <Dialog open={openModal} onClose={handleCloseModal} maxWidth="lg" fullWidth sx={dialogStyle}>
               <DialogTitle
@@ -838,48 +778,51 @@ export default function TicketRaise() {
                       </Grid>
 
 
+                      {/* {ticketDetails.documents && ticketDetails.documents.length > 0 && (
+  <Box sx={{ mt: 2, mb: 2 }}>
+    <CustomHeading>Initial Ticket Attachments</CustomHeading>
+    <Grid container spacing={1} sx={{ mt: 1 }}>
 
-
-
-
-                      {ticketDetails.documents && ticketDetails.documents.length > 0 && (
-                        <Grid item xs={12}>
-                          <CustomParagraphDark>Attachments:</CustomParagraphDark>
-                          <Grid container spacing={1} sx={{ mt: 1 }}>
-                            {ticketDetails.documents.map((doc, index) => (
-                              <Grid item xs={6} sm={4} md={3} key={doc.document_id || index}>
-                                <Box
-                                  component="img"
-                                  src={doc.doc_base64} // Direct path from database
-                                  alt={doc.doc_name}
-                                  sx={{
-                                    width: '100%',
-                                    height: 120,
-                                    objectFit: 'cover',
-                                    border: 1,
-                                    borderColor: 'divider',
-                                    borderRadius: 1,
-                                    cursor: 'pointer',
-                                    '&:hover': {
-                                      opacity: 0.8
-                                    }
-                                  }}
-                                  onClick={() => window.open(doc.doc_base64, '_blank')}
-                                  onError={(e) => {
-                                    console.error('Failed to load image:', doc.doc_base64);
-                                    e.target.style.display = 'none';
-                                  }}
-                                />
-                                <Typography variant="caption" display="block" textAlign="center">
-                                  {doc.doc_name}
-                                </Typography>
-                              </Grid>
-                            ))}
-                          </Grid>
-                        </Grid>
-                      )}
-
-
+    
+      {ticketDetails.documents.map((doc, index) => {
+        const imageUrl = doc.doc_base64 && (doc.doc_base64.startsWith('http') || doc.doc_base64.startsWith('https')) 
+          ? doc.doc_base64 
+          : `data:${doc.mime_type};base64,${doc.doc_base64}`;
+        
+        return (
+          <Grid item xs={6} sm={4} md={3} key={doc.document_id || index}>
+            <Box
+              component="img"
+              src={imageUrl}
+              alt={doc.doc_name}
+              sx={{
+                width: '100%',
+                height: 120,
+                objectFit: 'cover',
+                border: 1,
+                borderColor: 'divider',
+                borderRadius: 1,
+                cursor: 'pointer',
+                '&:hover': {
+                  opacity: 0.8
+                }
+              }}
+              onClick={() => window.open(imageUrl, '_blank')}
+              onError={(e) => {
+                console.error('Failed to load image:', doc.doc_name);
+                e.target.style.display = 'none';
+              }}
+            />
+            <Typography variant="caption" display="block" textAlign="center">
+              {doc.doc_name}
+            </Typography>
+          </Grid>
+        );
+      })}
+    </Grid>
+    <Divider sx={{ my: 2 }} />
+  </Box>
+)} */}
                     </Grid>
 
                     <Divider sx={{ my: 1 }} />
@@ -887,7 +830,7 @@ export default function TicketRaise() {
                       <CustomHeading>Conversation History</CustomHeading>
                     </Box>
 
-                    {/* <DataGrid
+                    <DataGrid
                       autoHeight
                       getRowHeight={() => 'auto'}
                       sx={{
@@ -904,43 +847,7 @@ export default function TicketRaise() {
                         mb: 3,
                         mt: 1
                       }}
-                      rows={[
-                        // Add initial comment as first row
-                        {
-                          id: 'initial',
-                          comments: ticketDetails.comment || '',
-                          created_by: ticketDetails.created_by || 'User',
-                          created_on: ticketDetails.created_on || '',
-                          status: ticketDetails.status || ''
-                        },
-                        // Then append all replies
-                        ...(ticketDetails.replies || []).map((r) => {
-                          // Determine the display name based on sender information
-                          let displayName = 'User';
-
-                          if (r.sender_type === 'system') {
-                            displayName = 'System';
-                          } else if (r.sender?.username) {
-                            // Use the actual username from sender object
-                            displayName = r.sender.username;
-                          } else if (r.sender_type === 'admin') {
-                            // Fallback for admin without sender object
-                            displayName = 'Admin';
-                          }
-                          // For user type without sender object, it will default to 'User'
-
-                          return {
-                            id: r.reply_id ?? r.id ?? Math.random(),
-                            comments: r.message ?? r.comment ?? '',
-                            created_by: displayName,
-                            created_on: r.created_at ?? r.created_on ?? r.createdAt ?? '',
-                            status: r.status ?? ''
-                          };
-                        })
-                      ].map((row, index) => ({
-                        ...row,
-                        sr_no: index + 1 // add serial number
-                      }))}
+                      rows={conversationRows}
                       columns={[
                         {
                           field: 'sr_no',
@@ -952,87 +859,20 @@ export default function TicketRaise() {
                             </Typography>
                           )
                         },
-                        ...commentColumn.filter((col) => col.field !== 'id') // exclude old id column
+                        ...commentColumn.filter((col) => col.field !== 'id')
                       ]}
                       hideFooter
                       disableColumnMenu
-                    /> */}
-
-
-                  
-
-<DataGrid
-  autoHeight
-  getRowHeight={() => 'auto'}
-  sx={{
-    '& .MuiDataGrid-cell': {
-      border: '1px solid rgba(224, 224, 224, 1)',
-      display: 'flex',
-      alignItems: 'center'
-    },
-    '& .MuiDataGrid-columnHeader': {
-      backgroundColor: '#f5f5f5',
-      border: '1px solid rgba(224, 224, 224, 1)',
-      height: '40px'
-    },
-    mb: 3,
-    mt: 1
-  }}
-  rows={conversationRows} // Use the conversationRows we defined
-  columns={[
-    {
-      field: 'sr_no',
-      headerName: 'Sr. No.',
-      width: 70,
-      renderCell: (params) => (
-        <Typography variant="body2" fontWeight="bold">
-          {params.value}
-        </Typography>
-      )
-    },
-    ...commentColumn.filter((col) => col.field !== 'id') // exclude old id column
-  ]}
-  hideFooter
-  disableColumnMenu
-/>
-
+                    />
 
                     {(isAdmin || ticketDetails.user_id === userId) && ticketDetails.status !== 'Closed' && (
                       <>
                         <Box display="flex" alignItems="center" justifyContent="space-between">
                           <CustomHeading>Add Your Comment</CustomHeading>
 
-                          {/* <Box display="flex" alignItems="center" gap={2}>
-                            <input
-                              accept="image/*"
-                              style={{ display: 'none' }}
-                              id="upload-screenshot"
-                              type="file"
-                              onChange={handleFileUpload}
-                            />
-                            <label htmlFor="upload-screenshot">
-                              <Button variant="outlined" size="small" component="span" startIcon={<UploadFileIcon />}>
-                                Upload Screenshot
-                              </Button>
-                            </label>
-
-                            <FormControl size="small" sx={{ minWidth: 150 }}>
-                              <Select value={status} onChange={(e) => setStatus(e.target.value)} displayEmpty>
-                                <MenuItem value="">
-                                  <em style={{ color: '#888' }}>Status</em>
-                                </MenuItem>
-                                <MenuItem value="open">Open</MenuItem>
-                                <MenuItem value="in_progress">In Progress</MenuItem>
-                                <MenuItem value="resolved">Resolved</MenuItem>
-                                <MenuItem value="closed">Closed</MenuItem>
-                              </Select>
-                            </FormControl>
-                          </Box> */}
-
                           <Box display="flex" alignItems="center" gap={2}>
-                            {/* Multiple file upload */}
                             <input
-                              accept="image/*,.pdf,.doc,.docx"
+                              accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
                               style={{ display: 'none' }}
                               id="upload-screenshot"
                               type="file"
@@ -1045,7 +885,6 @@ export default function TicketRaise() {
                               </Button>
                             </label>
 
-                            {/* Status dropdown - Fixed version */}
                             <FormControl size="small" sx={{ minWidth: 150 }}>
                               <InputLabel>Status</InputLabel>
                               <Select
@@ -1056,13 +895,7 @@ export default function TicketRaise() {
                                 <MenuItem value="">
                                   <em>Select Status</em>
                                 </MenuItem>
-
-                                {/* For regular users - only show Closed option */}
-                                {!isAdmin && (
-                                  <MenuItem value="Closed">Closed</MenuItem>
-                                )}
-
-                                {/* For admin users - show all status options as array (no Fragment) */}
+                                {!isAdmin && <MenuItem value="Closed">Closed</MenuItem>}
                                 {isAdmin && [
                                   <MenuItem key="Open" value="Open">Open</MenuItem>,
                                   <MenuItem key="In Progress" value="In Progress">In Progress</MenuItem>,
@@ -1073,7 +906,6 @@ export default function TicketRaise() {
                               </Select>
                             </FormControl>
 
-                            {/* Assign dropdown (admin only) */}
                             {isAdmin && (
                               <FormControl size="small" sx={{ minWidth: 150 }}>
                                 <InputLabel>Assign to</InputLabel>
@@ -1094,7 +926,110 @@ export default function TicketRaise() {
                             )}
                           </Box>
                         </Box>
-                        <Box sx={{ backgroundColor: '#f8f9fa', borderRadius: 1 }}>
+
+                        {/* File preview for attached files */}
+                        {/* File preview for attached files */}
+                        {attachedFiles.length > 0 && (
+                          <Box sx={{ mt: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1, backgroundColor: '#fafafa' }}>
+                            <Typography variant="subtitle2" gutterBottom>
+                              Files to be attached ({attachedFiles.length}):
+                            </Typography>
+                            <Grid container spacing={1}>
+                              {attachedFiles.map((file, index) => {
+                                // Create object URL for image preview
+                                const fileUrl = URL.createObjectURL(file);
+                                const isImage = file.type.startsWith('image/');
+
+                                return (
+                                  <Grid item xs={12} sm={6} md={4} key={index}>
+                                    <Card variant="outlined" sx={{ position: 'relative' }}>
+                                      <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
+                                          <Typography variant="body2" sx={{ flexGrow: 1, fontSize: '0.8rem', wordBreak: 'break-word' }}>
+                                            {getFileIcon(file.type)} {file.name}
+                                          </Typography>
+                                          <IconButton
+                                            size="small"
+                                            onClick={() => removeAttachedFile(index)}
+                                            color="error"
+                                            sx={{ ml: 0.5 }}
+                                          >
+                                            <DeleteIcon fontSize="small" />
+                                          </IconButton>
+                                        </Box>
+
+                                        <Typography variant="caption" color="textSecondary" display="block">
+                                          {(file.size / 1024).toFixed(2)} KB • {file.type.split('/')[1] || file.type}
+                                        </Typography>
+
+                                        {/* Image preview for image files */}
+                                        {isImage && (
+                                          <Box sx={{ mt: 1 }}>
+                                            <img
+                                              src={fileUrl}
+                                              alt={file.name}
+                                              style={{
+                                                width: '100%',
+                                                height: 80,
+                                                objectFit: 'cover',
+                                                border: '1px solid #e0e0e0',
+                                                borderRadius: 4,
+                                                cursor: 'pointer'
+                                              }}
+                                              onClick={() => {
+                                                // Open image in new tab for larger view
+                                                const w = window.open();
+                                                if (w) {
+                                                  w.document.write(`
+                            <!DOCTYPE html>
+                            <html>
+                              <head>
+                                <title>${file.name}</title>
+                                <style>
+                                  body { margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f5f5f5; }
+                                  img { max-width: 100%; max-height: 90vh; object-fit: contain; }
+                                </style>
+                              </head>
+                              <body>
+                                <img src="${fileUrl}" alt="${file.name}" />
+                              </body>
+                            </html>
+                          `);
+                                                }
+                                              }}
+                                            />
+                                          </Box>
+                                        )}
+
+                                        {/* Preview button for non-image files */}
+                                        {!isImage && (
+                                          <Box sx={{ display: 'flex', gap: 0.5, mt: 1 }}>
+                                            <Button
+                                              size="small"
+                                              variant="outlined"
+                                              fullWidth
+                                              sx={{ fontSize: '0.7rem' }}
+                                              onClick={() => {
+                                                // For non-image files, trigger download
+                                                const link = document.createElement('a');
+                                                link.href = fileUrl;
+                                                link.download = file.name;
+                                                link.click();
+                                              }}
+                                            >
+                                              Download
+                                            </Button>
+                                          </Box>
+                                        )}
+                                      </CardContent>
+                                    </Card>
+                                  </Grid>
+                                );
+                              })}
+                            </Grid>
+                          </Box>
+                        )}
+                        <Box sx={{ backgroundColor: '#f8f9fa', borderRadius: 1, mt: 2 }}>
                           <ReactQuill
                             value={replyMessage}
                             onChange={setReplyMessage}
@@ -1106,8 +1041,14 @@ export default function TicketRaise() {
                           />
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8, mb: 1, gap: 2 }}>
-                          <Button variant="outlined" onClick={() => setReplyMessage('')} disabled={isSubmittingReply}>
-                            Clear
+
+                          <Button variant="outlined" onClick={() => {
+                            setReplyMessage('');
+                            setAttachedFiles([]);
+                            setStatus('');
+                            setAssign('');
+                          }} disabled={isSubmittingReply}>
+                            Clear All
                           </Button>
                           <Button
                             variant="contained"
