@@ -16,11 +16,6 @@ const MasterTab = () => {
 
   const boxesUppper = [
     {
-      icon: <AccountCircleIcon sx={{ color: colors.primary, fontSize: 40 }} />,
-      label: 'User',
-      path: '/master/users'
-    },
-    {
       icon: <StoreIcon sx={{ color: colors.success, fontSize: 40 }} />,
       label: 'Catrgory',
       path: '/category'
@@ -39,10 +34,15 @@ const MasterTab = () => {
       icon: <StoreIcon sx={{ color: colors.success, fontSize: 40 }} />,
       label: 'Priority',
       path: '/priority'
+    },
+    {
+      icon: <AccountCircleIcon sx={{ color: colors.primary, fontSize: 40 }} />,
+      label: 'User',
+      path: '/master/users'
     }
   ];
 
-  boxesUppper.sort((a, b) => a.label.localeCompare(b.label));
+  // boxesUppper.sort((a, b) => a.label.localeCompare(b.label));
   const handleViewClick = (path) => {
     navigate(path);
   };

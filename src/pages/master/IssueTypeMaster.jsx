@@ -270,7 +270,7 @@ export default function IssueTypeMaster() {
             {({ resetForm }) => (
               <Form>
                 <Grid container spacing={2} padding={2}>
-                  <Grid item xs={12} sm={3}>
+                  <Grid item xs={12} sm={2}>
                     <CustomParagraphLight>
                       Sub Category <ValidationStar>*</ValidationStar>
                     </CustomParagraphLight>
@@ -289,7 +289,7 @@ export default function IssueTypeMaster() {
                     <ErrorMessage name="subcategory_id" component="div" style={errorMessageStyle} />
                   </Grid>
 
-                  <Grid item xs={12} sm={3}>
+                  <Grid item xs={12} sm={2}>
                     <CustomParagraphLight>
                       Issue Type <ValidationStar>*</ValidationStar>
                     </CustomParagraphLight>
@@ -297,7 +297,7 @@ export default function IssueTypeMaster() {
                     <ErrorMessage name="name" component="div" style={errorMessageStyle} />
                   </Grid>
 
-                  <Grid item xs={12} sm={3}>
+                  <Grid item xs={12} sm={2}>
                     <CustomParagraphLight>
                       SLA <ValidationStar>*</ValidationStar>
                     </CustomParagraphLight>

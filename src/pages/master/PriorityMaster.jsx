@@ -112,17 +112,17 @@ export default function PriorityMaster() {
               {({ resetForm }) => (
                 <Form>
                   <Grid container spacing={2} alignItems="center" sx={{ mb: 1 }}>
-                    <Grid item xs={12} sm={5}>
+                    <Grid item xs={12} sm={2}>
                       <Field as={FieldPadding} name="name" placeholder="Priority name (e.g. High)" />
                       <ErrorMessage name="name" component="div" style={{ color: 'red' }} />
                     </Grid>
 
-                    <Grid item xs={12} sm={3}>
+                    <Grid item xs={12} sm={2}>
                       <Field as={FieldPadding} type="number" name="sort_order" placeholder="Sort order (lower = higher priority)" />
                       <ErrorMessage name="sort_order" component="div" style={{ color: 'red' }} />
                     </Grid>
 
-                    <Grid item xs={12} sm={4} display="flex" gap={1} justifyContent="flex-end">
+                    <Grid item xs={12} sm={2} display="flex" gap={1} justifyContent="flex-end">
                       <SubmitButton type="submit">{editing ? 'Update' : 'Create'}</SubmitButton>
                       <CustomRefreshBtn onClick={() => { resetForm(); setEditing(null); dispatch(fetchPriorities()); }}>Refresh</CustomRefreshBtn>
                     </Grid>
