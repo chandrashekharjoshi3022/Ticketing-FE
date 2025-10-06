@@ -1,18 +1,15 @@
+// src/pages/master/CateroryMaster.jsx
 import {
-  Button,
   Box,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
   Grid,
-  TableRow,
   MenuItem,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle
+  DialogTitle,
+  IconButton
 } from '@mui/material';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
@@ -24,10 +21,8 @@ import FieldPadding from 'components/FieldPadding';
 import SelectFieldPadding from 'components/selectFieldPadding';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import IconButton from '@mui/material/IconButton';
 import { useNavigate } from 'react-router-dom';
 import PlusButton from 'components/CustomButton';
-import { axiosInstance } from 'utils/axiosInstance';
 import { useEffect, useState } from 'react';
 import { NoButton, YesButton } from 'components/DialogActionsButton';
 import SubmitButton from 'components/CustomSubmitBtn';
@@ -36,42 +31,50 @@ import CustomParagraphLight from 'components/CustomParagraphLight';
 import LoaderLogo from 'components/LoaderLogo';
 import gridStyle from 'utils/gridStyle';
 
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  fetchCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  clearCategoryError
+} from 'features/categories/categorySlice';
+
 export default function CateroryMaster() {
   const navigate = useNavigate();
-  const [categoryNameData, setCategoryNameData] = useState([]);
-  const [editingCategoryName, setEditingCategoryName] = useState(null);
+  const dispatch = useDispatch();
+
+  const { items: categoryItems = [], loading = false, error = null } = useSelector((s) => s.categories || {});
+
+  const [editingCategory, setEditingCategory] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const handleBackClick = () => {
-    navigate('/mastertab');
-  };
 
   useEffect(() => {
-    getCategoryName();
-  }, []);
+    dispatch(fetchCategories());
+  }, [dispatch]);
 
-  const handleEdit = (categoryName) => {
-    setEditingCategoryName(categoryName);
+  useEffect(() => {
+    if (error) console.error('Category error:', error);
+  }, [error]);
+
+  const handleBackClick = () => navigate('/mastertab');
+
+  const handleEdit = (row) => {
+    setEditingCategory(row);
   };
 
-  const handleDeleteClick = (categoryName) => {
-    setCategoryToDelete(categoryName);
+  const handleDeleteClick = (row) => {
+    setCategoryToDelete(row);
     setDeleteDialogOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
-    setLoading(true);
-    try {
-      await axiosInstance.delete(`/api/category/delete?category_id=${categoryToDelete.categoryID}`);
-      getCategoryName();
-      setDeleteDialogOpen(false);
-    } catch (error) {
-      console.error('Error deleting categoryName:', error);
-    } finally {
-      setLoading(false);
-    }
+    if (!categoryToDelete) return;
+    await dispatch(deleteCategory(categoryToDelete.category_id ?? categoryToDelete.id)).unwrap();
+    setDeleteDialogOpen(false);
+    setCategoryToDelete(null);
+    await dispatch(fetchCategories());
   };
 
   const handleDeleteCancel = () => {
@@ -80,7 +83,8 @@ export default function CateroryMaster() {
   };
 
   const columns = [
-    { field: 'name', headerName: 'Name', width: 150 },
+    { field: 'name', headerName: 'Name', width: 250 },
+    { field: 'description', headerName: 'Description', width: 250 },
     {
       field: 'status',
       headerName: 'Status',
@@ -88,84 +92,64 @@ export default function CateroryMaster() {
       renderCell: (params) => {
         const status = params.value;
         const color = status === 'Active' ? 'green' : 'red';
-
-        return (
-          <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-            <Typography sx={{ color, fontWeight: 'bold' }}>{status}</Typography>
-          </Box>
-        );
+        return <Box sx={{ display: 'flex', alignItems: 'center' }}><Typography sx={{ color, fontWeight: 'bold' }}>{status}</Typography></Box>;
       }
     },
-    { field: 'createdby', headerName: 'Created By', width: 150 },
-    { field: 'updatedby', headerName: 'Updated By', width: 150 },
+    // { field: 'createdby', headerName: 'Created By', width: 160 },
+    // { field: 'updatedby', headerName: 'Updated By', width: 160 },
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 200,
+      width: 160,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <IconButton color="primary" onClick={() => handleEdit(params.row)}>
-            <EditIcon />
-          </IconButton>
-          <IconButton color="secondary" onClick={() => handleDeleteClick(params.row)}>
-            <DeleteIcon />
-          </IconButton>
+          <IconButton color="primary" onClick={() => handleEdit(params.row)}><EditIcon /></IconButton>
+          <IconButton color="secondary" onClick={() => handleDeleteClick(params.row)}><DeleteIcon /></IconButton>
         </Box>
       )
     }
   ];
 
+  const rows = (categoryItems || []).map((c, idx) => ({
+    id: idx + 1,
+    category_id: c.category_id ?? c.id,
+    name: c.name ?? c.category_name ?? 'Unnamed',
+    status: c.is_active ? 'Active' : 'Inactive',
+    description: c.description ?? '',
+    createdby: c.created_by ?? '-',
+    updatedby: c.updated_by ?? '-'
+  }));
+
   const initialValues = {
-    categoryName: editingCategoryName ? editingCategoryName.name : '',
-    status: editingCategoryName ? (editingCategoryName.status === 'Active' ? '1' : '2') : '1'
+    categoryName: editingCategory ? editingCategory.name : '',
+    description: editingCategory ? editingCategory.description : '',
+    status: editingCategory ? (editingCategory.status === 'Active' ? '1' : '0') : '1'
   };
 
   const validationSchema = Yup.object({
-    categoryName: Yup.string().required('categoryName is required'),
-    status: Yup.string().required('Status is required')
+    categoryName: Yup.string().required('Category name is required'),
+    status: Yup.string().required('Status is required'),
+    description: Yup.string().nullable()
   });
-
-  const getCategoryName = async () => {
-    setLoading(true);
-    try {
-      const response = await axiosInstance.get('/api/category/categories');
-      const categoryNameList = response.data.map((categoryName, index) => ({
-        id: index + 1,
-        categoryID: categoryName.category_id,
-        name: categoryName.category_name,
-        status: categoryName.status == 1 ? 'Active' : 'Inactive',
-        createdby: categoryName.created_by,
-        updatedby: categoryName.updated_by
-      }));
-      setCategoryNameData(categoryNameList);
-    } catch (error) {
-      console.error('Error fetching categoryNames:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (values, { resetForm }) => {
     const payload = {
-      category_name: values.categoryName,
-      status: values.status
+      name: values.categoryName,
+      description: values.description || null,
+      is_active: (values.status === '1')
     };
-    setLoading(true);
-    try {
-      let response;
-      if (editingCategoryName) {
-        response = await axiosInstance.put(`/api/category/update?category_id=${editingCategoryName.categoryID}`, payload);
-      } else {
-        response = await axiosInstance.post('/api/category/category', payload);
-      }
 
-      getCategoryName();
+    try {
+      if (editingCategory) {
+        await dispatch(updateCategory({ category_id: editingCategory.category_id, payload })).unwrap();
+      } else {
+        await dispatch(createCategory(payload)).unwrap();
+      }
+      await dispatch(fetchCategories()).unwrap();
       resetForm();
-      setEditingCategoryName(null);
-    } catch (error) {
-      console.error('Error submitting categoryName:', error);
-    } finally {
-      setLoading(false);
+      setEditingCategory(null);
+    } catch (err) {
+      console.error('Error submitting category:', err);
     }
   };
 
@@ -178,55 +162,51 @@ export default function CateroryMaster() {
       ) : (
         <MainCard
           title={
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600, fontSize: '16px' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600 }}>
               <span>Category</span>
               <PlusButton label="Back" onClick={handleBackClick} />
             </Box>
           }
         >
-          <Box sx={{ height: '85dvh', overflowY: 'scroll', overflowX: 'hidden' }}>
+          <Box sx={{ height: '85dvh', overflowY: 'scroll' }}>
             <Formik
+              enableReinitialize
               initialValues={initialValues}
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
-              key={editingCategoryName ? editingCategoryName.id : 'new'}
+              key={editingCategory ? editingCategory.category_id : 'new'}
             >
-              {({ isSubmitting, resetForm }) => (
+              {({ resetForm }) => (
                 <Form>
-                  <Box padding={1}>
+                  <Box p={1}>
                     <Grid container spacing={2} alignItems="center">
-                      <Grid item xs={12} sm={2}>
-                        <CustomParagraphLight>
-                          Category Name<ValidationStar>*</ValidationStar>
-                        </CustomParagraphLight>
-                        <Field as={FieldPadding} name="categoryName" variant="outlined" fullWidth size="small" />
+                      <Grid item xs={12} sm={4}>
+                        <CustomParagraphLight>Category Name<ValidationStar>*</ValidationStar></CustomParagraphLight>
+                        <Field as={FieldPadding} name="categoryName" fullWidth size="small" />
                         <ErrorMessage name="categoryName" component="div" style={errorMessageStyle} />
                       </Grid>
 
+                      <Grid item xs={12} sm={4}>
+                        <CustomParagraphLight>Description</CustomParagraphLight>
+                        <Field as={FieldPadding} name="description" fullWidth size="small" />
+                        <ErrorMessage name="description" component="div" style={errorMessageStyle} />
+                      </Grid>
+
                       <Grid item xs={12} sm={2}>
-                        <CustomParagraphLight>
-                          Status<ValidationStar>*</ValidationStar>
-                        </CustomParagraphLight>
-                        <Field as={SelectFieldPadding} name="status" variant="outlined" fullWidth>
+                        <CustomParagraphLight>Status<ValidationStar>*</ValidationStar></CustomParagraphLight>
+                        <Field as={SelectFieldPadding} name="status" fullWidth>
                           <MenuItem value="1">Active</MenuItem>
-                          <MenuItem value="2">Inactive</MenuItem>
+                          <MenuItem value="0">Inactive</MenuItem>
                         </Field>
                         <ErrorMessage name="status" component="div" style={errorMessageStyle} />
                       </Grid>
-                      <Grid item xs={12} sm={1} display={'flex'} alignSelf={'flex-end'} justifyContent={'end'}>
-                        <SubmitButton type="submit" variant="contained">
-                          {editingCategoryName ? 'Update' : 'Submit'}
-                        </SubmitButton>
+
+                      <Grid item xs={12} sm={2} display="flex" justifyContent="flex-end" alignItems="end">
+                        <SubmitButton type="submit" variant="contained">{editingCategory ? 'Update' : 'Submit'}</SubmitButton>
                       </Grid>
-                      <Grid item xs={12} sm={1} display={'flex'} alignSelf={'flex-end'}>
-                        <CustomRefreshBtn
-                          type="button"
-                          variant="contained"
-                          onClick={() => {
-                            resetForm();
-                            setEditingCategoryName(null);
-                          }}
-                        >
+
+                      <Grid item xs={12} sm={2} display="flex" alignItems="end">
+                        <CustomRefreshBtn onClick={() => { resetForm(); setEditingCategory(null); dispatch(fetchCategories()); dispatch(clearCategoryError()); }}>
                           Refresh
                         </CustomRefreshBtn>
                       </Grid>
@@ -238,34 +218,25 @@ export default function CateroryMaster() {
 
             <DataGrid
               getRowHeight={() => 'auto'}
-              sx={{ ...gridStyle, height: '80vh' }}
-              stickyHeader={true}
-              rows={categoryNameData}
+              sx={{ ...gridStyle, height: '72vh', mt: 2 }}
+              rows={rows}
               columns={columns}
+              loading={loading}
+              pageSizeOptions={[10, 25, 50]}
+              initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
             />
 
-            <Dialog
-              open={deleteDialogOpen}
-              onClose={handleDeleteCancel}
-              aria-labelledby="alert-dialog-title"
-              aria-describedby="alert-dialog-description"
-            >
-              <DialogTitle id="alert-dialog-title">{'Confirm Deletion'}</DialogTitle>
-              <DialogContent>
-                <DialogContentText id="alert-dialog-description">Are you sure you want to delete this category?</DialogContentText>
-              </DialogContent>
+            <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
+              <DialogTitle>Confirm Deletion</DialogTitle>
+              <DialogContent><DialogContentText>Are you sure you want to delete this category?</DialogContentText></DialogContent>
               <DialogActions>
-                <NoButton onClick={handleDeleteCancel}>
-                  <span>No</span>
-                </NoButton>
-                <YesButton onClick={handleDeleteConfirm}>
-                  <span>Yes</span>
-                </YesButton>
+                <NoButton onClick={handleDeleteCancel}><span>No</span></NoButton>
+                <YesButton onClick={handleDeleteConfirm}><span>Yes</span></YesButton>
               </DialogActions>
             </Dialog>
           </Box>
         </MainCard>
-      )}{' '}
+      )}
     </>
   );
 }
