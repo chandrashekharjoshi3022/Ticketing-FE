@@ -33,6 +33,7 @@ import { fetchTickets, createTicket } from '../../features/tickets/ticketSlice';
 import { NoButton, YesButton } from 'components/DialogActionsButton';
 import FieldPadding from 'components/FieldPadding';
 import ValidationStar from 'components/ValidationStar';
+import { toast } from 'react-toastify';
 
 const FilePreviewDialog = ({ open, onClose, file, fileUrl }) => {
   if (!file) return null;
@@ -251,8 +252,9 @@ const TicketForm = () => {
       setConfirmDialogOpen(false);
       setSubmitValues(null);
       setSuccessMessage('Ticket raised successfully!');
-
-      // Clear any preview URLs
+      toast.success('Ticket raised successfully!', {
+        autoClose: 2000 // 2 seconds
+      });
       if (selectedFileUrl) {
         URL.revokeObjectURL(selectedFileUrl);
       }

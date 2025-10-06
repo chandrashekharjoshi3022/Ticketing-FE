@@ -8,6 +8,7 @@ import Locales from 'components/Locales';
 import ScrollTop from 'components/ScrollTop';
 import Snackbar from 'components/@extended/Snackbar';
 
+import { ToastContainer, toast } from 'react-toastify';
 // auth-provider
 import { JWTProvider as AuthProvider } from 'contexts/JWTContext';
 import 'scss/style.css';
@@ -22,7 +23,7 @@ export default function App() {
         <ScrollTop>
           <AuthProvider>
             <RouterProvider router={router} fallbackElement={<div>Loading router...</div>} />
-            <Snackbar />
+            <ToastContainer />
           </AuthProvider>
         </ScrollTop>
       </Locales>
