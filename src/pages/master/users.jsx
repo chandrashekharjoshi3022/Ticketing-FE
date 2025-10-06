@@ -6,6 +6,7 @@ import Icon from '@mdi/react';
 import { mdiTagEdit } from '@mdi/js';
 import UserForm from './userForm';
 import PlusButton from 'components/CustomButton';
+import gridStyle from 'utils/gridStyle';
 
 export default function UsersPages() {
   const [showOprForm, setShowOprForm] = useState(false);
@@ -67,11 +68,7 @@ export default function UsersPages() {
       headerName: 'Actions',
       width: 120,
       renderCell: (params) => (
-        <Button
-          color="primary"
-          onClick={() => handleEdit(params.row.id)}
-          
-        >
+        <Button color="primary" onClick={() => handleEdit(params.row.id)}>
           Edit
         </Button>
       )
@@ -96,24 +93,41 @@ export default function UsersPages() {
     setSelectedUser(null);
     setFormMode('create');
   };
-
+  const handleNavigate = () => {
+    window.history.back();
+  };
   return (
     <MainCard
       title={
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {!showOprForm ? <span>User List</span> : <span>Create User</span>}
-          {!showOprForm ? (
-            <PlusButton label=" + Create User" onClick={handleCreateOpr} />
-          ) : (
-            <PlusButton label="Back" onClick={handleCloseForm} />
-          )}
+          <Box>{!showOprForm ? <span>User List</span> : <span>Create User</span>}</Box>
+          <Box>
+            {!showOprForm ? (
+              <PlusButton label=" + Create User" onClick={handleCreateOpr} />
+            ) : (
+              <PlusButton label="Back" onClick={handleCloseForm} />
+            )}
+            {!showOprForm && (
+              <span style={{ marginLeft: '8px' }}>
+                <PlusButton label="Back" onClick={handleNavigate} />
+              </span>
+            )}
+          </Box>
         </Box>
       }
     >
       {showOprForm ? (
         <UserForm user={selectedUser} formMode={formMode} onClose={handleCloseForm} />
       ) : (
-        <DataGrid rows={userData} columns={columns} pageSize={5} rowsPerPageOptions={[5]} />
+        <DataGrid
+          getRowHeight={() => 'auto'}
+          sx={{ ...gridStyle, height: '80vh' }}
+          stickyHeader={true}
+          rows={userData}
+          columns={columns}
+          pageSize={5}
+          rowsPerPageOptions={[5]}
+        />
       )}
     </MainCard>
   );

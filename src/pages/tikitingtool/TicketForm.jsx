@@ -38,30 +38,26 @@ const FilePreviewDialog = ({ open, onClose, file, fileUrl }) => {
   if (!file) return null;
 
   const isImage = file.type.startsWith('image/');
-  
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
         File Preview: {file.name}
-        <IconButton
-          aria-label="close"
-          onClick={onClose}
-          sx={{ position: 'absolute', right: 8, top: 8 }}
-        >
+        <IconButton aria-label="close" onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
           <DeleteIcon />
         </IconButton>
       </DialogTitle>
       <DialogContent>
         {isImage ? (
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <img 
-              src={fileUrl} 
-              alt={file.name} 
-              style={{ 
-                maxWidth: '100%', 
-                maxHeight: '70vh', 
-                objectFit: 'contain' 
-              }} 
+            <img
+              src={fileUrl}
+              alt={file.name}
+              style={{
+                maxWidth: '100%',
+                maxHeight: '70vh',
+                objectFit: 'contain'
+              }}
             />
           </Box>
         ) : (
@@ -72,12 +68,7 @@ const FilePreviewDialog = ({ open, onClose, file, fileUrl }) => {
             <Typography variant="body2">
               File: {file.name} ({(file.size / 1024).toFixed(2)} KB)
             </Typography>
-            <Button 
-              href={fileUrl} 
-              download={file.name}
-              variant="contained"
-              sx={{ mt: 2 }}
-            >
+            <Button href={fileUrl} download={file.name} variant="contained" sx={{ mt: 2 }}>
               Download File
             </Button>
           </Box>
@@ -100,7 +91,7 @@ const TicketForm = () => {
   const [submitValues, setSubmitValues] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  
+
   // File preview state
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -137,15 +128,15 @@ const TicketForm = () => {
 
   const handleFileChange = (event, setFieldValue, values) => {
     const newFiles = Array.from(event.target.files);
-    
+
     // Check for duplicates by name and size
     const existingFiles = values.files || [];
-    const uniqueNewFiles = newFiles.filter(newFile => 
-      !existingFiles.some(existingFile => 
-        existingFile.name === newFile.name && 
-        existingFile.size === newFile.size &&
-        existingFile.lastModified === newFile.lastModified
-      )
+    const uniqueNewFiles = newFiles.filter(
+      (newFile) =>
+        !existingFiles.some(
+          (existingFile) =>
+            existingFile.name === newFile.name && existingFile.size === newFile.size && existingFile.lastModified === newFile.lastModified
+        )
     );
 
     if (uniqueNewFiles.length === 0) {
@@ -156,7 +147,7 @@ const TicketForm = () => {
     // Append new files to existing files
     const updatedFiles = [...existingFiles, ...uniqueNewFiles];
     setFieldValue('files', updatedFiles);
-    
+
     // Reset file input to allow selecting same files again
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -240,13 +231,13 @@ const TicketForm = () => {
       formData.append('issueType', values.issueType);
       formData.append('priority', values.priority);
       formData.append('comment', values.comments);
-      
+
       if (values.issueName) {
         formData.append('issueName', values.issueName);
       }
 
       formData.append('sla_id', 1);
-      
+
       // Append all files
       values.files.forEach((file) => {
         formData.append('files', file);
@@ -260,7 +251,7 @@ const TicketForm = () => {
       setConfirmDialogOpen(false);
       setSubmitValues(null);
       setSuccessMessage('Ticket raised successfully!');
-      
+
       // Clear any preview URLs
       if (selectedFileUrl) {
         URL.revokeObjectURL(selectedFileUrl);
@@ -289,12 +280,7 @@ const TicketForm = () => {
         </Alert>
       )}
 
-      <Formik 
-        initialValues={initialValues} 
-        validationSchema={validationSchema} 
-        onSubmit={handleSubmitClick} 
-        enableReinitialize
-      >
+      <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmitClick} enableReinitialize>
         {({ isSubmitting, resetForm, values, handleSubmit, setFieldValue }) => (
           <>
             <Form>
@@ -384,52 +370,42 @@ const TicketForm = () => {
                   <CustomParagraphLight>
                     Screenshots/Documents <ValidationStar />
                   </CustomParagraphLight>
-                  
+
                   <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
-                    <Button
-                      component="label"
-                      variant="outlined"
-                      startIcon={<CloudUploadIcon />}
-                      size="small"
-                    >
+                    <Button component="label" variant="outlined" startIcon={<CloudUploadIcon />} size="small">
                       Add Files
-                      <input 
-                        type="file" 
-                        hidden 
-                        multiple 
-                        accept=".pdf,.jpeg,.jpg,.png,.doc,.docx,.xls,.xlsx" 
+                      <input
+                        type="file"
+                        hidden
+                        multiple
+                        accept=".pdf,.jpeg,.jpg,.png,.doc,.docx,.xls,.xlsx"
                         onChange={(e) => handleFileChange(e, setFieldValue, values)}
                         ref={fileInputRef}
                       />
                     </Button>
-                    
+
                     {values.files.length > 0 && (
-                      <Button
-                        variant="outlined"
-                        color="error"
-                        size="small"
-                        onClick={() => handleRemoveAllFiles(setFieldValue)}
-                      >
+                      <Button variant="outlined" color="error" size="small" onClick={() => handleRemoveAllFiles(setFieldValue)}>
                         Remove All
                       </Button>
                     )}
-                    
+
                     {values.files.length > 0 && (
                       <Typography variant="body2" color="textSecondary">
                         Total: {values.files.length} files ({formatFileSize(getTotalFilesSize(values.files))})
                       </Typography>
                     )}
                   </Box>
-                  
+
                   {/* File Preview Section */}
                   {values.files.length > 0 && (
                     <Box sx={{ mt: 2 }}>
                       <Grid container spacing={2}>
                         {values.files.map((file, index) => (
                           <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
-                            <Card 
-                              variant="outlined" 
-                              sx={{ 
+                            <Card
+                              variant="outlined"
+                              sx={{
                                 position: 'relative',
                                 '&:hover': {
                                   boxShadow: 2,
@@ -439,18 +415,18 @@ const TicketForm = () => {
                             >
                               <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
                                 <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
-                                  <Typography 
-                                    variant="body2" 
-                                    sx={{ 
-                                      flexGrow: 1, 
+                                  <Typography
+                                    variant="body2"
+                                    sx={{
+                                      flexGrow: 1,
                                       fontSize: '0.8rem',
                                       wordBreak: 'break-word'
                                     }}
                                   >
                                     {getFileIcon(file.type)} {file.name}
                                   </Typography>
-                                  <IconButton 
-                                    size="small" 
+                                  <IconButton
+                                    size="small"
                                     onClick={() => handleRemoveFile(index, setFieldValue, values)}
                                     color="error"
                                     sx={{ ml: 0.5 }}
@@ -458,11 +434,11 @@ const TicketForm = () => {
                                     <DeleteIcon fontSize="small" />
                                   </IconButton>
                                 </Box>
-                                
+
                                 <Typography variant="caption" color="textSecondary" display="block">
                                   {formatFileSize(file.size)} • {file.type.split('/')[1] || file.type}
                                 </Typography>
-                                
+
                                 <Box sx={{ display: 'flex', gap: 0.5, mt: 1.5 }}>
                                   <Button
                                     size="small"
@@ -482,7 +458,7 @@ const TicketForm = () => {
                       </Grid>
                     </Box>
                   )}
-                  
+
                   <ErrorMessage name="files" component="div" style={errorMessageStyle} />
                 </Grid>
 
@@ -524,26 +500,26 @@ const TicketForm = () => {
                   <ErrorMessage name="comments" component="div" style={errorMessageStyle} />
                 </Grid>
               </Grid>
-              
+
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
-                <CustomRefreshBtn 
-                  type="button" 
-                  variant="outlined" 
+                <CustomRefreshBtn
+                  type="button"
+                  variant="contained"
                   onClick={() => {
                     resetForm();
                     // Clear any preview URLs
                     if (selectedFileUrl) {
                       URL.revokeObjectURL(selectedFileUrl);
                     }
-                  }} 
+                  }}
                   disabled={isSubmitting}
                 >
                   Reset
                 </CustomRefreshBtn>
-                <SubmitButton 
-                  type="button" 
-                  variant="contained" 
-                  onClick={() => handleSubmit()} 
+                <SubmitButton
+                  type="button"
+                  variant="contained"
+                  onClick={() => handleSubmit()}
                   disabled={isSubmitting || values.files.length === 0}
                 >
                   {isSubmitting ? 'Submitting...' : 'Submit Ticket'}
@@ -570,12 +546,7 @@ const TicketForm = () => {
             </Dialog>
 
             {/* File Preview Dialog */}
-            <FilePreviewDialog
-              open={previewDialogOpen}
-              onClose={handleClosePreview}
-              file={selectedFile}
-              fileUrl={selectedFileUrl}
-            />
+            <FilePreviewDialog open={previewDialogOpen} onClose={handleClosePreview} file={selectedFile} fileUrl={selectedFileUrl} />
           </>
         )}
       </Formik>

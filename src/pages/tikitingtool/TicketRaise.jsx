@@ -898,7 +898,7 @@ export default function TicketRaise() {
                                 {!isAdmin && <MenuItem value="Closed">Closed</MenuItem>}
                                 {isAdmin && [
                                   <MenuItem key="Open" value="Open">Open</MenuItem>,
-                                  <MenuItem key="In Progress" value="In Progress">In Progress</MenuItem>,
+                                  // <MenuItem key="In Progress" value="In Progress">In Progress</MenuItem>,
                                   <MenuItem key="Pending" value="Pending">Pending</MenuItem>,
                                   <MenuItem key="Resolved" value="Resolved">Resolved</MenuItem>,
                                   <MenuItem key="Closed" value="Closed">Closed</MenuItem>
