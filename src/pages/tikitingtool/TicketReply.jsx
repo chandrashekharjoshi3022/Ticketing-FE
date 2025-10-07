@@ -41,6 +41,7 @@ import SubmitButton from 'components/CustomSubmitBtn';
 import { NoButton, YesButton } from 'components/DialogActionsButton';
 import { padding } from '@mui/system';
 import CustomParagraphDark from 'components/CustomParagraphDark';
+import { toast } from 'react-toastify';
 // Styled components (assuming these exist in your project)
 
 const TicketReply = () => {
@@ -158,6 +159,7 @@ const TicketReply = () => {
   const handleSubmitClick = (values) => {
     console.log('Reply values:', values);
     setConfirmDialogOpen(true);
+    toast.success('Ticket raised successfully!', { autoClose: 2000 });
   };
 
   const handleConfirmSubmit = () => {

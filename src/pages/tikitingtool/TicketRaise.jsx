@@ -55,6 +55,7 @@ import { fetchTickets, fetchTicketDetails, createTicket, replyToTicket, clearTic
 import { selectUserRole, selectCurrentUser, selectIsInitialized } from '../../features/auth/authSlice';
 import TicketForm from './TicketForm';
 import ImageCell from './ImageCell';
+import { toast } from 'react-toastify';
 
 export default function TicketRaise() {
   const navigate = useNavigate();
@@ -101,7 +102,7 @@ export default function TicketRaise() {
   const [successMessage, setSuccessMessage] = useState('');
   const [showTicketForm, setShowTicketForm] = useState(false);
   const [status, setStatus] = useState('');
-  const [assign, setAssign] = useState('')
+  const [assign, setAssign] = useState('');
   const [attachedFiles, setAttachedFiles] = useState([]);
 
   // Check if user is admin
@@ -273,6 +274,7 @@ export default function TicketRaise() {
       setAssign('');
       setAttachedFiles([]);
       setSuccessMessage('Reply sent successfully!');
+      toast.success('Reply sent successfully!', { autoClose: 2000 });
     } catch (err) {
       console.error('Reply failed', err);
       window.alert(err?.message || 'Failed to send reply');
@@ -281,9 +283,7 @@ export default function TicketRaise() {
     }
   };
 
-
-
-  console.log(ticketDetails, "here we are cheking the ticket details")
+  console.log(ticketDetails, 'here we are cheking the ticket details');
   // const handleFileUpload = (e) => {
   //   const files = Array.from(e.target.files);
   //   if (files.length > 0) {
@@ -292,19 +292,18 @@ export default function TicketRaise() {
   //   }
   // };
 
-
   const handleFileUpload = (e) => {
     const newFiles = Array.from(e.target.files);
     if (newFiles.length === 0) return;
 
     // Check for duplicates by name and size
     const existingFiles = attachedFiles || [];
-    const uniqueNewFiles = newFiles.filter(newFile =>
-      !existingFiles.some(existingFile =>
-        existingFile.name === newFile.name &&
-        existingFile.size === newFile.size &&
-        existingFile.lastModified === newFile.lastModified
-      )
+    const uniqueNewFiles = newFiles.filter(
+      (newFile) =>
+        !existingFiles.some(
+          (existingFile) =>
+            existingFile.name === newFile.name && existingFile.size === newFile.size && existingFile.lastModified === newFile.lastModified
+        )
     );
 
     if (uniqueNewFiles.length === 0) {
@@ -325,10 +324,8 @@ export default function TicketRaise() {
     }
   };
 
-
-
   const removeAttachedFile = (index) => {
-    setAttachedFiles(prev => {
+    setAttachedFiles((prev) => {
       const newFiles = prev.filter((_, i) => i !== index);
       return newFiles;
     });
@@ -479,17 +476,17 @@ export default function TicketRaise() {
     },
     ...(isAdmin
       ? [
-        {
-          field: 'created_by',
-          headerName: 'Created By',
-          width: 120,
-          renderCell: (params) => (
-            <Typography variant="body2" fontStyle="italic">
-              {params.value || 'Unknown'}
-            </Typography>
-          )
-        }
-      ]
+          {
+            field: 'created_by',
+            headerName: 'Created By',
+            width: 120,
+            renderCell: (params) => (
+              <Typography variant="body2" fontStyle="italic">
+                {params.value || 'Unknown'}
+              </Typography>
+            )
+          }
+        ]
       : []),
     {
       field: 'status',
@@ -756,15 +753,19 @@ export default function TicketRaise() {
                         <CustomParagraphDark>Sub Category:</CustomParagraphDark>
                         <CustomParagraphLight>{ticketDetails.submodule}</CustomParagraphLight>
                       </Grid>
-                      <Grid item xs={12} md={3}>
+                      <Grid item xs={12} md={2}>
                         <CustomParagraphDark>Issue Type:</CustomParagraphDark>
                         <CustomParagraphLight>{ticketDetails.category}</CustomParagraphLight>
                       </Grid>
-                      <Grid item xs={12} md={3}>
+                      <Grid item xs={12} md={2}>
                         <CustomParagraphDark>Created On:</CustomParagraphDark>
                         <CustomParagraphLight>
                           {ticketDetails.created_on ? formatDateTimeSplit(ticketDetails.created_on) : '-'}
                         </CustomParagraphLight>
+                      </Grid>
+                      <Grid item xs={12} md={2}>
+                        <CustomParagraphDark>Priority</CustomParagraphDark>
+                        <CustomParagraphLight>{ticketDetails.priority}</CustomParagraphLight>
                       </Grid>
                       {isAdmin && (
                         <Grid item xs={12} md={2}>
@@ -776,7 +777,6 @@ export default function TicketRaise() {
                         <CustomParagraphDark> Comment: </CustomParagraphDark>
                         <Box sx={{ marginLeft: '10px' }} dangerouslySetInnerHTML={{ __html: ticketDetails.comment }} />
                       </Grid>
-
 
                       {/* {ticketDetails.documents && ticketDetails.documents.length > 0 && (
   <Box sx={{ mt: 2, mb: 2 }}>
@@ -887,21 +887,25 @@ export default function TicketRaise() {
 
                             <FormControl size="small" sx={{ minWidth: 150 }}>
                               <InputLabel>Status</InputLabel>
-                              <Select
-                                value={status}
-                                onChange={(e) => setStatus(e.target.value)}
-                                label="Status"
-                              >
+                              <Select value={status} onChange={(e) => setStatus(e.target.value)} label="Status">
                                 <MenuItem value="">
                                   <em>Select Status</em>
                                 </MenuItem>
                                 {!isAdmin && <MenuItem value="Closed">Closed</MenuItem>}
                                 {isAdmin && [
-                                  <MenuItem key="Open" value="Open">Open</MenuItem>,
+                                  <MenuItem key="Open" value="Open">
+                                    Open
+                                  </MenuItem>,
                                   // <MenuItem key="In Progress" value="In Progress">In Progress</MenuItem>,
-                                  <MenuItem key="Pending" value="Pending">Pending</MenuItem>,
-                                  <MenuItem key="Resolved" value="Resolved">Resolved</MenuItem>,
-                                  <MenuItem key="Closed" value="Closed">Closed</MenuItem>
+                                  <MenuItem key="Pending" value="Pending">
+                                    Pending
+                                  </MenuItem>,
+                                  <MenuItem key="Resolved" value="Resolved">
+                                    Resolved
+                                  </MenuItem>,
+                                  <MenuItem key="Closed" value="Closed">
+                                    Closed
+                                  </MenuItem>
                                 ]}
                               </Select>
                             </FormControl>
@@ -909,11 +913,7 @@ export default function TicketRaise() {
                             {isAdmin && (
                               <FormControl size="small" sx={{ minWidth: 150 }}>
                                 <InputLabel>Assign to</InputLabel>
-                                <Select
-                                  value={assign}
-                                  onChange={(e) => setAssign(e.target.value)}
-                                  label="Assign to"
-                                >
+                                <Select value={assign} onChange={(e) => setAssign(e.target.value)} label="Assign to">
                                   <MenuItem value="">
                                     <em>Select Assignee</em>
                                   </MenuItem>
@@ -948,12 +948,7 @@ export default function TicketRaise() {
                                           <Typography variant="body2" sx={{ flexGrow: 1, fontSize: '0.8rem', wordBreak: 'break-word' }}>
                                             {getFileIcon(file.type)} {file.name}
                                           </Typography>
-                                          <IconButton
-                                            size="small"
-                                            onClick={() => removeAttachedFile(index)}
-                                            color="error"
-                                            sx={{ ml: 0.5 }}
-                                          >
+                                          <IconButton size="small" onClick={() => removeAttachedFile(index)} color="error" sx={{ ml: 0.5 }}>
                                             <DeleteIcon fontSize="small" />
                                           </IconButton>
                                         </Box>
@@ -1041,13 +1036,16 @@ export default function TicketRaise() {
                           />
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8, mb: 1, gap: 2 }}>
-
-                          <Button variant="outlined" onClick={() => {
-                            setReplyMessage('');
-                            setAttachedFiles([]);
-                            setStatus('');
-                            setAssign('');
-                          }} disabled={isSubmittingReply}>
+                          <Button
+                            variant="outlined"
+                            onClick={() => {
+                              setReplyMessage('');
+                              setAttachedFiles([]);
+                              setStatus('');
+                              setAssign('');
+                            }}
+                            disabled={isSubmittingReply}
+                          >
                             Clear All
                           </Button>
                           <Button

@@ -31,6 +31,7 @@ import gridStyle from 'utils/gridStyle';
 import { useNavigate } from 'react-router-dom';
 import API from '../../api/axios';
 import { errorMessageStyle } from 'components/StyleComponent';
+import { toast } from 'react-toastify';
 
 export default function IssueTypeMaster() {
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ export default function IssueTypeMaster() {
         issue_type_id: it.issue_type_id ?? it.id,
         name: it.name,
         subcategory_id: it.subcategory?.subcategory_id ?? it.subcategory_id ?? it.subcategory?.id,
-        subcategory: it.subcategory?.name ?? it.subcategory?.name ?? '-',
+        subcategory: it.subcategories?.name ?? it.subcategories?.name ?? '',
         sla_id: it.sla?.sla_id ?? it.sla_id,
         sla: it.sla?.issue_type ?? '-',
         response_time: it.sla?.response_target_minutes ?? '-',
@@ -222,6 +223,7 @@ export default function IssueTypeMaster() {
       await fetchIssueTypes();
       resetForm();
       setEditingIssueType(null);
+      toast.success('Issue Type Submit Successfully', { autoClose: 2000 });
     } catch (err) {
       console.error('Error saving issue type:', err);
     } finally {

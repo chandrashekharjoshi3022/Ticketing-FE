@@ -28,6 +28,7 @@ import {
 import { fetchCategories, createCategory, updateCategory, deleteCategory } from 'features/categories/categorySlice';
 import { useNavigate } from 'react-router';
 import { errorMessageStyle } from 'components/StyleComponent';
+import { toast } from 'react-toastify';
 
 export default function SubCategoryMaster() {
   const dispatch = useDispatch();
@@ -111,6 +112,7 @@ export default function SubCategoryMaster() {
       await dispatch(fetchSubCategories());
       resetForm();
       setEditing(null);
+      toast.success('Sub Category Submit Successfully', { autoClose: 2000 });
     } catch (err) {
       console.error('Submit subcategory error', err);
     }

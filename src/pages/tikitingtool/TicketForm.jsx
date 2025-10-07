@@ -518,11 +518,11 @@ const TicketForm = () => {
                       </MenuItem>
                     ))}
                   </Field>
-                  <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mt: 0.5 }}>
+                  {/* <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mt: 0.5 }}>
                     {String(values.issueType) === 'Other'
                       ? 'You can choose priority for Other issue types.'
                       : 'Priority is set by Issue Type and cannot be changed.'}
-                  </Typography>
+                  </Typography> */}
                   <ErrorMessage name="priority" component="div" style={errorMessageStyle} />
                 </Grid>
 

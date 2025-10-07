@@ -33,6 +33,7 @@ import gridStyle from 'utils/gridStyle';
 
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCategories, createCategory, updateCategory, deleteCategory, clearCategoryError } from 'features/categories/categorySlice';
+import { toast } from 'react-toastify';
 
 export default function CateroryMaster() {
   const navigate = useNavigate();
@@ -150,6 +151,7 @@ export default function CateroryMaster() {
       await dispatch(fetchCategories()).unwrap();
       resetForm();
       setEditingCategory(null);
+      toast.success('Category Submit Successfully', { autoClose: 2000 });
     } catch (err) {
       console.error('Error submitting category:', err);
     }
