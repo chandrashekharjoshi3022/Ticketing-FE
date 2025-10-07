@@ -287,15 +287,15 @@ const TicketForm = () => {
       formData.append('subCategory', selSub ? (selSub.subcategory_name ?? selSub.name ?? '') : '');
 
       // Issue Type handling:
-      if (values.issueType === 'Other' || values.issueType === 'other') {
+      if (String(values.issueType) === 'Other' || String(values.issueType).toLowerCase() === 'other') {
         formData.append('issueType', 'Other');
         if (values.issueName) formData.append('issueName', values.issueName);
         // Priority chosen by user when Other
         formData.append('priority_id', values.priority || '');
         const pName = selPriority ? (selPriority.name || '') : '';
         formData.append('priority', pName);
-        // If user selected SLA manually (optional), include sla_id if you plan to accept it
-        // else omit or include default.
+        // **Important change**: when Issue Type is Other, send sla_id = 1
+        formData.append('sla_id', String(1));
       } else {
         // IssueType from enum/list: send issue type id and name
         formData.append('issueType_id', values.issueType || '');
@@ -368,15 +368,12 @@ const TicketForm = () => {
     setFieldValue('priority', '');
     setFieldValue('issueName', '');
     if (!issueTypeId) {
-      // nothing selected
       return;
     }
-    if (issueTypeId === 'Other' || issueTypeId === 'other') {
-      // allow user to select priority manually
+    if (String(issueTypeId) === 'Other' || String(issueTypeId).toLowerCase() === 'other') {
       setFieldValue('priority', '');
       return;
     }
-    // find selected issue type and set its default priority if present
     const it = issueTypes.find((x) => String(x.issue_type_id ?? x.id) === String(issueTypeId));
     const defaultPri = it?.priority_id ?? it?.default_priority?.priority_id ?? '';
     if (defaultPri) {
