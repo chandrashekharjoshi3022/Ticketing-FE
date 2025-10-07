@@ -749,15 +749,15 @@ export default function TicketRaise() {
                   <>
                     <Grid container spacing={2}>
                       <Grid item xs={12} md={2}>
-                        <CustomParagraphDark>Module:</CustomParagraphDark>
+                        <CustomParagraphDark>Category:</CustomParagraphDark>
                         <CustomParagraphLight>{ticketDetails.module}</CustomParagraphLight>
                       </Grid>
                       <Grid item xs={12} md={2}>
-                        <CustomParagraphDark>Sub Module:</CustomParagraphDark>
+                        <CustomParagraphDark>Sub Category:</CustomParagraphDark>
                         <CustomParagraphLight>{ticketDetails.submodule}</CustomParagraphLight>
                       </Grid>
                       <Grid item xs={12} md={3}>
-                        <CustomParagraphDark>Category:</CustomParagraphDark>
+                        <CustomParagraphDark>Issue Type:</CustomParagraphDark>
                         <CustomParagraphLight>{ticketDetails.category}</CustomParagraphLight>
                       </Grid>
                       <Grid item xs={12} md={3}>
