@@ -1,7 +1,16 @@
 // src/pages/master/PriorityMaster.jsx
 import React, { useEffect, useState } from 'react';
 import {
-  Box, Grid, MenuItem, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Typography
+  Box,
+  Grid,
+  MenuItem,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Typography
 } from '@mui/material';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
@@ -19,12 +28,9 @@ import { NoButton, YesButton } from 'components/DialogActionsButton';
 import gridStyle from 'utils/gridStyle';
 import { useDispatch, useSelector } from 'react-redux';
 
-import {
-  fetchPriorities,
-  createPriority,
-  updatePriority,
-  deletePriority
-} from 'features/priorities/prioritySlice';
+import { fetchPriorities, createPriority, updatePriority, deletePriority } from 'features/priorities/prioritySlice';
+import { useNavigate } from 'react-router';
+import { errorMessageStyle } from 'components/StyleComponent';
 
 export default function PriorityMaster() {
   const dispatch = useDispatch();
@@ -54,8 +60,18 @@ export default function PriorityMaster() {
       width: 140,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <IconButton onClick={() => setEditing(params.row)}><EditIcon /></IconButton>
-          <IconButton color="secondary" onClick={() => { setToDelete(params.row); setDeleteDialogOpen(true); }}><DeleteIcon /></IconButton>
+          <IconButton onClick={() => setEditing(params.row)}>
+            <EditIcon />
+          </IconButton>
+          <IconButton
+            color="secondary"
+            onClick={() => {
+              setToDelete(params.row);
+              setDeleteDialogOpen(true);
+            }}
+          >
+            <DeleteIcon />
+          </IconButton>
         </Box>
       )
     }
@@ -63,7 +79,7 @@ export default function PriorityMaster() {
 
   const initialValues = {
     name: editing ? editing.name : '',
-    sort_order: editing ? editing.sort_order : 100
+    sort_order: editing ? editing.sort_order : ''
   };
 
   const validationSchema = Yup.object({
@@ -98,9 +114,17 @@ export default function PriorityMaster() {
       console.error('Delete priority error', err);
     }
   };
-
+  const navigate = useNavigate();
+  const handleBackClick = () => navigate('/mastertab');
   return (
-    <MainCard title={<Box display="flex" justifyContent="space-between" alignItems="center"><span>Priority</span><PlusButton label="New" onClick={() => setEditing(null)} /></Box>}>
+    <MainCard
+      title={
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600 }}>
+          <span>Priority</span>
+          <PlusButton label="Back" onClick={handleBackClick} />
+        </Box>
+      }
+    >
       <Box sx={{ height: '80dvh', overflowY: 'auto' }}>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
@@ -108,36 +132,65 @@ export default function PriorityMaster() {
           </Box>
         ) : (
           <>
-            <Formik enableReinitialize initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit} key={editing ? editing.priority_id : 'new'}>
+            <Formik
+              enableReinitialize
+              initialValues={initialValues}
+              validationSchema={validationSchema}
+              onSubmit={handleSubmit}
+              key={editing ? editing.priority_id : 'new'}
+            >
               {({ resetForm }) => (
                 <Form>
                   <Grid container spacing={2} alignItems="center" sx={{ mb: 1 }}>
                     <Grid item xs={12} sm={2}>
-                      <Field as={FieldPadding} name="name" placeholder="Priority name (e.g. High)" />
-                      <ErrorMessage name="name" component="div" style={{ color: 'red' }} />
+                      <Field as={FieldPadding} name="name" placeholder="Priority name (e.g. High)" fullWidth sx={{ width: '100%' }} />
+                      <ErrorMessage name="name" component="div" style={errorMessageStyle} />
                     </Grid>
 
                     <Grid item xs={12} sm={2}>
-                      <Field as={FieldPadding} type="number" name="sort_order" placeholder="Sort order (lower = higher priority)" />
-                      <ErrorMessage name="sort_order" component="div" style={{ color: 'red' }} />
+                      <Field
+                        as={FieldPadding}
+                        type="number"
+                        name="sort_order"
+                        placeholder="Sort order (lower = higher priority)"
+                        fullWidth
+                        sx={{ width: '100%' }}
+                      />
+                      <ErrorMessage name="sort_order" component="div" style={errorMessageStyle} />
                     </Grid>
 
                     <Grid item xs={12} sm={2} display="flex" gap={1} justifyContent="flex-end">
                       <SubmitButton type="submit">{editing ? 'Update' : 'Create'}</SubmitButton>
-                      <CustomRefreshBtn onClick={() => { resetForm(); setEditing(null); dispatch(fetchPriorities()); }}>Refresh</CustomRefreshBtn>
+                      <CustomRefreshBtn
+                        onClick={() => {
+                          resetForm();
+                          setEditing(null);
+                          dispatch(fetchPriorities());
+                        }}
+                      >
+                        Refresh
+                      </CustomRefreshBtn>
                     </Grid>
                   </Grid>
                 </Form>
               )}
             </Formik>
 
-            <DataGrid getRowHeight={() => 'auto'} sx={{ ...gridStyle, height: '60vh' }} rows={rows} columns={columns} pageSizeOptions={[10, 25]} />
+            <DataGrid
+              getRowHeight={() => 'auto'}
+              sx={{ ...gridStyle, height: '60vh' }}
+              rows={rows}
+              columns={columns}
+              pageSizeOptions={[10, 25]}
+            />
           </>
         )}
 
         <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
           <DialogTitle>Confirm Delete</DialogTitle>
-          <DialogContent><DialogContentText>Are you sure you want to delete this priority?</DialogContentText></DialogContent>
+          <DialogContent>
+            <DialogContentText>Are you sure you want to delete this priority?</DialogContentText>
+          </DialogContent>
           <DialogActions>
             <NoButton onClick={() => setDeleteDialogOpen(false)}>No</NoButton>
             <YesButton onClick={handleDeleteConfirm}>Yes</YesButton>

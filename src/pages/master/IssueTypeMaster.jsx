@@ -1,4 +1,3 @@
-
 import {
   Box,
   Typography,
@@ -60,11 +59,7 @@ export default function IssueTypeMaster() {
     try {
       const res = await API.get('/admin/issuetypes');
       // backend likely returns { issue_types: [...] } or [...]
-      const listRaw = Array.isArray(res.data)
-        ? res.data
-        : Array.isArray(res.data.issue_types)
-        ? res.data.issue_types
-        : [];
+      const listRaw = Array.isArray(res.data) ? res.data : Array.isArray(res.data.issue_types) ? res.data.issue_types : [];
 
       const list = listRaw.map((it, index) => ({
         id: index + 1,
@@ -93,12 +88,7 @@ export default function IssueTypeMaster() {
   const fetchSubCategories = async () => {
     try {
       const res = await API.get('/admin/subcategories');
-      const list =
-        Array.isArray(res.data)
-          ? res.data
-          : Array.isArray(res.data.subcategories)
-          ? res.data.subcategories
-          : [];
+      const list = Array.isArray(res.data) ? res.data : Array.isArray(res.data.subcategories) ? res.data.subcategories : [];
       setSubcategories(list);
     } catch (err) {
       console.error('Error fetching subcategories:', err);
@@ -110,12 +100,7 @@ export default function IssueTypeMaster() {
   const fetchSLAs = async () => {
     try {
       const res = await API.get('/admin/slas');
-      const list =
-        Array.isArray(res.data)
-          ? res.data
-          : Array.isArray(res.data.slas)
-          ? res.data.slas
-          : [];
+      const list = Array.isArray(res.data) ? res.data : Array.isArray(res.data.slas) ? res.data.slas : [];
       setSlaList(list);
     } catch (err) {
       console.error('Error fetching SLAs:', err);
@@ -128,12 +113,7 @@ export default function IssueTypeMaster() {
     try {
       const res = await API.get('/admin/priorities');
       // backend might respond { priorities: [...] } or [...]
-      const list =
-        Array.isArray(res.data)
-          ? res.data
-          : Array.isArray(res.data.priorities)
-          ? res.data.priorities
-          : [];
+      const list = Array.isArray(res.data) ? res.data : Array.isArray(res.data.priorities) ? res.data.priorities : [];
       setPriorities(list);
     } catch (err) {
       console.error('Error fetching priorities:', err);
@@ -184,9 +164,7 @@ export default function IssueTypeMaster() {
       headerName: 'Status',
       width: 120,
       renderCell: (params) => (
-        <Typography sx={{ color: params.value === 'Active' ? 'green' : 'red', fontWeight: 'bold' }}>
-          {params.value}
-        </Typography>
+        <Typography sx={{ color: params.value === 'Active' ? 'green' : 'red', fontWeight: 'bold' }}>{params.value}</Typography>
       )
     },
     {
@@ -260,8 +238,8 @@ export default function IssueTypeMaster() {
       ) : (
         <MainCard
           title={
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="h6">Issue Type Master</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600 }}>
+              <span>Issue Type Master</span>
               <PlusButton label="Back" onClick={handleBackClick} />
             </Box>
           }
@@ -269,7 +247,7 @@ export default function IssueTypeMaster() {
           <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit} enableReinitialize>
             {({ resetForm }) => (
               <Form>
-                <Grid container spacing={2} padding={2}>
+                <Grid container spacing={2}>
                   <Grid item xs={12} sm={2}>
                     <CustomParagraphLight>
                       Sub Category <ValidationStar>*</ValidationStar>
