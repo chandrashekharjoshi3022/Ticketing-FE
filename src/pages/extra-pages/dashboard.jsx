@@ -9,7 +9,7 @@ import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import LockIcon from '@mui/icons-material/Lock';
-
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 export default function SamplePage() {
   const dispatch = useDispatch();
 
@@ -158,7 +158,7 @@ export default function SamplePage() {
             </Card>
           </Grid>
 
-            <Grid item xs={12} sm={3}>
+          <Grid item xs={12} sm={3}>
             <Card>
               <CardContent
                 sx={{
@@ -169,8 +169,8 @@ export default function SamplePage() {
                   textAlign: 'center'
                 }}
               >
-               <Box>
-                  <LockOpenIcon color="success" fontSize="large" />
+                <Box>
+                  <CheckCircleIcon color="success" fontSize="large" />
                 </Box>
                 <Typography variant="h6">Resolved Tickets</Typography>
                 <Typography variant="h4" color="error.main" fontWeight="bold">

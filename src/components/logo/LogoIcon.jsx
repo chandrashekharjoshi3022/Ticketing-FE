@@ -48,6 +48,13 @@ export default function LogoIcon() {
     //     fill={theme.palette.primary.main}
     //   />
     // </svg>
-    <img src={theme.palette.mode === 'dark' ? '/Images/IconLogoB.png' : '/Images/IconLogoB.png'} alt="icon logo" width="30" />
+    // <img src={theme.palette.mode === 'dark' ? '/Images/IconLogoB.png' : '/Images/IconLogoB.png'} alt="icon logo" width="30" />
+    <div>
+      {theme.palette.mode === 'dark' ? (
+        <span style={{ fontSize: '25px', fontWeight: 700 }}>TT</span>
+      ) : (
+        <span style={{ fontSize: '25px', fontWeight: 700 }}>TT</span>
+      )}
+    </div>
   );
 }

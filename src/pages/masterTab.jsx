@@ -35,6 +35,11 @@ const MasterTab = () => {
       label: 'Priority',
       path: '/priority'
     },
+     {
+      icon: <StoreIcon sx={{ color: colors.success, fontSize: 40 }} />,
+      label: 'SLA Master',
+      path: '/slamaster'
+    },
     {
       icon: <AccountCircleIcon sx={{ color: colors.primary, fontSize: 40 }} />,
       label: 'User',

@@ -44,6 +44,13 @@ const masterForm = {
           type: 'item',
           url: '/priority',
           target: false
+        },
+        {
+          id: 'slamaster',
+          title: <FormattedMessage id="SLA Master" />,
+          type: 'item',
+          url: '/slamaster',
+          target: false
         }
       ]
     }

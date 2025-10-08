@@ -18,6 +18,7 @@ import IssueTypeMaster from 'pages/master/IssueTypeMaster';
 import CateroryMaster from 'pages/master/CateroryMaster';
 import SubCategoryMaster from 'pages/master/SubCategoryMaster';
 import PriorityMaster from 'pages/master/PriorityMaster';
+import SLAMaster from 'pages/master/SLAMaster';
 
 const MaintenanceError = Loadable(lazy(() => import('pages/maintenance/error/404')));
 const AppContactUS = Loadable(lazy(() => import('pages/contact-us')));
@@ -102,6 +103,10 @@ const MainRoutes = {
         {
           path: '/priority',
           element: <PriorityMaster />
+        },
+        {
+          path: '/slamaster',
+          element: <SLAMaster />
         }
       ]
     },
