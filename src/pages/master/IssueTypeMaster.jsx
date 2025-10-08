@@ -37,7 +37,7 @@ export default function IssueTypeMaster() {
   const navigate = useNavigate();
 
   const [issueTypes, setIssueTypes] = useState([]);
-  const [subcategories, setSubcategories] = useState([]);
+  // REMOVED: subcategories state
   const [slaList, setSlaList] = useState([]);
   const [priorities, setPriorities] = useState([]);
   const [editingIssueType, setEditingIssueType] = useState(null);
@@ -49,7 +49,7 @@ export default function IssueTypeMaster() {
 
   useEffect(() => {
     fetchIssueTypes();
-    fetchSubCategories();
+    // REMOVED: fetchSubCategories call
     fetchSLAs();
     fetchPriorities();
   }, []);
@@ -62,14 +62,12 @@ export default function IssueTypeMaster() {
       // backend likely returns { issue_types: [...] } or [...]
       const listRaw = Array.isArray(res.data) ? res.data : Array.isArray(res.data.issue_types) ? res.data.issue_types : [];
 
-
       console.log(listRaw)
       const list = listRaw.map((it, index) => ({
         id: index + 1,
         issue_type_id: it.issue_type_id ?? it.id,
         name: it.name,
-        subcategory_id: it.subcategory?.subcategory_id ?? it.subcategory_id ?? it.subcategory?.id,
-        subcategory: it.subcategories?.name ?? it.subcategories?.name ?? '',
+        // REMOVED: subcategory-related fields
         sla_id: it.sla?.sla_id ?? it.sla_id,
         sla: it.sla?.issue_type ?? '-',
         response_time: it.sla?.response_target_minutes ?? '-',
@@ -87,17 +85,7 @@ export default function IssueTypeMaster() {
     }
   };
 
-  // fetch subcategories (robust to { subcategories: [...] } or array)
-  const fetchSubCategories = async () => {
-    try {
-      const res = await API.get('/admin/subcategories');
-      const list = Array.isArray(res.data) ? res.data : Array.isArray(res.data.subcategories) ? res.data.subcategories : [];
-      setSubcategories(list);
-    } catch (err) {
-      console.error('Error fetching subcategories:', err);
-      setSubcategories([]);
-    }
-  };
+  // REMOVED: fetchSubCategories function
 
   // fetch SLAs
   const fetchSLAs = async () => {
@@ -125,7 +113,7 @@ export default function IssueTypeMaster() {
   };
 
   const handleEdit = (row) => {
-    // we want full object to populate form, fill priority_id and sla_id etc
+    // we want full object to populate form
     setEditingIssueType(row);
     // ensure form reinitializes because we use enableReinitialize
   };
@@ -141,8 +129,10 @@ export default function IssueTypeMaster() {
     try {
       await API.delete(`/admin/issuetypes/${issueTypeToDelete.issue_type_id}`);
       await fetchIssueTypes();
+      toast.success('Issue Type Deleted Successfully', { autoClose: 2000 });
     } catch (err) {
       console.error('Error deleting issue type:', err);
+      toast.error('Failed to delete Issue Type', { autoClose: 2000 });
     } finally {
       setLoading(false);
       setDeleteDialogOpen(false);
@@ -157,7 +147,7 @@ export default function IssueTypeMaster() {
 
   const columns = [
     { field: 'name', headerName: 'Issue Type', width: 220 },
-    { field: 'subcategory', headerName: 'Sub Category', width: 200 },
+    // REMOVED: subcategory column
     { field: 'priority_name', headerName: 'Priority', width: 140 },
     { field: 'sla', headerName: 'SLA Type', width: 220 },
     { field: 'response_time', headerName: 'Response (min)', width: 140 },
@@ -189,7 +179,7 @@ export default function IssueTypeMaster() {
 
   // initial values consider editingIssueType (enableReinitialize)
   const initialValues = {
-    subcategory_id: editingIssueType ? editingIssueType.subcategory_id : '',
+    // REMOVED: subcategory_id
     name: editingIssueType ? editingIssueType.name : '',
     sla_id: editingIssueType ? editingIssueType.sla_id : '',
     priority_id: editingIssueType ? editingIssueType.priority_id : '',
@@ -197,10 +187,9 @@ export default function IssueTypeMaster() {
   };
 
   const validationSchema = Yup.object({
-    subcategory_id: Yup.string().required('Subcategory is required'),
+    // REMOVED: subcategory_id validation
     name: Yup.string().required('Issue Type name is required'),
     sla_id: Yup.string().required('SLA is required'),
-    // priority_id can be optional in backend, but you asked to send it; mark as required
     priority_id: Yup.string().required('Priority is required'),
     status: Yup.string().required('Status is required')
   });
@@ -209,7 +198,7 @@ export default function IssueTypeMaster() {
     setLoading(true);
     try {
       const payload = {
-        subcategory_id: values.subcategory_id,
+        // REMOVED: subcategory_id
         name: values.name,
         sla_id: values.sla_id || null,
         priority_id: values.priority_id || null,
@@ -218,16 +207,18 @@ export default function IssueTypeMaster() {
 
       if (editingIssueType) {
         await API.put(`/admin/issuetypes/${editingIssueType.issue_type_id}`, payload);
+        toast.success('Issue Type Updated Successfully', { autoClose: 2000 });
       } else {
         await API.post('/admin/issuetypes', payload);
+        toast.success('Issue Type Created Successfully', { autoClose: 2000 });
       }
 
       await fetchIssueTypes();
       resetForm();
       setEditingIssueType(null);
-      toast.success('Issue Type Submit Successfully', { autoClose: 2000 });
     } catch (err) {
       console.error('Error saving issue type:', err);
+      toast.error('Failed to save Issue Type', { autoClose: 2000 });
     } finally {
       setLoading(false);
     }
@@ -252,24 +243,7 @@ export default function IssueTypeMaster() {
             {({ resetForm }) => (
               <Form>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={2}>
-                    <CustomParagraphLight>
-                      Sub Category <ValidationStar>*</ValidationStar>
-                    </CustomParagraphLight>
-                    <Field as={SelectFieldPadding} name="subcategory_id" fullWidth>
-                      {/* Subcategory labels: show readable name, value is id */}
-                      {subcategories.map((sub) => {
-                        const id = sub.subcategory_id ?? sub.id;
-                        const label = sub.subcategory_name ?? sub.name ?? sub.name;
-                        return (
-                          <MenuItem key={id} value={id}>
-                            {label}
-                          </MenuItem>
-                        );
-                      })}
-                    </Field>
-                    <ErrorMessage name="subcategory_id" component="div" style={errorMessageStyle} />
-                  </Grid>
+                  {/* REMOVED: Sub Category field */}
 
                   <Grid item xs={12} sm={2}>
                     <CustomParagraphLight>
@@ -284,6 +258,9 @@ export default function IssueTypeMaster() {
                       SLA <ValidationStar>*</ValidationStar>
                     </CustomParagraphLight>
                     <Field as={SelectFieldPadding} name="sla_id" fullWidth>
+                      <MenuItem value="">
+                        <em>Select SLA</em>
+                      </MenuItem>
                       {slaList.map((sla) => {
                         const id = sla.sla_id ?? sla.id;
                         const label = `${sla.issue_type} (Response Time - ${sla.response_target_minutes}(min) / Resolve Time - ${sla.resolve_target_minutes}(min))`;
@@ -302,6 +279,9 @@ export default function IssueTypeMaster() {
                       Priority <ValidationStar>*</ValidationStar>
                     </CustomParagraphLight>
                     <Field as={SelectFieldPadding} name="priority_id" fullWidth>
+                      <MenuItem value="">
+                        <em>Select Priority</em>
+                      </MenuItem>
                       {priorities.map((p) => {
                         const id = p.priority_id ?? p.id;
                         const label = p.name;
