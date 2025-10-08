@@ -1,5 +1,6 @@
 // src/pages/tikitingtool/TicketRaise.jsx
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   Box,
   Typography,
@@ -27,7 +28,7 @@ import {
   MenuItem,
   Select,
   Card,
-  CardContent // Add this import
+  CardContent
 } from '@mui/material';
 import MainCard from 'components/MainCard';
 import { DataGrid } from '@mui/x-data-grid';
@@ -48,11 +49,12 @@ import PersonIcon from '@mui/icons-material/Person';
 import ReplyIcon from '@mui/icons-material/Reply';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
-import DeleteIcon from '@mui/icons-material/Delete'; // Add this import
+import DeleteIcon from '@mui/icons-material/Delete';
 import { formatDate, formatDateTime, formatDateTimeSplit } from 'components/DateFormate';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchTickets, fetchTicketDetails, createTicket, replyToTicket, clearTicketDetails } from '../../features/tickets/ticketSlice';
 import { selectUserRole, selectCurrentUser, selectIsInitialized } from '../../features/auth/authSlice';
+import TicketService from '../../features/tickets/TicketService'; // Add this import
 import TicketForm from './TicketForm';
 import ImageCell from './ImageCell';
 import { toast } from 'react-toastify';
@@ -71,7 +73,6 @@ export default function TicketRaise() {
     return '📎';
   };
 
-  // Rest of your component code remains the same...
   const {
     tickets,
     ticketDetails,
@@ -102,11 +103,15 @@ export default function TicketRaise() {
   const [successMessage, setSuccessMessage] = useState('');
   const [showTicketForm, setShowTicketForm] = useState(false);
   const [status, setStatus] = useState('');
-  const [assign, setAssign] = useState('');
   const [attachedFiles, setAttachedFiles] = useState([]);
+  const [executives, setExecutives] = useState([]);
+  const [assign, setAssign] = useState('');
+  const [priority, setPriority] = useState('');
+  const [priorities, setPriorities] = useState([]);
 
   // Check if user is admin
   const isAdmin = userRole === 'admin';
+  const isExecutive = userRole === 'executive';
   const userId = currentUser?.id;
 
   // Check authentication status
@@ -133,6 +138,129 @@ export default function TicketRaise() {
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
+
+  useEffect(() => {
+    const fetchExecutives = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/auth/executives');
+        setExecutives(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchExecutives();
+  }, []);
+
+  // Fetch priorities when component mounts
+  // useEffect(() => {
+  //   const fetchPriorities = async () => {
+  //     try {
+  //       const response = await axios.get('http://localhost:5000/api/admin/priorities');
+  //       setPriorities(response.data);
+  //     } catch (error) {
+  //       console.error('Error fetching priorities:', error);
+  //     }
+  //   };
+  //   fetchPriorities();
+  // }, []);
+
+
+
+  // Update the priorities useEffect with better error handling
+useEffect(() => {
+  const fetchPriorities = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get('http://localhost:5000/api/admin/priorities');
+      
+      // Ensure we always have an array, even if the response structure changes
+      let prioritiesData = response.data;
+      
+      // Handle different possible response structures
+      if (Array.isArray(prioritiesData)) {
+        setPriorities(prioritiesData);
+      } else if (prioritiesData && Array.isArray(prioritiesData.priorities)) {
+        setPriorities(prioritiesData.priorities);
+      } else if (prioritiesData && Array.isArray(prioritiesData.data)) {
+        setPriorities(prioritiesData.data);
+      } else {
+        console.warn('Unexpected priorities response structure:', prioritiesData);
+        setPriorities([]); // Fallback to empty array
+      }
+    } catch (error) {
+      console.error('Error fetching priorities:', error);
+      setPriorities([]); // Fallback to empty array on error
+      toast.error('Failed to load priorities');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  fetchPriorities();
+}, []);
+
+  // Reset priority when ticket details change
+  useEffect(() => {
+    if (ticketDetails) {
+      setPriority(ticketDetails.priority || '');
+    }
+  }, [ticketDetails]);
+
+  // const handlePriorityUpdate = async () => {
+  //   if (!ticketDetails?.ticket_id || !priority) return;
+
+  //   try {
+  //     setIsLoading(true);
+      
+  //     // Find the priority object to get both name and ID
+  //     const selectedPriority = priorities.find(p => p.name === priority);
+      
+  //     await axios.put(`http://localhost:5000/api/ticket/${ticketDetails.ticket_id}/priority`, {
+  //       priority: priority,
+  //       priority_id: selectedPriority?.priority_id || selectedPriority?.id
+  //     });
+
+  //     // Refresh ticket details
+  //     await dispatch(fetchTicketDetails(ticketDetails.ticket_id)).unwrap();
+  //     setSuccessMessage('Priority updated successfully!');
+  //     toast.success('Priority updated successfully!', { autoClose: 2000 });
+  //     setPriority('');
+  //   } catch (err) {
+  //     console.error('Failed to update priority:', err);
+  //     window.alert(err?.response?.data?.message || 'Failed to update priority');
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }
+
+const handlePriorityUpdate = async () => {
+  if (!ticketDetails?.ticket_id || !priority) return;
+
+  try {
+    setIsLoading(true);
+    
+    // Find the priority object to get both name and ID
+    const selectedPriority = priorities.find(p => p.name === priority);
+    
+    // Use the TicketService instead of direct axios call
+    await TicketService.updateTicketPriority({
+      ticketId: ticketDetails.ticket_id,
+      priority: priority,
+      priority_id: selectedPriority?.priority_id || selectedPriority?.id
+    });
+
+    // Refresh ticket details
+    await dispatch(fetchTicketDetails(ticketDetails.ticket_id)).unwrap();
+    setSuccessMessage('Priority updated successfully!');
+    toast.success('Priority updated successfully!', { autoClose: 2000 });
+    setPriority('');
+  } catch (err) {
+    console.error('Failed to update priority:', err);
+    window.alert(err?.response?.data?.message || 'Failed to update priority');
+  } finally {
+    setIsLoading(false);
+  }
+}
 
   // Show loading if auth is not initialized yet
   if (!isAuthInitialized) {
@@ -199,11 +327,6 @@ export default function TicketRaise() {
       row
     });
 
-    if (!isAdmin && row.user_id !== userId) {
-      window.alert('You do not have permission to view this ticket');
-      return;
-    }
-
     setSelectedTicket(row);
     setOpenModal(true);
     setIsLoading(true);
@@ -234,11 +357,6 @@ export default function TicketRaise() {
     if (!ticketDetails?.ticket_id) return;
     if (!replyMessage || replyMessage.trim() === '') {
       return window.alert('Please enter a message');
-    }
-
-    if (!isAdmin && ticketDetails.user_id !== userId) {
-      window.alert('You do not have permission to reply to this ticket');
-      return;
     }
 
     setIsSubmittingReply(true);
@@ -283,15 +401,6 @@ export default function TicketRaise() {
     }
   };
 
-  console.log(ticketDetails, 'here we are cheking the ticket details');
-  // const handleFileUpload = (e) => {
-  //   const files = Array.from(e.target.files);
-  //   if (files.length > 0) {
-  //     setAttachedFiles(files);
-  //     console.log('Uploaded files:', files);
-  //   }
-  // };
-
   const handleFileUpload = (e) => {
     const newFiles = Array.from(e.target.files);
     if (newFiles.length === 0) return;
@@ -307,7 +416,6 @@ export default function TicketRaise() {
     );
 
     if (uniqueNewFiles.length === 0) {
-      setErrorMessage('Some files are already selected');
       return;
     }
 
@@ -317,11 +425,6 @@ export default function TicketRaise() {
 
     // Reset file input to allow selecting same files again
     e.target.value = '';
-
-    // Clear error message if files were added successfully
-    if (uniqueNewFiles.length > 0) {
-      setErrorMessage('');
-    }
   };
 
   const removeAttachedFile = (index) => {
@@ -476,23 +579,28 @@ export default function TicketRaise() {
     },
     ...(isAdmin
       ? [
-          {
-            field: 'created_by',
-            headerName: 'Created By',
-            width: 120,
-            renderCell: (params) => (
-              <Typography variant="body2" fontStyle="italic">
-                {params.value || 'Unknown'}
-              </Typography>
-            )
-          }
-        ]
+        {
+          field: 'created_by',
+          headerName: 'Created By',
+          width: 120,
+          renderCell: (params) => (
+            <Typography variant="body2" fontStyle="italic">
+              {params.value || 'Unknown'}
+            </Typography>
+          )
+        }
+      ]
       : []),
     {
       field: 'status',
       headerName: 'Status',
       width: 120,
       renderCell: (params) => getStatusChip(params.value)
+    },
+    {
+      field: 'priority',
+      headerName: 'Priority',
+      width: 120
     },
     {
       field: 'actions',
@@ -744,6 +852,15 @@ export default function TicketRaise() {
                   </Box>
                 ) : ticketDetails ? (
                   <>
+                    {/* Debugging log */}
+                    {console.log('Ticket Details for Priority Update:', {
+                      isAdmin,
+                      isOtherIssue: ticketDetails?.is_other_issue,
+                      ticketDetails,
+                      priority,
+                      currentPriority: ticketDetails?.priority
+                    })}
+                    
                     <Grid container spacing={2}>
                       <Grid item xs={12} md={2}>
                         <CustomParagraphDark>Category:</CustomParagraphDark>
@@ -763,66 +880,68 @@ export default function TicketRaise() {
                           {ticketDetails.created_on ? formatDateTimeSplit(ticketDetails.created_on) : '-'}
                         </CustomParagraphLight>
                       </Grid>
-                      <Grid item xs={12} md={2}>
-                        <CustomParagraphDark>Priority</CustomParagraphDark>
-                        <CustomParagraphLight>{ticketDetails.priority}</CustomParagraphLight>
-                      </Grid>
+
+                      {/* ONLY PRIORITY SECTION - Inside the main Grid container */}
+                      {isAdmin && ticketDetails?.is_other_issue ? (
+                        <Grid item xs={12} md={2}>
+                          <CustomParagraphDark>Priority</CustomParagraphDark>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <FormControl size="small" sx={{ minWidth: 120 }}>
+                              <Select
+                                value={priority || ticketDetails.priority}
+                                onChange={(e) => setPriority(e.target.value)}
+                                displayEmpty
+                              >
+                                <MenuItem value="">
+                                  <em>Select Priority</em>
+                                </MenuItem>
+                                {priorities.map((p) => (
+                                  <MenuItem key={p.priority_id ?? p.id} value={p.name}>
+                                    {p.name}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                            {priority && priority !== ticketDetails.priority && (
+                              <Button 
+                                variant="contained" 
+                                size="small" 
+                                onClick={handlePriorityUpdate}
+                                disabled={isLoading}
+                              >
+                                Update
+                              </Button>
+                            )}
+                          </Box>
+                          <Typography variant="caption" color="textSecondary">
+                            This is an "Other" issue type - priority can be changed
+                          </Typography>
+                        </Grid>
+                      ) : (
+                        <Grid item xs={12} md={2}>
+                          <CustomParagraphDark>Priority</CustomParagraphDark>
+                          <CustomParagraphLight>
+                            {ticketDetails?.priority}
+                            {isAdmin && (
+                              <Typography variant="caption" display="block" color="textSecondary">
+                                {ticketDetails?.is_other_issue ? 'Set by user' : 'Set by issue type'}
+                              </Typography>
+                            )}
+                          </CustomParagraphLight>
+                        </Grid>
+                      )}
+
                       {isAdmin && (
                         <Grid item xs={12} md={2}>
                           <CustomParagraphDark>Created By:</CustomParagraphDark>
                           <CustomParagraphLight>{ticketDetails.created_by || 'Unknown'}</CustomParagraphLight>
                         </Grid>
                       )}
+                      
                       <Grid item xs={12} display={'flex'} alignItems={'center'}>
                         <CustomParagraphDark> Comment: </CustomParagraphDark>
                         <Box sx={{ marginLeft: '10px' }} dangerouslySetInnerHTML={{ __html: ticketDetails.comment }} />
                       </Grid>
-
-                      {/* {ticketDetails.documents && ticketDetails.documents.length > 0 && (
-  <Box sx={{ mt: 2, mb: 2 }}>
-    <CustomHeading>Initial Ticket Attachments</CustomHeading>
-    <Grid container spacing={1} sx={{ mt: 1 }}>
-
-    
-      {ticketDetails.documents.map((doc, index) => {
-        const imageUrl = doc.doc_base64 && (doc.doc_base64.startsWith('http') || doc.doc_base64.startsWith('https')) 
-          ? doc.doc_base64 
-          : `data:${doc.mime_type};base64,${doc.doc_base64}`;
-        
-        return (
-          <Grid item xs={6} sm={4} md={3} key={doc.document_id || index}>
-            <Box
-              component="img"
-              src={imageUrl}
-              alt={doc.doc_name}
-              sx={{
-                width: '100%',
-                height: 120,
-                objectFit: 'cover',
-                border: 1,
-                borderColor: 'divider',
-                borderRadius: 1,
-                cursor: 'pointer',
-                '&:hover': {
-                  opacity: 0.8
-                }
-              }}
-              onClick={() => window.open(imageUrl, '_blank')}
-              onError={(e) => {
-                console.error('Failed to load image:', doc.doc_name);
-                e.target.style.display = 'none';
-              }}
-            />
-            <Typography variant="caption" display="block" textAlign="center">
-              {doc.doc_name}
-            </Typography>
-          </Grid>
-        );
-      })}
-    </Grid>
-    <Divider sx={{ my: 2 }} />
-  </Box>
-)} */}
                     </Grid>
 
                     <Divider sx={{ my: 1 }} />
@@ -865,7 +984,7 @@ export default function TicketRaise() {
                       disableColumnMenu
                     />
 
-                    {(isAdmin || ticketDetails.user_id === userId) && ticketDetails.status !== 'Closed' && (
+                    {(isExecutive || isAdmin || ticketDetails.user_id === userId) && ticketDetails.status !== 'Closed' && (
                       <>
                         <Box display="flex" alignItems="center" justifyContent="space-between">
                           <CustomHeading>Add Your Comment</CustomHeading>
@@ -891,12 +1010,11 @@ export default function TicketRaise() {
                                 <MenuItem value="">
                                   <em>Select Status</em>
                                 </MenuItem>
-                                {!isAdmin && <MenuItem value="Closed">Closed</MenuItem>}
-                                {isAdmin && [
+                                {(!isAdmin && !isExecutive) && <MenuItem value="Closed">Closed</MenuItem>}
+                                {(isAdmin || isExecutive) && [
                                   <MenuItem key="Open" value="Open">
                                     Open
                                   </MenuItem>,
-                                  // <MenuItem key="In Progress" value="In Progress">In Progress</MenuItem>,
                                   <MenuItem key="Pending" value="Pending">
                                     Pending
                                   </MenuItem>,
@@ -917,17 +1035,17 @@ export default function TicketRaise() {
                                   <MenuItem value="">
                                     <em>Select Assignee</em>
                                   </MenuItem>
-                                  <MenuItem value="rohan">Rohan</MenuItem>
-                                  <MenuItem value="amit">Amit</MenuItem>
-                                  <MenuItem value="chandra">Chandra</MenuItem>
-                                  <MenuItem value="pooja">Pooja</MenuItem>
+                                  {executives.map((executive) => (
+                                    <MenuItem key={executive.user_id} value={executive.user_id}>
+                                      {executive.username}
+                                    </MenuItem>
+                                  ))}
                                 </Select>
                               </FormControl>
                             )}
                           </Box>
                         </Box>
 
-                        {/* File preview for attached files */}
                         {/* File preview for attached files */}
                         {attachedFiles.length > 0 && (
                           <Box sx={{ mt: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1, backgroundColor: '#fafafa' }}>
