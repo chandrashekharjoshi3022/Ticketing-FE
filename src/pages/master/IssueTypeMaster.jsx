@@ -62,6 +62,8 @@ export default function IssueTypeMaster() {
       // backend likely returns { issue_types: [...] } or [...]
       const listRaw = Array.isArray(res.data) ? res.data : Array.isArray(res.data.issue_types) ? res.data.issue_types : [];
 
+
+      console.log(listRaw)
       const list = listRaw.map((it, index) => ({
         id: index + 1,
         issue_type_id: it.issue_type_id ?? it.id,
@@ -284,7 +286,7 @@ export default function IssueTypeMaster() {
                     <Field as={SelectFieldPadding} name="sla_id" fullWidth>
                       {slaList.map((sla) => {
                         const id = sla.sla_id ?? sla.id;
-                        const label = `${sla.issue_type} (${sla.response_target_minutes}/${sla.resolve_target_minutes})`;
+                        const label = `${sla.issue_type} (Response Time - ${sla.response_target_minutes}(min) / Resolve Time - ${sla.resolve_target_minutes}(min))`;
                         return (
                           <MenuItem key={id} value={id}>
                             {label}

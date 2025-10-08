@@ -1,3 +1,4 @@
+
 // src/components/TicketFormFull.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import {
@@ -100,6 +101,7 @@ const TicketForm = () => {
     fetchCategories();
     fetchPriorities();
     fetchSLAs();
+    fetchIssueTypes(); // ADD: Fetch all issue types on component mount
   }, []);
 
   const fetchCategories = async () => {
@@ -128,13 +130,9 @@ const TicketForm = () => {
     }
   };
 
-  const fetchIssueTypes = async (subcategoryId) => {
-    if (!subcategoryId) {
-      setIssueTypes([]);
-      return;
-    }
+  const fetchIssueTypes = async () => {
     try {
-      const res = await API.get(`/admin/issuetypes?subcategoryId=${encodeURIComponent(subcategoryId)}`);
+      const res = await API.get('/admin/issuetypes'); // REMOVE: subcategoryId parameter
       const list = Array.isArray(res.data) ? res.data : res.data.issue_types ?? [];
       setIssueTypes(list);
     } catch (err) {
@@ -142,6 +140,22 @@ const TicketForm = () => {
       setIssueTypes([]);
     }
   };
+
+
+  // const fetchIssueTypes = async (subcategoryId) => {
+  //   if (!subcategoryId) {
+  //     setIssueTypes([]);
+  //     return;
+  //   }
+  //   try {
+  //     const res = await API.get(`/admin/issuetypes?subcategoryId=${encodeURIComponent(subcategoryId)}`);
+  //     const list = Array.isArray(res.data) ? res.data : res.data.issue_types ?? [];
+  //     setIssueTypes(list);
+  //   } catch (err) {
+  //     console.error('fetchIssueTypes error', err);
+  //     setIssueTypes([]);
+  //   }
+  // };
 
   const fetchPriorities = async () => {
     try {
@@ -279,36 +293,29 @@ const TicketForm = () => {
       const selPriority = priorities.find((p) => String(p.priority_id ?? p.id) === String(values.priority));
 
       const formData = new FormData();
-      // send both ids and names where useful
+
+      // Common fields for all issue types
       formData.append('category_id', values.category || '');
       formData.append('category', selCategory ? (selCategory.category_name ?? selCategory.name ?? '') : '');
-
       formData.append('subCategory_id', values.subCategory || '');
       formData.append('subCategory', selSub ? (selSub.subcategory_name ?? selSub.name ?? '') : '');
+      formData.append('priority_id', values.priority || '');
+      formData.append('priority', selPriority ? selPriority.name : '');
 
-      // Issue Type handling:
+      // Issue Type handling
       if (String(values.issueType) === 'Other' || String(values.issueType).toLowerCase() === 'other') {
         formData.append('issueType', 'Other');
         if (values.issueName) formData.append('issueName', values.issueName);
-        // Priority chosen by user when Other
-        formData.append('priority_id', values.priority || '');
-        const pName = selPriority ? (selPriority.name || '') : '';
-        formData.append('priority', pName);
-        // **Important change**: when Issue Type is Other, send sla_id = 1
+        // Use default SLA for Other issues
         formData.append('sla_id', String(1));
       } else {
-        // IssueType from enum/list: send issue type id and name
+        // Regular issue type
         formData.append('issueType_id', values.issueType || '');
         formData.append('issueType', selIssue ? (selIssue.name ?? selIssue.issue_type ?? '') : '');
-        // SLA id from issue if present
-        const issueSlaId = selIssue?.sla_id ?? selIssue?.sla?.sla_id ?? '';
-        if (issueSlaId) formData.append('sla_id', issueSlaId);
-        // default priority from issue if present
-        const defaultPriorityId = selIssue?.priority_id ?? selIssue?.default_priority?.priority_id ?? '';
-        const priorityIdToSend = values.priority || defaultPriorityId || '';
-        const priorityNameToSend = (priorities.find((p) => String(p.priority_id ?? p.id) === String(priorityIdToSend)) || {}).name || '';
-        formData.append('priority_id', priorityIdToSend);
-        formData.append('priority', priorityNameToSend);
+
+        // Use SLA from issue type or default
+        const issueSlaId = selIssue?.sla_id ?? selIssue?.sla?.sla_id ?? '1';
+        formData.append('sla_id', issueSlaId);
       }
 
       formData.append('comment', values.comments || '');
@@ -317,7 +324,7 @@ const TicketForm = () => {
         formData.append('files', f);
       });
 
-      // Dispatch createTicket (uses redux slice)
+      // Dispatch createTicket
       await dispatch(createTicket(formData)).unwrap();
       await dispatch(fetchTickets()).unwrap();
 
@@ -340,13 +347,37 @@ const TicketForm = () => {
   };
 
   // handlers that cascade selections
+  // const onCategoryChange = async (categoryId, setFieldValue) => {
+  //   setFieldValue('subCategory', '');
+  //   setFieldValue('issueType', '');
+  //   setFieldValue('priority', '');
+  //   setFieldValue('issueName', '');
+  //   setSubcategories([]);
+  //   // setIssueTypes([]);
+  //   if (categoryId) {
+  //     await fetchSubcategories(categoryId);
+  //   }
+  // };
+
+
+
+  // const onSubCategoryChange = async (subcategoryId, setFieldValue) => {
+  //   setFieldValue('issueType', '');
+  //   setFieldValue('priority', '');
+  //   setFieldValue('issueName', '');
+  //   // setIssueTypes([]);
+  //   // if (subcategoryId) {
+  //   //   await fetchIssueTypes(subcategoryId);
+  //   // }
+  // };
+
+
   const onCategoryChange = async (categoryId, setFieldValue) => {
     setFieldValue('subCategory', '');
     setFieldValue('issueType', '');
     setFieldValue('priority', '');
     setFieldValue('issueName', '');
     setSubcategories([]);
-    setIssueTypes([]);
     if (categoryId) {
       await fetchSubcategories(categoryId);
     }
@@ -356,30 +387,77 @@ const TicketForm = () => {
     setFieldValue('issueType', '');
     setFieldValue('priority', '');
     setFieldValue('issueName', '');
-    setIssueTypes([]);
-    if (subcategoryId) {
-      await fetchIssueTypes(subcategoryId);
-    }
   };
 
   // IMPORTANT: when selecting an issueType that is NOT "Other",
   // auto-set its default priority and disable the priority selector.
+  // const onIssueTypeChange = (issueTypeId, setFieldValue, values) => {
+  //   setFieldValue('priority', '');
+  //   setFieldValue('issueName', '');
+  //   if (!issueTypeId) {
+  //     return;
+  //   }
+  //   if (String(issueTypeId) === 'Other' || String(issueTypeId).toLowerCase() === 'other') {
+  //     setFieldValue('priority', '');
+  //     return;
+  //   }
+  //   const it = issueTypes.find((x) => String(x.issue_type_id ?? x.id) === String(issueTypeId));
+  //   const defaultPri = it?.priority_id ?? it?.default_priority?.priority_id ?? '';
+  //   if (defaultPri) {
+  //     setFieldValue('priority', String(defaultPri));
+  //   } else {
+  //     setFieldValue('priority', '');
+  //   }
+  // };
+
+  // const onIssueTypeChange = (issueTypeId, setFieldValue, values) => {
+  //   setFieldValue('issueName', '');
+
+  //   if (!issueTypeId) {
+  //     return;
+  //   }
+
+  //   if (String(issueTypeId) === 'Other' || String(issueTypeId).toLowerCase() === 'other') {
+
+  //     return;
+  //   }
+
+
+  //   const it = issueTypes.find((x) => String(x.issue_type_id ?? x.id) === String(issueTypeId));
+  //   const defaultPri = it?.priority_id ?? it?.default_priority?.priority_id ?? '';
+
+  //   if (defaultPri && !values.priority) {
+  //     setFieldValue('priority', String(defaultPri));
+  //   }
+  // };
+
+
   const onIssueTypeChange = (issueTypeId, setFieldValue, values) => {
-    setFieldValue('priority', '');
     setFieldValue('issueName', '');
+
     if (!issueTypeId) {
-      return;
-    }
-    if (String(issueTypeId) === 'Other' || String(issueTypeId).toLowerCase() === 'other') {
       setFieldValue('priority', '');
       return;
     }
+
+    if (String(issueTypeId) === 'Other' || String(issueTypeId).toLowerCase() === 'other') {
+      // For "Other" issue type, clear priority and let user choose
+      setFieldValue('priority', '');
+      return;
+    }
+
+    // For regular issue types, auto-set the priority from the issue type and lock it
     const it = issueTypes.find((x) => String(x.issue_type_id ?? x.id) === String(issueTypeId));
     const defaultPri = it?.priority_id ?? it?.default_priority?.priority_id ?? '';
+
     if (defaultPri) {
       setFieldValue('priority', String(defaultPri));
     } else {
-      setFieldValue('priority', '');
+      // If no priority found, set to default Medium priority
+      const mediumPriority = priorities.find(p => p.name === 'Medium');
+      if (mediumPriority) {
+        setFieldValue('priority', String(mediumPriority.priority_id ?? mediumPriority.id));
+      }
     }
   };
 
@@ -494,17 +572,20 @@ const TicketForm = () => {
                   </Grid>
                 )}
 
+
+
+
+
                 <Grid item xs={12} sm={6} md={3}>
                   <CustomParagraphLight>
                     Priority <ValidationStar />
                   </CustomParagraphLight>
-                  {/* Priority is editable ONLY when Issue Type === 'Other' */}
                   <Field
                     as={SelectFieldPadding}
                     name="priority"
                     fullWidth
                     size="small"
-                    disabled={String(values.issueType) !== 'Other'}
+                    disabled={String(values.issueType) !== 'Other' && values.issueType !== ''}
                   >
                     <MenuItem value="">
                       <em>Select priority</em>
@@ -515,11 +596,11 @@ const TicketForm = () => {
                       </MenuItem>
                     ))}
                   </Field>
-                  {/* <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mt: 0.5 }}>
-                    {String(values.issueType) === 'Other'
-                      ? 'You can choose priority for Other issue types.'
-                      : 'Priority is set by Issue Type and cannot be changed.'}
-                  </Typography> */}
+                  <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mt: 0.5 }}>
+                    {String(values.issueType) === 'Other' || values.issueType === ''
+                      ? 'Choose priority for this issue'
+                      : 'Priority is automatically set based on the issue type'}
+                  </Typography>
                   <ErrorMessage name="priority" component="div" style={errorMessageStyle} />
                 </Grid>
 
