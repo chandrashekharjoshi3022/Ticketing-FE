@@ -587,8 +587,8 @@ const TicketForm = () => {
                   </Field>
                   <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mt: 0.5 }}>
                     {String(values.issueType) === 'Other' || values.issueType === ''
-                      ? 'Choose priority for this issue'
-                      : 'Priority is automatically set based on the issue type'}
+                      ? ''
+                      : ''}
                   </Typography>
                   <ErrorMessage name="priority" component="div" style={errorMessageStyle} />
                 </Grid>
