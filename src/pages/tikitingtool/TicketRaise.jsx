@@ -54,7 +54,7 @@ import { formatDate, formatDateTime, formatDateTimeSplit } from 'components/Date
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchTickets, fetchTicketDetails, createTicket, replyToTicket, clearTicketDetails } from '../../features/tickets/ticketSlice';
 import { selectUserRole, selectCurrentUser, selectIsInitialized } from '../../features/auth/authSlice';
-import TicketService from '../../features/tickets/TicketService'; // Add this import
+import TicketService from '../../features/tickets/TicketService';
 import TicketForm from './TicketForm';
 import ImageCell from './ImageCell';
 import { toast } from 'react-toastify';
@@ -152,52 +152,35 @@ export default function TicketRaise() {
   }, []);
 
   // Fetch priorities when component mounts
-  // useEffect(() => {
-  //   const fetchPriorities = async () => {
-  //     try {
-  //       const response = await axios.get('http://localhost:5000/api/admin/priorities');
-  //       setPriorities(response.data);
-  //     } catch (error) {
-  //       console.error('Error fetching priorities:', error);
-  //     }
-  //   };
-  //   fetchPriorities();
-  // }, []);
-
-
-
-  // Update the priorities useEffect with better error handling
-useEffect(() => {
-  const fetchPriorities = async () => {
-    try {
-      setIsLoading(true);
-      const response = await axios.get('http://localhost:5000/api/admin/priorities');
-      
-      // Ensure we always have an array, even if the response structure changes
-      let prioritiesData = response.data;
-      
-      // Handle different possible response structures
-      if (Array.isArray(prioritiesData)) {
-        setPriorities(prioritiesData);
-      } else if (prioritiesData && Array.isArray(prioritiesData.priorities)) {
-        setPriorities(prioritiesData.priorities);
-      } else if (prioritiesData && Array.isArray(prioritiesData.data)) {
-        setPriorities(prioritiesData.data);
-      } else {
-        console.warn('Unexpected priorities response structure:', prioritiesData);
-        setPriorities([]); // Fallback to empty array
+  useEffect(() => {
+    const fetchPriorities = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get('http://localhost:5000/api/admin/priorities');
+        
+        let prioritiesData = response.data;
+        
+        if (Array.isArray(prioritiesData)) {
+          setPriorities(prioritiesData);
+        } else if (prioritiesData && Array.isArray(prioritiesData.priorities)) {
+          setPriorities(prioritiesData.priorities);
+        } else if (prioritiesData && Array.isArray(prioritiesData.data)) {
+          setPriorities(prioritiesData.data);
+        } else {
+          console.warn('Unexpected priorities response structure:', prioritiesData);
+          setPriorities([]);
+        }
+      } catch (error) {
+        console.error('Error fetching priorities:', error);
+        setPriorities([]);
+        toast.error('Failed to load priorities');
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching priorities:', error);
-      setPriorities([]); // Fallback to empty array on error
-      toast.error('Failed to load priorities');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  fetchPriorities();
-}, []);
+    };
+    
+    fetchPriorities();
+  }, []);
 
   // Reset priority when ticket details change
   useEffect(() => {
@@ -205,62 +188,6 @@ useEffect(() => {
       setPriority(ticketDetails.priority || '');
     }
   }, [ticketDetails]);
-
-  // const handlePriorityUpdate = async () => {
-  //   if (!ticketDetails?.ticket_id || !priority) return;
-
-  //   try {
-  //     setIsLoading(true);
-      
-  //     // Find the priority object to get both name and ID
-  //     const selectedPriority = priorities.find(p => p.name === priority);
-      
-  //     await axios.put(`http://localhost:5000/api/ticket/${ticketDetails.ticket_id}/priority`, {
-  //       priority: priority,
-  //       priority_id: selectedPriority?.priority_id || selectedPriority?.id
-  //     });
-
-  //     // Refresh ticket details
-  //     await dispatch(fetchTicketDetails(ticketDetails.ticket_id)).unwrap();
-  //     setSuccessMessage('Priority updated successfully!');
-  //     toast.success('Priority updated successfully!', { autoClose: 2000 });
-  //     setPriority('');
-  //   } catch (err) {
-  //     console.error('Failed to update priority:', err);
-  //     window.alert(err?.response?.data?.message || 'Failed to update priority');
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // }
-
-const handlePriorityUpdate = async () => {
-  if (!ticketDetails?.ticket_id || !priority) return;
-
-  try {
-    setIsLoading(true);
-    
-    // Find the priority object to get both name and ID
-    const selectedPriority = priorities.find(p => p.name === priority);
-    
-    // Use the TicketService instead of direct axios call
-    await TicketService.updateTicketPriority({
-      ticketId: ticketDetails.ticket_id,
-      priority: priority,
-      priority_id: selectedPriority?.priority_id || selectedPriority?.id
-    });
-
-    // Refresh ticket details
-    await dispatch(fetchTicketDetails(ticketDetails.ticket_id)).unwrap();
-    setSuccessMessage('Priority updated successfully!');
-    toast.success('Priority updated successfully!', { autoClose: 2000 });
-    setPriority('');
-  } catch (err) {
-    console.error('Failed to update priority:', err);
-    window.alert(err?.response?.data?.message || 'Failed to update priority');
-  } finally {
-    setIsLoading(false);
-  }
-}
 
   // Show loading if auth is not initialized yet
   if (!isAuthInitialized) {
@@ -292,7 +219,7 @@ const handlePriorityUpdate = async () => {
       created_by: ticketDetails.created_by ?? ticketDetails.creator?.username ?? 'User',
       created_on: ticketDetails.created_on ?? ticketDetails.createdAt ?? '',
       status: ticketDetails.status ?? '',
-      allImages: ticketDetails.documents ?? [] // ticket-level documents
+      allImages: ticketDetails.documents ?? []
     };
 
     const replyRows = (ticketDetails.replies || []).map((reply, index) => {
@@ -311,7 +238,7 @@ const handlePriorityUpdate = async () => {
         created_by: displayName,
         created_on: reply.created_at ?? reply.created_on ?? '',
         status: reply.status ?? '',
-        allImages: reply.documents ?? [] // reply-specific documents
+        allImages: reply.documents ?? []
       };
     });
 
@@ -346,6 +273,7 @@ const handlePriorityUpdate = async () => {
     setReplyMessage('');
     setStatus('');
     setAssign('');
+    setPriority('');
     setAttachedFiles([]);
     dispatch(clearTicketDetails());
     setSuccessMessage('');
@@ -369,6 +297,11 @@ const handlePriorityUpdate = async () => {
         formData.append('status', status);
       }
 
+      // Add priority to form data for admin users
+      if (isAdmin && priority) {
+        formData.append('priority', priority);
+      }
+
       if (isAdmin && assign) {
         formData.append('assigned_to', assign);
       }
@@ -387,9 +320,11 @@ const handlePriorityUpdate = async () => {
       await dispatch(fetchTicketDetails(ticketDetails.ticket_id)).unwrap();
       await dispatch(fetchTickets()).unwrap();
 
+      // Reset all form fields
       setReplyMessage('');
       setStatus('');
       setAssign('');
+      setPriority('');
       setAttachedFiles([]);
       setSuccessMessage('Reply sent successfully!');
       toast.success('Reply sent successfully!', { autoClose: 2000 });
@@ -405,7 +340,6 @@ const handlePriorityUpdate = async () => {
     const newFiles = Array.from(e.target.files);
     if (newFiles.length === 0) return;
 
-    // Check for duplicates by name and size
     const existingFiles = attachedFiles || [];
     const uniqueNewFiles = newFiles.filter(
       (newFile) =>
@@ -419,11 +353,8 @@ const handlePriorityUpdate = async () => {
       return;
     }
 
-    // Append new files to existing files
     const updatedFiles = [...existingFiles, ...uniqueNewFiles];
     setAttachedFiles(updatedFiles);
-
-    // Reset file input to allow selecting same files again
     e.target.value = '';
   };
 
@@ -852,15 +783,6 @@ const handlePriorityUpdate = async () => {
                   </Box>
                 ) : ticketDetails ? (
                   <>
-                    {/* Debugging log */}
-                    {console.log('Ticket Details for Priority Update:', {
-                      isAdmin,
-                      isOtherIssue: ticketDetails?.is_other_issue,
-                      ticketDetails,
-                      priority,
-                      currentPriority: ticketDetails?.priority
-                    })}
-                    
                     <Grid container spacing={2}>
                       <Grid item xs={12} md={2}>
                         <CustomParagraphDark>Category:</CustomParagraphDark>
@@ -881,55 +803,18 @@ const handlePriorityUpdate = async () => {
                         </CustomParagraphLight>
                       </Grid>
 
-                      {/* ONLY PRIORITY SECTION - Inside the main Grid container */}
-                      {isAdmin && ticketDetails?.is_other_issue ? (
-                        <Grid item xs={12} md={2}>
-                          <CustomParagraphDark>Priority</CustomParagraphDark>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <FormControl size="small" sx={{ minWidth: 120 }}>
-                              <Select
-                                value={priority || ticketDetails.priority}
-                                onChange={(e) => setPriority(e.target.value)}
-                                displayEmpty
-                              >
-                                <MenuItem value="">
-                                  <em>Select Priority</em>
-                                </MenuItem>
-                                {priorities.map((p) => (
-                                  <MenuItem key={p.priority_id ?? p.id} value={p.name}>
-                                    {p.name}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
-                            {priority && priority !== ticketDetails.priority && (
-                              <Button 
-                                variant="contained" 
-                                size="small" 
-                                onClick={handlePriorityUpdate}
-                                disabled={isLoading}
-                              >
-                                Update
-                              </Button>
-                            )}
-                          </Box>
-                          <Typography variant="caption" color="textSecondary">
-                            This is an "Other" issue type - priority can be changed
-                          </Typography>
-                        </Grid>
-                      ) : (
-                        <Grid item xs={12} md={2}>
-                          <CustomParagraphDark>Priority</CustomParagraphDark>
-                          <CustomParagraphLight>
-                            {ticketDetails?.priority}
-                            {isAdmin && (
-                              <Typography variant="caption" display="block" color="textSecondary">
-                                {ticketDetails?.is_other_issue ? 'Set by user' : 'Set by issue type'}
-                              </Typography>
-                            )}
-                          </CustomParagraphLight>
-                        </Grid>
-                      )}
+                      {/* Priority Display Only */}
+                      <Grid item xs={12} md={2}>
+                        <CustomParagraphDark>Priority</CustomParagraphDark>
+                        <CustomParagraphLight>
+                          {ticketDetails?.priority || 'Not set'}
+                          {isAdmin && (
+                            <Typography variant="caption" display="block" color="textSecondary">
+                              {ticketDetails?.is_other_issue ? 'Can be updated in reply' : 'Set by issue type'}
+                            </Typography>
+                          )}
+                        </CustomParagraphLight>
+                      </Grid>
 
                       {isAdmin && (
                         <Grid item xs={12} md={2}>
@@ -1004,6 +889,7 @@ const handlePriorityUpdate = async () => {
                               </Button>
                             </label>
 
+                            {/* Status Dropdown */}
                             <FormControl size="small" sx={{ minWidth: 150 }}>
                               <InputLabel>Status</InputLabel>
                               <Select value={status} onChange={(e) => setStatus(e.target.value)} label="Status">
@@ -1012,22 +898,32 @@ const handlePriorityUpdate = async () => {
                                 </MenuItem>
                                 {(!isAdmin && !isExecutive) && <MenuItem value="Closed">Closed</MenuItem>}
                                 {(isAdmin || isExecutive) && [
-                                  <MenuItem key="Open" value="Open">
-                                    Open
-                                  </MenuItem>,
-                                  <MenuItem key="Pending" value="Pending">
-                                    Pending
-                                  </MenuItem>,
-                                  <MenuItem key="Resolved" value="Resolved">
-                                    Resolved
-                                  </MenuItem>,
-                                  <MenuItem key="Closed" value="Closed">
-                                    Closed
-                                  </MenuItem>
+                                  <MenuItem key="Open" value="Open">Open</MenuItem>,
+                                  <MenuItem key="Pending" value="Pending">Pending</MenuItem>,
+                                  <MenuItem key="Resolved" value="Resolved">Resolved</MenuItem>,
+                                  <MenuItem key="Closed" value="Closed">Closed</MenuItem>
                                 ]}
                               </Select>
                             </FormControl>
 
+                            {/* Priority Dropdown - Only for Admin */}
+                            {isAdmin && (
+                              <FormControl size="small" sx={{ minWidth: 150 }}>
+                                <InputLabel>Priority</InputLabel>
+                                <Select value={priority} onChange={(e) => setPriority(e.target.value)} label="Priority">
+                                  <MenuItem value="">
+                                    <em>Select Priority</em>
+                                  </MenuItem>
+                                  {priorities.map((p) => (
+                                    <MenuItem key={p.priority_id ?? p.id} value={p.name}>
+                                      {p.name}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            )}
+
+                            {/* Assign Dropdown - Only for Admin */}
                             {isAdmin && (
                               <FormControl size="small" sx={{ minWidth: 150 }}>
                                 <InputLabel>Assign to</InputLabel>
@@ -1054,7 +950,6 @@ const handlePriorityUpdate = async () => {
                             </Typography>
                             <Grid container spacing={1}>
                               {attachedFiles.map((file, index) => {
-                                // Create object URL for image preview
                                 const fileUrl = URL.createObjectURL(file);
                                 const isImage = file.type.startsWith('image/');
 
@@ -1090,7 +985,6 @@ const handlePriorityUpdate = async () => {
                                                 cursor: 'pointer'
                                               }}
                                               onClick={() => {
-                                                // Open image in new tab for larger view
                                                 const w = window.open();
                                                 if (w) {
                                                   w.document.write(`
@@ -1123,7 +1017,6 @@ const handlePriorityUpdate = async () => {
                                               fullWidth
                                               sx={{ fontSize: '0.7rem' }}
                                               onClick={() => {
-                                                // For non-image files, trigger download
                                                 const link = document.createElement('a');
                                                 link.href = fileUrl;
                                                 link.download = file.name;
@@ -1161,6 +1054,7 @@ const handlePriorityUpdate = async () => {
                               setAttachedFiles([]);
                               setStatus('');
                               setAssign('');
+                              setPriority('');
                             }}
                             disabled={isSubmittingReply}
                           >
