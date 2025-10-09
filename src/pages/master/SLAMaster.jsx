@@ -29,6 +29,7 @@ import { fetchCategories, createCategory, updateCategory, deleteCategory } from 
 import { useNavigate } from 'react-router';
 import { errorMessageStyle } from 'components/StyleComponent';
 import { toast } from 'react-toastify';
+import CustomParagraphLight from 'components/CustomParagraphLight';
 
 export default function SLAMaster() {
   const dispatch = useDispatch();
@@ -44,20 +45,59 @@ export default function SLAMaster() {
     dispatch(fetchSubCategories());
   }, [dispatch]);
 
-  const rows = (subcategories || []).map((s, idx) => ({
-    id: idx + 1,
-    subcategory_id: s.subcategory_id ?? s.id,
-    name: s.name,
-    category_id: s.category_id,
-    category_name: s.category?.name ?? categories.find((c) => (c.category_id ?? c.id) === s.category_id)?.name ?? '',
-    description: s.description ?? '',
-    status: s.is_active ? 'Active' : 'Inactive'
-  }));
-
+  // const rows = (subcategories || []).map((s, idx) => ({
+  //   id: idx + 1,
+  //   subcategory_id: s.subcategory_id ?? s.id,
+  //   name: s.name,
+  //   category_id: s.category_id,
+  //   category_name: s.category?.name ?? categories.find((c) => (c.category_id ?? c.id) === s.category_id)?.name ?? '',
+  //   description: s.description ?? '',
+  //   status: s.is_active ? 'Active' : 'Inactive'
+  // }));
+  const rows = [
+    {
+      id: 1,
+      name: 'USR001',
+      category_name: 'Login Issue',
+      response_time: '2 hours',
+      resolve_time: '1 day',
+      created_on: '2025-10-08',
+      status: 'Open'
+    },
+    {
+      id: 2,
+      name: 'USR002',
+      category_name: 'Payment Failure',
+      response_time: '1 hour',
+      resolve_time: '6 hours',
+      created_on: '2025-10-07',
+      status: 'Closed'
+    },
+    {
+      id: 3,
+      name: 'USR003',
+      category_name: 'Bug Report',
+      response_time: '3 hours',
+      resolve_time: '2 days',
+      created_on: '2025-10-06',
+      status: 'In Progress'
+    },
+    {
+      id: 4,
+      name: 'USR004',
+      category_name: 'Account Locked',
+      response_time: '30 mins',
+      resolve_time: '3 hours',
+      created_on: '2025-10-05',
+      status: 'Resolved'
+    }
+  ];
   const columns = [
-    { field: 'name', headerName: 'Name', width: 220 },
-    { field: 'category_name', headerName: 'Category', width: 200 },
-    { field: 'description', headerName: 'Description', width: 220, flex: 1 },
+    { field: 'name', headerName: 'User ID', width: 220 },
+    { field: 'category_name', headerName: 'Issue Type', width: 200 },
+    { field: 'response_time', headerName: 'Response Time', width: 220, flex: 1 },
+    { field: 'resolve_time', headerName: 'Resolve Time', width: 220, flex: 1 },
+    { field: 'created_on', headerName: 'Created On', width: 220, flex: 1 },
     { field: 'status', headerName: 'Status', width: 120 },
     {
       field: 'actions',
@@ -65,11 +105,12 @@ export default function SLAMaster() {
       width: 140,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <IconButton  color="primary" size="small" onClick={() => setEditing(params.row)}>
+          <IconButton color="primary" size="small" onClick={() => setEditing(params.row)}>
             <EditIcon />
           </IconButton>
           <IconButton
-         color="error" size="small"
+            color="error"
+            size="small"
             onClick={() => {
               setToDelete(params.row);
               setDeleteDialogOpen(true);
@@ -158,28 +199,43 @@ export default function SLAMaster() {
               {({ resetForm }) => (
                 <Form>
                   <Grid container spacing={2} alignItems="center" sx={{ mb: 1 }}>
-                    <Grid item xs={12} sm={2}>
-                      <Field as={FieldPadding} name="name" placeholder="Sub Category Name" fullWidth sx={{ width: '100%' }} />
-                      <ErrorMessage name="name" component="div" style={errorMessageStyle} />
-                    </Grid>
-
-                    <Grid item xs={12} sm={2}>
-                      <Field as={SelectFieldPadding} name="category_id" fullWidth sx={{ width: '100%' }}>
-                        {categories.map((c) => (
-                          <MenuItem key={c.category_id ?? c.id} value={c.category_id ?? c.id}>
-                            {c.name ?? c.category_name}
-                          </MenuItem>
-                        ))}
+                    <Grid item xs={12} sm={1}>
+                      <CustomParagraphLight>User ID</CustomParagraphLight>
+                      <Field as={SelectFieldPadding} name="user_id" fullWidth sx={{ width: '100%' }}>
+                        <MenuItem value="1">User1</MenuItem>
+                        <MenuItem value="0">User2</MenuItem>
                       </Field>
-                      <ErrorMessage name="category_id" component="div" style={errorMessageStyle} />
+                    </Grid>
+                    <Grid item xs={12} sm={2}>
+                      <CustomParagraphLight>Issue Type</CustomParagraphLight>
+                      <Field as={FieldPadding} name="issue_type" placeholder="Issue Type" fullWidth sx={{ width: '100%' }} />
+                      <ErrorMessage name="issue_type" component="div" style={errorMessageStyle} />
+                    </Grid>
+                    <Grid item xs={12} sm={2}>
+                      <CustomParagraphLight>Response Time</CustomParagraphLight>
+                      <Field
+                        as={FieldPadding}
+                        name="response_target_minutes"
+                        placeholder="Response  Time"
+                        fullWidth
+                        sx={{ width: '100%' }}
+                      />
+                      <ErrorMessage name="response_target_minutes" component="div" style={errorMessageStyle} />
+                    </Grid>
+                    <Grid item xs={12} sm={2}>
+                      <CustomParagraphLight>Resolve Time</CustomParagraphLight>
+                      <Field as={FieldPadding} name="resolve_target_minutes" placeholder="Resolve  Time" fullWidth sx={{ width: '100%' }} />
+                      <ErrorMessage name="resolve_target_minutes" component="div" style={errorMessageStyle} />
                     </Grid>
 
                     <Grid item xs={12} sm={2}>
-                      <Field as={FieldPadding} name="description" placeholder="Description" fullWidth sx={{ width: '100%' }} />
-                      <ErrorMessage name="description" component="div" style={errorMessageStyle} />
+                      <CustomParagraphLight>Created On</CustomParagraphLight>
+                      <Field as={FieldPadding} name="created_on" placeholder="Created On" fullWidth sx={{ width: '100%' }} />
+                      <ErrorMessage name="created_on" component="div" style={errorMessageStyle} />
                     </Grid>
 
                     <Grid item xs={12} sm={1}>
+                      <CustomParagraphLight>Status</CustomParagraphLight>
                       <Field as={SelectFieldPadding} name="status" fullWidth sx={{ width: '100%' }}>
                         <MenuItem value="1">Active</MenuItem>
                         <MenuItem value="0">Inactive</MenuItem>
