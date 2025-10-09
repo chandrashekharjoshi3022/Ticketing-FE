@@ -666,8 +666,14 @@ export default function TicketRaise() {
 
   const renderTableHeader = (sectionName, sectionLabel) => (
     <TableHead sx={{ backgroundColor: '#f1f2ff', borderBottom: '2px solid #ddd' }}>
-      <TableRow>
-        <TableCell sx={{ padding: 0, paddingLeft: '16px' }} colSpan={12}>
+      <TableRow
+        sx={{
+          '& > .MuiTableCell-root:first-of-type': {
+            paddingLeft: 0
+          }
+        }}
+      >
+        <TableCell sx={{ padding: 0 }} colSpan={12} padding="0">
           <Box display="flex" justifyContent="space-between" alignItems="center">
             <Box display="flex" alignItems="center" gap={1}>
               <Typography fontSize={'16px'} fontWeight={600} color="primary">
@@ -775,12 +781,8 @@ export default function TicketRaise() {
                     </Tabs>
 
                     <DataGrid
-                      autoHeight
                       getRowHeight={() => 'auto'}
-                      sx={{
-                        ...gridStyle,
-                        height: '85dvh'
-                      }}
+                      sx={{ ...gridStyle, height: '70vh' }}
                       rows={filteredRows.map((row, index) => ({ ...row, sr_no: index + 1 }))}
                       columns={[
                         {
@@ -994,40 +996,44 @@ export default function TicketRaise() {
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, mb: 1, gap: 2 }}>
                           <Box display="flex" alignItems="center" gap={2}>
-                            <input
-                              accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-                              style={{ display: 'none' }}
-                              id="upload-screenshot"
-                              type="file"
-                              multiple
-                              onChange={handleFileUpload}
-                            />
-                            <label htmlFor="upload-screenshot">
-                              <Button variant="outlined" size="small" component="span" startIcon={<UploadFileIcon />}>
-                                Upload Files ({attachedFiles.length})
-                              </Button>
-                            </label>
-
+                            <Box sx={{ minWidth: 120 }}>
+                              {/* <CustomParagraphLight>Upload Files</CustomParagraphLight> */}
+                              <input
+                                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                                style={{ display: 'none' }}
+                                id="upload-screenshot"
+                                type="file"
+                                multiple
+                                onChange={handleFileUpload}
+                              />
+                              <label htmlFor="upload-screenshot">
+                                <Button variant="outlined" size="small" component="span" startIcon={<UploadFileIcon />}>
+                                  Upload Files ({attachedFiles.length})
+                                </Button>
+                              </label>
+                            </Box>
                             <FormControl size="small" sx={{ minWidth: 150 }}>
-                              <CustomParagraphLight>Select Status</CustomParagraphLight>
+                              {/* <CustomParagraphLight>Select Status</CustomParagraphLight> */}
                               <Select
                                 value={status}
                                 onChange={(e) => setStatus(e.target.value)}
-                                placeholder="Select Status"
+                                displayEmpty
                                 sx={{
                                   '& .MuiSelect-select': {
                                     padding: '6px',
-                                    fontSize: '11px' // Set font size for the selected value
+                                    fontSize: '11px'
                                   },
                                   '& .MuiMenuItem-root': {
-                                    fontSize: '11px' // Set font size for dropdown options
+                                    fontSize: '11px'
                                   }
                                 }}
                               >
                                 <MenuItem value="">
                                   <em>Select Status</em>
                                 </MenuItem>
+
                                 {!isAdmin && !isExecutive && <MenuItem value="Closed">Closed</MenuItem>}
+
                                 {(isAdmin || isExecutive) && [
                                   <MenuItem key="Open" value="Open">
                                     Open
@@ -1047,8 +1053,10 @@ export default function TicketRaise() {
 
                             {isAdmin && (
                               <FormControl size="small" sx={{ minWidth: 150 }}>
+                                {/* <CustomParagraphLight>Select Assignee</CustomParagraphLight> */}
                                 <Select
                                   value={assign}
+                                  displayEmpty
                                   onChange={(e) => setAssign(e.target.value)}
                                   sx={{
                                     '& .MuiSelect-select': {
@@ -1085,7 +1093,7 @@ export default function TicketRaise() {
                                 const isImage = file.type.startsWith('image/');
 
                                 return (
-                                  <Grid item xs={12} sm={6} md={4} key={index}>
+                                  <Grid item xs={12} sm={6} md={3} key={index}>
                                     <Card variant="outlined" sx={{ position: 'relative' }}>
                                       <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
                                         <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>

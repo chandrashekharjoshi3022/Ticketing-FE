@@ -65,11 +65,12 @@ export default function SubCategoryMaster() {
       width: 140,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <IconButton onClick={() => setEditing(params.row)}>
+          <IconButton color="primary" size="small" onClick={() => setEditing(params.row)}>
             <EditIcon />
           </IconButton>
           <IconButton
-            color="secondary"
+            color="error"
+            size="small"
             onClick={() => {
               setToDelete(params.row);
               setDeleteDialogOpen(true);

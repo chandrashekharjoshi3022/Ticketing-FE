@@ -1,4 +1,3 @@
-
 // src/components/TicketFormFull.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import {
@@ -48,7 +47,7 @@ const FilePreviewDialog = ({ open, onClose, file, fileUrl }) => {
       <DialogTitle>
         File Preview: {file.name}
         <IconButton aria-label="close" onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
-          <DeleteIcon />
+          <DeleteIcon sx={{ color: 'red' }} />
         </IconButton>
       </DialogTitle>
       <DialogContent>
@@ -70,9 +69,9 @@ const FilePreviewDialog = ({ open, onClose, file, fileUrl }) => {
           </Box>
         )}
       </DialogContent>
-      <DialogActions>
+      {/* <DialogActions>
         <Button onClick={onClose}>Close</Button>
-      </DialogActions>
+      </DialogActions> */}
     </Dialog>
   );
 };
@@ -140,7 +139,6 @@ const TicketForm = () => {
       setIssueTypes([]);
     }
   };
-
 
   // const fetchIssueTypes = async (subcategoryId) => {
   //   if (!subcategoryId) {
@@ -296,9 +294,9 @@ const TicketForm = () => {
 
       // Common fields for all issue types
       formData.append('category_id', values.category || '');
-      formData.append('category', selCategory ? (selCategory.category_name ?? selCategory.name ?? '') : '');
+      formData.append('category', selCategory ? selCategory.category_name ?? selCategory.name ?? '' : '');
       formData.append('subCategory_id', values.subCategory || '');
-      formData.append('subCategory', selSub ? (selSub.subcategory_name ?? selSub.name ?? '') : '');
+      formData.append('subCategory', selSub ? selSub.subcategory_name ?? selSub.name ?? '' : '');
       formData.append('priority_id', values.priority || '');
       formData.append('priority', selPriority ? selPriority.name : '');
 
@@ -311,7 +309,7 @@ const TicketForm = () => {
       } else {
         // Regular issue type
         formData.append('issueType_id', values.issueType || '');
-        formData.append('issueType', selIssue ? (selIssue.name ?? selIssue.issue_type ?? '') : '');
+        formData.append('issueType', selIssue ? selIssue.name ?? selIssue.issue_type ?? '' : '');
 
         // Use SLA from issue type or default
         const issueSlaId = selIssue?.sla_id ?? selIssue?.sla?.sla_id ?? '1';
@@ -359,8 +357,6 @@ const TicketForm = () => {
   //   }
   // };
 
-
-
   // const onSubCategoryChange = async (subcategoryId, setFieldValue) => {
   //   setFieldValue('issueType', '');
   //   setFieldValue('priority', '');
@@ -370,7 +366,6 @@ const TicketForm = () => {
   //   //   await fetchIssueTypes(subcategoryId);
   //   // }
   // };
-
 
   const onCategoryChange = async (categoryId, setFieldValue) => {
     setFieldValue('subCategory', '');
@@ -422,7 +417,6 @@ const TicketForm = () => {
   //     return;
   //   }
 
-
   //   const it = issueTypes.find((x) => String(x.issue_type_id ?? x.id) === String(issueTypeId));
   //   const defaultPri = it?.priority_id ?? it?.default_priority?.priority_id ?? '';
 
@@ -430,7 +424,6 @@ const TicketForm = () => {
   //     setFieldValue('priority', String(defaultPri));
   //   }
   // };
-
 
   const onIssueTypeChange = (issueTypeId, setFieldValue, values) => {
     setFieldValue('issueName', '');
@@ -454,7 +447,7 @@ const TicketForm = () => {
       setFieldValue('priority', String(defaultPri));
     } else {
       // If no priority found, set to default Medium priority
-      const mediumPriority = priorities.find(p => p.name === 'Medium');
+      const mediumPriority = priorities.find((p) => p.name === 'Medium');
       if (mediumPriority) {
         setFieldValue('priority', String(mediumPriority.priority_id ?? mediumPriority.id));
       }
@@ -462,7 +455,7 @@ const TicketForm = () => {
   };
 
   return (
-    <MainCard title={<Typography variant="h6">Raise Ticket</Typography>}>
+    <>
       {successMessage && (
         <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage('')}>
           {successMessage}
@@ -479,7 +472,7 @@ const TicketForm = () => {
         {({ isSubmitting, resetForm, values, setFieldValue, handleSubmit }) => (
           <>
             <Form>
-              <Grid container spacing={2} alignItems="flex-start" sx={{ p: 2 }}>
+              <Grid container spacing={2} alignItems="flex-start">
                 <Grid item xs={12} sm={6} md={3}>
                   <CustomParagraphLight>
                     Category <ValidationStar />
@@ -572,10 +565,6 @@ const TicketForm = () => {
                   </Grid>
                 )}
 
-
-
-
-
                 <Grid item xs={12} sm={6} md={3}>
                   <CustomParagraphLight>
                     Priority <ValidationStar />
@@ -606,7 +595,8 @@ const TicketForm = () => {
 
                 <Grid item xs={12}>
                   <CustomParagraphLight>
-                    Screenshots / Documents <ValidationStar />
+                    Upload Files
+                    <ValidationStar />
                   </CustomParagraphLight>
                   <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
                     <Button component="label" variant="outlined" startIcon={<CloudUploadIcon />} size="small">
@@ -643,18 +633,42 @@ const TicketForm = () => {
                                   <Typography variant="body2" sx={{ flexGrow: 1, fontSize: '0.8rem', wordBreak: 'break-word' }}>
                                     {getFileIcon(file.type)} {file.name}
                                   </Typography>
-                                  <IconButton size="small" onClick={() => handleRemoveFile(idx, setFieldValue, values)} color="error" sx={{ ml: 0.5 }}>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleRemoveFile(idx, setFieldValue, values)}
+                                    color="error"
+                                    sx={{ ml: 0.5 }}
+                                  >
                                     <DeleteIcon fontSize="small" />
                                   </IconButton>
                                 </Box>
-                                <Typography variant="caption" color="textSecondary" display="block">
-                                  {formatFileSize(file.size)} • {file.type?.split('/')[1] || file.type}
-                                </Typography>
                                 <Box sx={{ display: 'flex', gap: 0.5, mt: 1.5 }}>
-                                  <Button size="small" startIcon={<VisibilityIcon />} onClick={() => handlePreviewFile(file)} variant="outlined" fullWidth sx={{ fontSize: '0.7rem' }}>
+                                  <VisibilityIcon
+                                    onClick={() => handlePreviewFile(file)}
+                                    sx={{
+                                      cursor: 'pointer',
+                                      color: 'primary.main',
+                                      fontSize: 20,
+                                      '&:hover': { color: 'primary.dark' }
+                                    }}
+                                  />
+                                  <Typography variant="caption" color="textSecondary" display="block">
+                                    {formatFileSize(file.size)} • {file.type?.split('/')[1] || file.type}
+                                  </Typography>
+                                </Box>
+
+                                {/* <Box sx={{ display: 'flex', gap: 0.5, mt: 1.5 }}>
+                                  <Button
+                                    size="small"
+                                    startIcon={<VisibilityIcon />}
+                                    onClick={() => handlePreviewFile(file)}
+                                    variant="outlined"
+                                    fullWidth
+                                    sx={{ fontSize: '0.7rem' }}
+                                  >
                                     Preview
                                   </Button>
-                                </Box>
+                                </Box> */}
                               </CardContent>
                             </Card>
                           </Grid>
@@ -722,7 +736,7 @@ const TicketForm = () => {
           </>
         )}
       </Formik>
-    </MainCard>
+    </>
   );
 };
 

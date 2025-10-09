@@ -30,20 +30,19 @@ import FieldPadding from 'components/FieldPadding';
 import SelectFieldPadding from 'components/selectFieldPadding';
 
 // Redux imports - only import what actually exists
-import { 
-  createUser, 
-  updateUser,
-  clearUserError 
-} from 'features/users/usersSlice';
+import { createUser, updateUser, clearUserError } from 'features/users/usersSlice';
+import { toast } from 'react-toastify';
 
 // Initial form values
 const getInitialFormValues = (user = null) => ({
   // User Login Details
   userName: user?.username || '',
-  password: '', // Always empty for security
-  resigDate: user?.registration_date ? new Date(user.registration_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+  password: '',
+  resigDate: user?.registration_date
+    ? new Date(user.registration_date).toISOString().split('T')[0]
+    : new Date().toISOString().split('T')[0],
   role: user?.role_name || '',
-  
+
   // Personal Details
   firstName: user?.first_name || '',
   lastName: user?.last_name || '',
@@ -53,7 +52,7 @@ const getInitialFormValues = (user = null) => ({
   designation: user?.designation || '',
   is_active: user?.is_active !== undefined ? (user.is_active ? 1 : 0) : 1,
   department: user?.department || '',
-  
+
   // Current Address
   address1: user?.address1 || '',
   address2: user?.address2 || '',
@@ -61,7 +60,7 @@ const getInitialFormValues = (user = null) => ({
   state: user?.state || '',
   city: user?.city || '',
   pincode: user?.pincode || '',
-  
+
   // Permanent Address
   address11: user?.permanent_address1 || '',
   address22: user?.permanent_address2 || '',
@@ -76,12 +75,12 @@ const validationSchema = Yup.object().shape({
   userName: Yup.string()
     .matches(/^[a-zA-Z\s]*$/, 'User Name should be alphabetical')
     .required('User Name is required'),
-  password: Yup.string()
-    .when('formMode', {
-      is: 'create',
-      then: (schema) => schema.required('Password is required'),
-      otherwise: (schema) => schema.notRequired()
-    }),
+  // password: Yup.string()
+  //   .when('formMode', {
+  //     is: 'create',
+  //     then: (schema) => schema.required('Password is required'),
+  //     otherwise: (schema) => schema.notRequired()
+  //   }),
   resigDate: Yup.date().required('Registration Date is required'),
   firstName: Yup.string()
     .matches(/^[a-zA-Z\s]*$/, 'First Name should be alphabetical')
@@ -146,10 +145,10 @@ const hardcodedCities = [
 
 export default function UserForm({ user, formMode, onClose }) {
   const dispatch = useDispatch();
-  
+
   // Only get the state properties that actually exist
   const { operationLoading, operationError } = useSelector((state) => state.users);
-  
+
   const [showTableHeading, setShowTableHeading] = useState({
     userLoginDetails: true,
     userPersonalDetail: true,
@@ -173,9 +172,7 @@ export default function UserForm({ user, formMode, onClose }) {
   // Handle operation status changes
   useEffect(() => {
     if (operationError) {
-      setSnackbarMessage(operationError.message || 'Operation failed');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+      toast.error(operationError.message || 'Operation failed');
       dispatch(clearUserError());
     }
   }, [operationError, dispatch]);
@@ -189,7 +186,6 @@ export default function UserForm({ user, formMode, onClose }) {
       console.log('Same Address:', same);
       console.log('=== END FORM DATA ===');
 
-      // Map form values to backend structure
       const userData = {
         first_name: values.firstName,
         last_name: values.lastName,
@@ -215,49 +211,38 @@ export default function UserForm({ user, formMode, onClose }) {
       };
 
       if (formMode === 'create') {
-        // For new users, include username and password
         userData.username = values.userName;
         userData.password = values.password;
-        
+
         await dispatch(createUser(userData)).unwrap();
-        
-        setSnackbarMessage('User created successfully! Login credentials sent to email.');
-        setSnackbarSeverity('success');
-        setSnackbarOpen(true);
-        
-        // Close form after successful submission
+
+        toast.success('User created successfully! Login credentials sent to email.');
+
         setTimeout(() => {
           onClose();
         }, 2000);
       } else {
-        // For updates, include reset_password flag if password is provided
         if (values.password) {
           userData.reset_password = true;
           userData.password = values.password;
         }
-        
-        await dispatch(updateUser({ 
-          id: user.user_id || user.id, 
-          payload: userData 
-        })).unwrap();
-        
-        setSnackbarMessage(values.password 
-          ? 'User updated successfully! New credentials sent to email.'
-          : 'User updated successfully!'
-        );
-        setSnackbarSeverity('success');
-        setSnackbarOpen(true);
-        
-        // Close form after successful submission
+
+        await dispatch(
+          updateUser({
+            id: user.user_id || user.id,
+            payload: userData
+          })
+        ).unwrap();
+
+        toast.success(values.password ? 'User updated successfully! New credentials sent to email.' : 'User updated successfully!');
+
         setTimeout(() => {
           onClose();
         }, 2000);
       }
     } catch (error) {
       console.error('Form submission error:', error);
-      setSnackbarMessage(error.message || 'Failed to save user');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+      toast.error(error.message || 'Failed to save user');
       setErrors({ submit: error.message });
     } finally {
       setSubmitting(false);
@@ -317,13 +302,7 @@ export default function UserForm({ user, formMode, onClose }) {
   );
 
   const CustomNumberField = ({ field, form, ...props }) => (
-    <TextField 
-      {...field} 
-      {...props} 
-      type="number" 
-      size="small" 
-      sx={{ '& .MuiInputBase-input': { padding: '8px 12px' } }} 
-    />
+    <TextField {...field} {...props} type="number" size="small" sx={{ '& .MuiInputBase-input': { padding: '8px 12px' } }} />
   );
 
   const ValidationStar = () => <span style={{ color: 'red' }}>*</span>;
@@ -338,17 +317,12 @@ export default function UserForm({ user, formMode, onClose }) {
         </Alert>
       </Snackbar>
 
-      <Formik
-        initialValues={getInitialFormValues(user)}
-        validationSchema={validationSchema}
-        onSubmit={handleSubmit}
-        enableReinitialize
-      >
+      <Formik initialValues={getInitialFormValues(user)} validationSchema={validationSchema} onSubmit={handleSubmit} enableReinitialize>
         {({ values, setFieldValue, isSubmitting, errors, touched }) => (
           <Form>
             {/* Add formMode to context for conditional validation */}
             <input type="hidden" name="formMode" value={formMode} />
-            
+
             <Table>
               {renderTableHeader('userLoginDetails', 'User Login Detail')}
               {showTableHeading.userLoginDetails && (
@@ -359,17 +333,11 @@ export default function UserForm({ user, formMode, onClose }) {
                         User Name
                         <ValidationStar />
                       </Typography>
-                      <Field 
-                        as={FieldPadding} 
-                        name="userName" 
-                        variant="outlined" 
-                        fullWidth 
-                        disabled={formMode === 'edit'}
-                      />
+                      <Field as={FieldPadding} name="userName" variant="outlined" fullWidth disabled={formMode === 'edit'} />
                       <ErrorMessage name="userName" component="div" style={errorMessageStyle} />
                     </Grid>
 
-                    <Grid item xs={12} sm={2}>
+                    {/* <Grid item xs={12} sm={2}>
                       <Typography variant="body2">
                         Password
                         {formMode === 'create' && <ValidationStar />}
@@ -383,7 +351,7 @@ export default function UserForm({ user, formMode, onClose }) {
                         placeholder={formMode === 'edit' ? 'Leave blank to keep current password' : ''}
                       />
                       <ErrorMessage name="password" component="div" style={errorMessageStyle} />
-                    </Grid>
+                    </Grid> */}
 
                     <Grid item xs={12} sm={2}>
                       <Typography variant="body2">
@@ -566,7 +534,9 @@ export default function UserForm({ user, formMode, onClose }) {
                     </Grid>
 
                     <Grid item xs={12} sm={2}>
-                      <Typography variant="body2">Pincode</Typography>
+                      <Typography variant="body2">
+                        Pincode <ValidationStar />
+                      </Typography>
                       <Field as={CustomNumberField} name="pincode" variant="outlined" fullWidth />
                       <ErrorMessage name="pincode" component="div" style={errorMessageStyle} />
                     </Grid>
@@ -660,12 +630,8 @@ export default function UserForm({ user, formMode, onClose }) {
             </Table>
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
-              <SubmitButton 
-                variant="contained" 
-                type="submit" 
-                disabled={isSubmitting || operationLoading}
-              >
-                {operationLoading ? 'Processing...' : (formMode === 'create' ? 'Submit' : 'Update')}
+              <SubmitButton variant="contained" type="submit" disabled={isSubmitting || operationLoading}>
+                {operationLoading ? 'Processing...' : formMode === 'create' ? 'Submit' : 'Update'}
               </SubmitButton>
               <CancelButton type="button" onClick={onClose} disabled={operationLoading}>
                 Cancel

@@ -1,4 +1,4 @@
-import { Button, Box, Snackbar, Alert, Typography } from '@mui/material';
+import { Button, Box, Snackbar, Alert, Typography, IconButton } from '@mui/material';
 import MainCard from 'components/MainCard';
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,26 +6,16 @@ import { DataGrid } from '@mui/x-data-grid';
 import UserForm from './userForm';
 import PlusButton from 'components/CustomButton';
 import gridStyle from 'utils/gridStyle';
-
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 // Redux imports
-import { 
-  fetchUsers, 
-  deleteUser, 
-  clearCurrentUser,
-  clearOperationStatus,
-  clearUserError
-} from '../../features/users/usersSlice';
+import { fetchUsers, deleteUser, clearCurrentUser, clearOperationStatus, clearUserError } from '../../features/users/usersSlice';
+import { toast } from 'react-toastify';
 
 export default function UsersPages() {
   const dispatch = useDispatch();
-  const { 
-    items: users, 
-    loading, 
-    error,
-    operationLoading,
-    operationError
-  } = useSelector((state) => state.users);
-  
+  const { items: users, loading, error, operationLoading, operationError } = useSelector((state) => state.users);
+
   const [showOprForm, setShowOprForm] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [formMode, setFormMode] = useState('create');
@@ -45,70 +35,66 @@ export default function UsersPages() {
   // Handle errors and operation status
   useEffect(() => {
     if (error) {
-      setSnackbarMessage(error.message || 'Failed to fetch users');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+      toast.error(error.message || 'Failed to fetch users');
       dispatch(clearUserError());
     }
 
     if (operationError) {
-      setSnackbarMessage(operationError.message || 'Operation failed');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+      toast.error(operationError.message || 'Operation failed');
       dispatch(clearOperationStatus());
     }
   }, [error, operationError, dispatch]);
 
   // Define columns with direct field access (no value getters needed)
   const columns = [
-    { 
-      field: 'user_id', 
-      headerName: 'ID', 
-      width: 80,
+    {
+      field: 'user_id',
+      headerName: 'ID',
+      width: 80
     },
-    { 
-      field: 'username', 
-      headerName: 'Username', 
-      width: 150,
+    {
+      field: 'username',
+      headerName: 'Username',
+      width: 150
     },
-    { 
-      field: 'email', 
-      headerName: 'Email', 
-      width: 200,
+    {
+      field: 'email',
+      headerName: 'Email',
+      width: 200
     },
-    { 
-      field: 'first_name', 
-      headerName: 'First Name', 
-      width: 150,
+    {
+      field: 'first_name',
+      headerName: 'First Name',
+      width: 150
     },
-    { 
-      field: 'last_name', 
-      headerName: 'Last Name', 
-      width: 150,
+    {
+      field: 'last_name',
+      headerName: 'Last Name',
+      width: 150
     },
-    { 
-      field: 'phone_no', 
-      headerName: 'Phone', 
-      width: 150,
+    {
+      field: 'phone_no',
+      headerName: 'Phone',
+      width: 150
     },
-    { 
-      field: 'role_name', 
-      headerName: 'Role', 
-      width: 120,
+    {
+      field: 'role_name',
+      headerName: 'Role',
+      width: 120
     },
-    { 
-      field: 'department', 
-      headerName: 'Department', 
-      width: 150,
+    {
+      field: 'department',
+      headerName: 'Department',
+      width: 150
     },
-    { 
-      field: 'designation', 
-      headerName: 'Designation', 
-      width: 150,
+    {
+      field: 'designation',
+      headerName: 'Designation',
+      width: 150
     },
-    // { 
-    //   field: 'registration_date', 
-    //   headerName: 'Registered', 
+    // {
+    //   field: 'registration_date',
+    //   headerName: 'Registered',
     //   width: 120,
     //   valueFormatter: (params) => {
     //     if (!params.value) return 'N/A';
@@ -120,32 +106,33 @@ export default function UsersPages() {
     //   }
     // },
 
-
-    { 
-  field: 'registration_date', 
-  headerName: 'Registered', 
-  width: 120,
-  valueFormatter: (params) => {
-    // Safe check for params and value
-    if (!params || params.value == null) return 'N/A';
-    try {
-      return new Date(params.value).toLocaleDateString();
-    } catch {
-      return 'Invalid Date';
-    }
-  }
-},
-    { 
-      field: 'is_active', 
-      headerName: 'Status', 
+    {
+      field: 'registration_date',
+      headerName: 'Registered',
+      width: 120,
+      valueFormatter: (params) => {
+        // Safe check for params and value
+        if (!params || params.value == null) return 'N/A';
+        try {
+          return new Date(params.value).toLocaleDateString();
+        } catch {
+          return 'Invalid Date';
+        }
+      }
+    },
+    {
+      field: 'is_active',
+      headerName: 'Status',
       width: 100,
       renderCell: (params) => {
         const isActive = params.row.is_active;
         return (
-          <span style={{ 
-            color: isActive ? 'green' : 'red',
-            fontWeight: 'bold'
-          }}>
+          <span
+            style={{
+              color: isActive ? 'green' : 'red',
+              fontWeight: 'bold'
+            }}
+          >
             {isActive ? 'Active' : 'Inactive'}
           </span>
         );
@@ -154,26 +141,16 @@ export default function UsersPages() {
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 180,
+      width: 120,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button 
-            color="primary" 
-            onClick={() => handleEdit(params.row)}
-            size="small"
-            variant="outlined"
-          >
-            Edit
-          </Button>
-          <Button 
-            color="error" 
-            onClick={() => handleDeleteClick(params.row)}
-            size="small"
-            variant="outlined"
-            disabled={operationLoading}
-          >
-            Delete
-          </Button>
+          <IconButton color="primary" size="small" onClick={() => handleEdit(params.row)}>
+            <EditIcon fontSize="small" />
+          </IconButton>
+
+          <IconButton color="error" size="small" onClick={() => handleDeleteClick(params.row)} disabled={operationLoading}>
+            <DeleteIcon fontSize="small" />
+          </IconButton>
         </Box>
       )
     }
@@ -200,26 +177,15 @@ export default function UsersPages() {
   };
 
   const handleDeleteConfirm = async () => {
-    if (!userToDelete) return;
-    
     try {
-      const userId = userToDelete.user_id || userToDelete.id;
-      if (!userId) {
-        throw new Error('User ID not found');
-      }
-      
+      const userId = userToDelete?.user_id;
+      if (!userId) throw new Error('User ID not found');
+
       await dispatch(deleteUser(userId)).unwrap();
-      
-      setSnackbarMessage('User deleted successfully!');
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
-      
-      // Refresh the user list
+      toast.success('User deleted successfully!');
       dispatch(fetchUsers());
     } catch (error) {
-      setSnackbarMessage(error.message || 'Failed to delete user');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+      toast.error(error.message || 'Failed to delete user');
     }
     setDeleteConfirmOpen(false);
     setUserToDelete(null);
@@ -246,10 +212,12 @@ export default function UsersPages() {
   };
 
   // Transform users data for DataGrid with proper IDs
-  const gridUsers = Array.isArray(users) ? users.map(user => ({
-    ...user,
-    id: user.user_id // Use user_id as the id for DataGrid
-  })) : [];
+  const gridUsers = Array.isArray(users)
+    ? users.map((user) => ({
+        ...user,
+        id: user.user_id // Use user_id as the id for DataGrid
+      }))
+    : [];
 
   // Debug: Log the users data to see what we're getting
   useEffect(() => {
@@ -296,22 +264,13 @@ export default function UsersPages() {
               Confirm Delete
             </Typography>
             <Typography variant="body1" sx={{ mb: 3 }}>
-              Are you sure you want to delete user "{userToDelete?.first_name} {userToDelete?.last_name}"?
-              This action cannot be undone.
+              Are you sure you want to delete user "{userToDelete?.first_name} {userToDelete?.last_name}"? This action cannot be undone.
             </Typography>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-              <Button 
-                onClick={handleDeleteCancel}
-                disabled={operationLoading}
-              >
+              <Button onClick={handleDeleteCancel} disabled={operationLoading}>
                 Cancel
               </Button>
-              <Button 
-                variant="contained" 
-                color="error" 
-                onClick={handleDeleteConfirm}
-                disabled={operationLoading}
-              >
+              <Button variant="contained" color="error" onClick={handleDeleteConfirm} disabled={operationLoading}>
                 {operationLoading ? 'Deleting...' : 'Delete'}
               </Button>
             </Box>
@@ -321,62 +280,40 @@ export default function UsersPages() {
 
       <MainCard
         title={
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600 }}>
             <Box>
               {!showOprForm ? (
                 <span>User Management ({gridUsers.length} users)</span>
               ) : (
                 <span>
-                  {formMode === 'create' 
-                    ? 'Create New User' 
-                    : `Edit User - ${selectedUser?.first_name || ''} ${selectedUser?.last_name || ''}`
-                  }
+                  {formMode === 'create'
+                    ? 'Create New User'
+                    : `Edit User - ${selectedUser?.first_name || ''} ${selectedUser?.last_name || ''}`}
                 </span>
               )}
             </Box>
             <Box sx={{ display: 'flex', gap: 1 }}>
               {!showOprForm ? (
                 <>
-                  <PlusButton 
-                    label=" + Create User" 
-                    onClick={handleCreateOpr}
-                    disabled={loading}
-                  />
-                  <PlusButton 
-                    label="Refresh" 
-                    onClick={() => dispatch(fetchUsers())}
-                    disabled={loading}
-                  />
-                  <PlusButton 
-                    label="Back" 
-                    onClick={handleNavigate}
-                  />
+                  <PlusButton label=" + Create User" onClick={handleCreateOpr} disabled={loading} />
+                  <PlusButton label="Refresh" onClick={() => dispatch(fetchUsers())} disabled={loading} />
+                  <PlusButton label="Back" onClick={handleNavigate} />
                 </>
               ) : (
-                <PlusButton 
-                  label="Back to List" 
-                  onClick={handleCloseForm}
-                />
+                <PlusButton label="Back" onClick={handleCloseForm} />
               )}
             </Box>
           </Box>
         }
       >
         {showOprForm ? (
-          <UserForm 
-            user={selectedUser} 
-            formMode={formMode} 
-            onClose={handleCloseForm} 
-          />
+          <UserForm user={selectedUser} formMode={formMode} onClose={handleCloseForm} />
         ) : (
           <DataGrid
             getRowHeight={() => 'auto'}
-            sx={{ 
-              ...gridStyle, 
-              height: '80vh',
-              '& .MuiDataGrid-cell': {
-                padding: '8px'
-              }
+            sx={{
+              ...gridStyle,
+              height: '80vh'
             }}
             stickyHeader={true}
             rows={gridUsers}

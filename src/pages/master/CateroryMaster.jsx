@@ -102,10 +102,10 @@ export default function CateroryMaster() {
       width: 160,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <IconButton color="primary" onClick={() => handleEdit(params.row)}>
+          <IconButton color="primary" size="small" onClick={() => handleEdit(params.row)}>
             <EditIcon />
           </IconButton>
-          <IconButton color="secondary" onClick={() => handleDeleteClick(params.row)}>
+          <IconButton color="error" size="small" onClick={() => handleDeleteClick(params.row)}>
             <DeleteIcon />
           </IconButton>
         </Box>
