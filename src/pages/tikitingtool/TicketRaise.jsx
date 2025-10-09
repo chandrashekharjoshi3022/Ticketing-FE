@@ -164,40 +164,38 @@ export default function TicketRaise() {
   //   fetchPriorities();
   // }, []);
 
-
-
   // Update the priorities useEffect with better error handling
-useEffect(() => {
-  const fetchPriorities = async () => {
-    try {
-      setIsLoading(true);
-      const response = await axios.get('http://localhost:5000/api/admin/priorities');
-      
-      // Ensure we always have an array, even if the response structure changes
-      let prioritiesData = response.data;
-      
-      // Handle different possible response structures
-      if (Array.isArray(prioritiesData)) {
-        setPriorities(prioritiesData);
-      } else if (prioritiesData && Array.isArray(prioritiesData.priorities)) {
-        setPriorities(prioritiesData.priorities);
-      } else if (prioritiesData && Array.isArray(prioritiesData.data)) {
-        setPriorities(prioritiesData.data);
-      } else {
-        console.warn('Unexpected priorities response structure:', prioritiesData);
-        setPriorities([]); // Fallback to empty array
+  useEffect(() => {
+    const fetchPriorities = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get('http://localhost:5000/api/admin/priorities');
+
+        // Ensure we always have an array, even if the response structure changes
+        let prioritiesData = response.data;
+
+        // Handle different possible response structures
+        if (Array.isArray(prioritiesData)) {
+          setPriorities(prioritiesData);
+        } else if (prioritiesData && Array.isArray(prioritiesData.priorities)) {
+          setPriorities(prioritiesData.priorities);
+        } else if (prioritiesData && Array.isArray(prioritiesData.data)) {
+          setPriorities(prioritiesData.data);
+        } else {
+          console.warn('Unexpected priorities response structure:', prioritiesData);
+          setPriorities([]); // Fallback to empty array
+        }
+      } catch (error) {
+        console.error('Error fetching priorities:', error);
+        setPriorities([]); // Fallback to empty array on error
+        toast.error('Failed to load priorities');
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching priorities:', error);
-      setPriorities([]); // Fallback to empty array on error
-      toast.error('Failed to load priorities');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  fetchPriorities();
-}, []);
+    };
+
+    fetchPriorities();
+  }, []);
 
   // Reset priority when ticket details change
   useEffect(() => {
@@ -211,10 +209,10 @@ useEffect(() => {
 
   //   try {
   //     setIsLoading(true);
-      
+
   //     // Find the priority object to get both name and ID
   //     const selectedPriority = priorities.find(p => p.name === priority);
-      
+
   //     await axios.put(`http://localhost:5000/api/ticket/${ticketDetails.ticket_id}/priority`, {
   //       priority: priority,
   //       priority_id: selectedPriority?.priority_id || selectedPriority?.id
@@ -233,34 +231,34 @@ useEffect(() => {
   //   }
   // }
 
-const handlePriorityUpdate = async () => {
-  if (!ticketDetails?.ticket_id || !priority) return;
+  const handlePriorityUpdate = async () => {
+    if (!ticketDetails?.ticket_id || !priority) return;
 
-  try {
-    setIsLoading(true);
-    
-    // Find the priority object to get both name and ID
-    const selectedPriority = priorities.find(p => p.name === priority);
-    
-    // Use the TicketService instead of direct axios call
-    await TicketService.updateTicketPriority({
-      ticketId: ticketDetails.ticket_id,
-      priority: priority,
-      priority_id: selectedPriority?.priority_id || selectedPriority?.id
-    });
+    try {
+      setIsLoading(true);
 
-    // Refresh ticket details
-    await dispatch(fetchTicketDetails(ticketDetails.ticket_id)).unwrap();
-    setSuccessMessage('Priority updated successfully!');
-    toast.success('Priority updated successfully!', { autoClose: 2000 });
-    setPriority('');
-  } catch (err) {
-    console.error('Failed to update priority:', err);
-    window.alert(err?.response?.data?.message || 'Failed to update priority');
-  } finally {
-    setIsLoading(false);
-  }
-}
+      // Find the priority object to get both name and ID
+      const selectedPriority = priorities.find((p) => p.name === priority);
+
+      // Use the TicketService instead of direct axios call
+      await TicketService.updateTicketPriority({
+        ticketId: ticketDetails.ticket_id,
+        priority: priority,
+        priority_id: selectedPriority?.priority_id || selectedPriority?.id
+      });
+
+      // Refresh ticket details
+      await dispatch(fetchTicketDetails(ticketDetails.ticket_id)).unwrap();
+      setSuccessMessage('Priority updated successfully!');
+      toast.success('Priority updated successfully!', { autoClose: 2000 });
+      setPriority('');
+    } catch (err) {
+      console.error('Failed to update priority:', err);
+      window.alert(err?.response?.data?.message || 'Failed to update priority');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Show loading if auth is not initialized yet
   if (!isAuthInitialized) {
@@ -579,17 +577,17 @@ const handlePriorityUpdate = async () => {
     },
     ...(isAdmin
       ? [
-        {
-          field: 'created_by',
-          headerName: 'Created By',
-          width: 120,
-          renderCell: (params) => (
-            <Typography variant="body2" fontStyle="italic">
-              {params.value || 'Unknown'}
-            </Typography>
-          )
-        }
-      ]
+          {
+            field: 'created_by',
+            headerName: 'Created By',
+            width: 120,
+            renderCell: (params) => (
+              <Typography variant="body2" fontStyle="italic">
+                {params.value || 'Unknown'}
+              </Typography>
+            )
+          }
+        ]
       : []),
     {
       field: 'status',
@@ -716,7 +714,7 @@ const handlePriorityUpdate = async () => {
               <Box display="flex" alignItems="center" gap={1}>
                 <Typography variant="h4" fontWeight={600}>
                   <PendingActionsIcon sx={{ mr: 1, verticalAlign: 'bottom' }} />
-                  {showTicketForm ? ' Raise Ticket ' : ' Raise Ticket View'}
+                  {showTicketForm ? ' Raise Ticket ' : 'Ticket View'}
                 </Typography>
                 <Box display="flex" alignItems="center" gap={1} sx={{ ml: 2 }}>
                   <Typography variant="body2" color="textSecondary">
@@ -860,7 +858,7 @@ const handlePriorityUpdate = async () => {
                       priority,
                       currentPriority: ticketDetails?.priority
                     })}
-                    
+
                     <Grid container spacing={2}>
                       <Grid item xs={12} md={2}>
                         <CustomParagraphDark>Category:</CustomParagraphDark>
@@ -887,11 +885,7 @@ const handlePriorityUpdate = async () => {
                           <CustomParagraphDark>Priority</CustomParagraphDark>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <FormControl size="small" sx={{ minWidth: 120 }}>
-                              <Select
-                                value={priority || ticketDetails.priority}
-                                onChange={(e) => setPriority(e.target.value)}
-                                displayEmpty
-                              >
+                              <Select value={priority || ticketDetails.priority} onChange={(e) => setPriority(e.target.value)} displayEmpty>
                                 <MenuItem value="">
                                   <em>Select Priority</em>
                                 </MenuItem>
@@ -903,12 +897,7 @@ const handlePriorityUpdate = async () => {
                               </Select>
                             </FormControl>
                             {priority && priority !== ticketDetails.priority && (
-                              <Button 
-                                variant="contained" 
-                                size="small" 
-                                onClick={handlePriorityUpdate}
-                                disabled={isLoading}
-                              >
+                              <Button variant="contained" size="small" onClick={handlePriorityUpdate} disabled={isLoading}>
                                 Update
                               </Button>
                             )}
@@ -937,7 +926,7 @@ const handlePriorityUpdate = async () => {
                           <CustomParagraphLight>{ticketDetails.created_by || 'Unknown'}</CustomParagraphLight>
                         </Grid>
                       )}
-                      
+
                       <Grid item xs={12} display={'flex'} alignItems={'center'}>
                         <CustomParagraphDark> Comment: </CustomParagraphDark>
                         <Box sx={{ marginLeft: '10px' }} dangerouslySetInnerHTML={{ __html: ticketDetails.comment }} />
@@ -988,7 +977,22 @@ const handlePriorityUpdate = async () => {
                       <>
                         <Box display="flex" alignItems="center" justifyContent="space-between">
                           <CustomHeading>Add Your Comment</CustomHeading>
+                        </Box>
 
+                        {/* File preview for attached files */}
+
+                        <Box sx={{ backgroundColor: '#f8f9fa', borderRadius: 1, mt: 2 }}>
+                          <ReactQuill
+                            value={replyMessage}
+                            onChange={setReplyMessage}
+                            modules={{
+                              toolbar: [['bold', 'italic', 'underline'], [{ list: 'ordered' }, { list: 'bullet' }], ['link'], ['clean']]
+                            }}
+                            style={{ height: 150, marginBottom: 16, marginTop: 8 }}
+                            placeholder="Type your reply here..."
+                          />
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, mb: 1, gap: 2 }}>
                           <Box display="flex" alignItems="center" gap={2}>
                             <input
                               accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
@@ -1005,12 +1009,25 @@ const handlePriorityUpdate = async () => {
                             </label>
 
                             <FormControl size="small" sx={{ minWidth: 150 }}>
-                              <InputLabel>Status</InputLabel>
-                              <Select value={status} onChange={(e) => setStatus(e.target.value)} label="Status">
+                              <CustomParagraphLight>Select Status</CustomParagraphLight>
+                              <Select
+                                value={status}
+                                onChange={(e) => setStatus(e.target.value)}
+                                placeholder="Select Status"
+                                sx={{
+                                  '& .MuiSelect-select': {
+                                    padding: '6px',
+                                    fontSize: '11px' // Set font size for the selected value
+                                  },
+                                  '& .MuiMenuItem-root': {
+                                    fontSize: '11px' // Set font size for dropdown options
+                                  }
+                                }}
+                              >
                                 <MenuItem value="">
                                   <em>Select Status</em>
                                 </MenuItem>
-                                {(!isAdmin && !isExecutive) && <MenuItem value="Closed">Closed</MenuItem>}
+                                {!isAdmin && !isExecutive && <MenuItem value="Closed">Closed</MenuItem>}
                                 {(isAdmin || isExecutive) && [
                                   <MenuItem key="Open" value="Open">
                                     Open
@@ -1030,8 +1047,19 @@ const handlePriorityUpdate = async () => {
 
                             {isAdmin && (
                               <FormControl size="small" sx={{ minWidth: 150 }}>
-                                <InputLabel>Assign to</InputLabel>
-                                <Select value={assign} onChange={(e) => setAssign(e.target.value)} label="Assign to">
+                                <Select
+                                  value={assign}
+                                  onChange={(e) => setAssign(e.target.value)}
+                                  sx={{
+                                    '& .MuiSelect-select': {
+                                      padding: '6px',
+                                      fontSize: '11px' // Set font size for the selected value
+                                    },
+                                    '& .MuiMenuItem-root': {
+                                      fontSize: '11px' // Set font size for dropdown options
+                                    }
+                                  }}
+                                >
                                   <MenuItem value="">
                                     <em>Select Assignee</em>
                                   </MenuItem>
@@ -1045,8 +1073,6 @@ const handlePriorityUpdate = async () => {
                             )}
                           </Box>
                         </Box>
-
-                        {/* File preview for attached files */}
                         {attachedFiles.length > 0 && (
                           <Box sx={{ mt: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1, backgroundColor: '#fafafa' }}>
                             <Typography variant="subtitle2" gutterBottom>
@@ -1142,18 +1168,8 @@ const handlePriorityUpdate = async () => {
                             </Grid>
                           </Box>
                         )}
-                        <Box sx={{ backgroundColor: '#f8f9fa', borderRadius: 1, mt: 2 }}>
-                          <ReactQuill
-                            value={replyMessage}
-                            onChange={setReplyMessage}
-                            modules={{
-                              toolbar: [['bold', 'italic', 'underline'], [{ list: 'ordered' }, { list: 'bullet' }], ['link'], ['clean']]
-                            }}
-                            style={{ height: 150, marginBottom: 16, marginTop: 8 }}
-                            placeholder="Type your reply here..."
-                          />
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8, mb: 1, gap: 2 }}>
+
+                        <Box display="flex" alignItems="center" justifyContent={'end'} gap={2} mt={3}>
                           <Button
                             variant="outlined"
                             onClick={() => {

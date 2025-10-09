@@ -4,6 +4,7 @@ import ticketReducer from "../features/tickets/ticketSlice";
 import categoryReducer from 'features/categories/categorySlice';
 import subcategoriesReducer from 'features/subcategories/subcategorySlice';
 import prioritiesReducer from 'features/priorities/prioritySlice';
+import usersReducer from 'features/users/usersSlice'; // Add this line
 
 export const store = configureStore({
   reducer: {
@@ -11,7 +12,8 @@ export const store = configureStore({
     tickets: ticketReducer,
     categories: categoryReducer,
     subcategories: subcategoriesReducer,
-    priorities: prioritiesReducer
+    priorities: prioritiesReducer,
+    users: usersReducer // Add this line
 
   },
 });

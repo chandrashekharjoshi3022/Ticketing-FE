@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import Grid from '@mui/material/Grid';
 import {
   Table,
@@ -28,38 +29,59 @@ import CancelButton from 'components/CustomCancelButton';
 import FieldPadding from 'components/FieldPadding';
 import SelectFieldPadding from 'components/selectFieldPadding';
 
-const initialFormValues = {
-  userName: '',
-  password: '',
-  resigDate: new Date().toISOString().split('T')[0],
-  role: '',
-  firstName: '',
-  lastName: '',
-  phoneNo: '',
-  email: '',
-  dobBirth: '',
-  designation: '',
-  is_active: 1,
-  department: '',
-  address1: '',
-  address2: '',
-  country: '',
-  state: '',
-  city: '',
-  pincode: '',
-  address11: '',
-  address22: '',
-  country1: '',
-  state1: '',
-  city1: '',
-  pinCode1: ''
-};
+// Redux imports - only import what actually exists
+import { 
+  createUser, 
+  updateUser,
+  clearUserError 
+} from 'features/users/usersSlice';
 
+// Initial form values
+const getInitialFormValues = (user = null) => ({
+  // User Login Details
+  userName: user?.username || '',
+  password: '', // Always empty for security
+  resigDate: user?.registration_date ? new Date(user.registration_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+  role: user?.role_name || '',
+  
+  // Personal Details
+  firstName: user?.first_name || '',
+  lastName: user?.last_name || '',
+  phoneNo: user?.phone_no || '',
+  email: user?.email || '',
+  dobBirth: user?.dob ? new Date(user.dob).toISOString().split('T')[0] : '',
+  designation: user?.designation || '',
+  is_active: user?.is_active !== undefined ? (user.is_active ? 1 : 0) : 1,
+  department: user?.department || '',
+  
+  // Current Address
+  address1: user?.address1 || '',
+  address2: user?.address2 || '',
+  country: user?.country || '',
+  state: user?.state || '',
+  city: user?.city || '',
+  pincode: user?.pincode || '',
+  
+  // Permanent Address
+  address11: user?.permanent_address1 || '',
+  address22: user?.permanent_address2 || '',
+  country1: user?.permanent_country || '',
+  state1: user?.permanent_state || '',
+  city1: user?.permanent_city || '',
+  pinCode1: user?.permanent_pincode || ''
+});
+
+// Validation Schema
 const validationSchema = Yup.object().shape({
   userName: Yup.string()
     .matches(/^[a-zA-Z\s]*$/, 'User Name should be alphabetical')
     .required('User Name is required'),
-  password: Yup.string().required('Password is required'),
+  password: Yup.string()
+    .when('formMode', {
+      is: 'create',
+      then: (schema) => schema.required('Password is required'),
+      otherwise: (schema) => schema.notRequired()
+    }),
   resigDate: Yup.date().required('Registration Date is required'),
   firstName: Yup.string()
     .matches(/^[a-zA-Z\s]*$/, 'First Name should be alphabetical')
@@ -82,23 +104,26 @@ const validationSchema = Yup.object().shape({
     .required('Pincode is required')
 });
 
-// Hardcoded data
+// Hardcoded data - use this directly since APIs don't exist
 const hardcodedRoles = [
-  { role_id: 1, role_name: 'Admin' },
-  { role_id: 2, role_name: 'Manager' },
-  { role_id: 3, role_name: 'User' }
+  { role_id: 1, role_name: 'admin' },
+  { role_id: 2, role_name: 'manager' },
+  { role_id: 3, role_name: 'user' },
+  { role_id: 4, role_name: 'executive' }
 ];
 
 const hardcodedDepartments = [
   { dept_id: 1, dept_name: 'IT' },
   { dept_id: 2, dept_name: 'HR' },
-  { dept_id: 3, dept_name: 'Finance' }
+  { dept_id: 3, dept_name: 'Finance' },
+  { dept_id: 4, dept_name: 'Operations' }
 ];
 
 const hardcodedDesignations = [
   { designation_id: 1, designation_name: 'Software Engineer' },
   { designation_id: 2, designation_name: 'Senior Software Engineer' },
-  { designation_id: 3, designation_name: 'Team Lead' }
+  { designation_id: 3, designation_name: 'Team Lead' },
+  { designation_id: 4, designation_name: 'Project Manager' }
 ];
 
 const hardcodedCountries = [
@@ -119,7 +144,12 @@ const hardcodedCities = [
   { id: 3, name: 'London' }
 ];
 
-export default function UserForm({ onClose, formMode }) {
+export default function UserForm({ user, formMode, onClose }) {
+  const dispatch = useDispatch();
+  
+  // Only get the state properties that actually exist
+  const { operationLoading, operationError } = useSelector((state) => state.users);
+  
   const [showTableHeading, setShowTableHeading] = useState({
     userLoginDetails: true,
     userPersonalDetail: true,
@@ -127,28 +157,111 @@ export default function UserForm({ onClose, formMode }) {
     permanentAddressDetails: true
   });
 
-  const [countriesList, setCountriesList] = useState(hardcodedCountries);
-  const [stateList, setStateList] = useState(hardcodedStates);
-  const [cityList, setCityList] = useState(hardcodedCities);
+  const [countriesList] = useState(hardcodedCountries);
+  const [stateList] = useState(hardcodedStates);
+  const [cityList] = useState(hardcodedCities);
   const [same, setSame] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
-  // Handle form submission
-  const handleSubmit = (values, { setSubmitting }) => {
-    console.log('=== FORM SUBMISSION DATA ===');
-    console.log('Form Values:', values);
-    console.log('Form Mode:', formMode);
-    console.log('Same Address:', same);
-    console.log('=== END FORM DATA ===');
+  // Use hardcoded data directly - no API calls needed
+  const rolesList = hardcodedRoles;
+  const departmentsList = hardcodedDepartments;
+  const designationsList = hardcodedDesignations;
 
-    // Show success message
-    setSnackbarMessage(formMode === 'create' ? 'User created successfully!' : 'User updated successfully!');
-    setSnackbarSeverity('success');
-    setSnackbarOpen(true);
+  // Handle operation status changes
+  useEffect(() => {
+    if (operationError) {
+      setSnackbarMessage(operationError.message || 'Operation failed');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      dispatch(clearUserError());
+    }
+  }, [operationError, dispatch]);
 
-    setSubmitting(false);
+  // Handle form submission with Redux
+  const handleSubmit = async (values, { setSubmitting, setErrors }) => {
+    try {
+      console.log('=== FORM SUBMISSION DATA ===');
+      console.log('Form Values:', values);
+      console.log('Form Mode:', formMode);
+      console.log('Same Address:', same);
+      console.log('=== END FORM DATA ===');
+
+      // Map form values to backend structure
+      const userData = {
+        first_name: values.firstName,
+        last_name: values.lastName,
+        email: values.email,
+        phone_no: values.phoneNo,
+        dob: values.dobBirth,
+        designation: values.designation,
+        department: values.department,
+        role_name: values.role,
+        address1: values.address1,
+        address2: values.address2,
+        country: values.country,
+        state: values.state,
+        city: values.city,
+        pincode: values.pincode,
+        permanent_address1: values.address11,
+        permanent_address2: values.address22,
+        permanent_country: values.country1,
+        permanent_state: values.state1,
+        permanent_city: values.city1,
+        permanent_pincode: values.pinCode1,
+        is_active: values.is_active === 1
+      };
+
+      if (formMode === 'create') {
+        // For new users, include username and password
+        userData.username = values.userName;
+        userData.password = values.password;
+        
+        await dispatch(createUser(userData)).unwrap();
+        
+        setSnackbarMessage('User created successfully! Login credentials sent to email.');
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+        
+        // Close form after successful submission
+        setTimeout(() => {
+          onClose();
+        }, 2000);
+      } else {
+        // For updates, include reset_password flag if password is provided
+        if (values.password) {
+          userData.reset_password = true;
+          userData.password = values.password;
+        }
+        
+        await dispatch(updateUser({ 
+          id: user.user_id || user.id, 
+          payload: userData 
+        })).unwrap();
+        
+        setSnackbarMessage(values.password 
+          ? 'User updated successfully! New credentials sent to email.'
+          : 'User updated successfully!'
+        );
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+        
+        // Close form after successful submission
+        setTimeout(() => {
+          onClose();
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Form submission error:', error);
+      setSnackbarMessage(error.message || 'Failed to save user');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      setErrors({ submit: error.message });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleSnackbarClose = () => {
@@ -163,7 +276,6 @@ export default function UserForm({ onClose, formMode }) {
   };
 
   const handleCountryChange = (event, value, setFieldValue, fieldName) => {
-    console.log('Country selected:', value);
     if (value) {
       setFieldValue(fieldName, value.name);
     } else {
@@ -172,7 +284,6 @@ export default function UserForm({ onClose, formMode }) {
   };
 
   const handleStateChange = (event, value, setFieldValue, fieldName) => {
-    console.log('State selected:', value);
     if (value) {
       setFieldValue(fieldName, value.name);
     } else {
@@ -181,7 +292,6 @@ export default function UserForm({ onClose, formMode }) {
   };
 
   const handleCityChange = (event, value, setFieldValue, fieldName) => {
-    console.log('City selected:', value);
     if (value) {
       setFieldValue(fieldName, value.name);
     } else {
@@ -207,7 +317,13 @@ export default function UserForm({ onClose, formMode }) {
   );
 
   const CustomNumberField = ({ field, form, ...props }) => (
-    <TextField {...field} {...props} type="number" size="small" sx={{ '& .MuiInputBase-input': { padding: '8px 12px' } }} />
+    <TextField 
+      {...field} 
+      {...props} 
+      type="number" 
+      size="small" 
+      sx={{ '& .MuiInputBase-input': { padding: '8px 12px' } }} 
+    />
   );
 
   const ValidationStar = () => <span style={{ color: 'red' }}>*</span>;
@@ -222,9 +338,17 @@ export default function UserForm({ onClose, formMode }) {
         </Alert>
       </Snackbar>
 
-      <Formik initialValues={initialFormValues} validationSchema={validationSchema} onSubmit={handleSubmit}>
-        {({ values, setFieldValue, isSubmitting }) => (
+      <Formik
+        initialValues={getInitialFormValues(user)}
+        validationSchema={validationSchema}
+        onSubmit={handleSubmit}
+        enableReinitialize
+      >
+        {({ values, setFieldValue, isSubmitting, errors, touched }) => (
           <Form>
+            {/* Add formMode to context for conditional validation */}
+            <input type="hidden" name="formMode" value={formMode} />
+            
             <Table>
               {renderTableHeader('userLoginDetails', 'User Login Detail')}
               {showTableHeading.userLoginDetails && (
@@ -235,16 +359,29 @@ export default function UserForm({ onClose, formMode }) {
                         User Name
                         <ValidationStar />
                       </Typography>
-                      <Field as={FieldPadding} name="userName" variant="outlined" fullWidth />
+                      <Field 
+                        as={FieldPadding} 
+                        name="userName" 
+                        variant="outlined" 
+                        fullWidth 
+                        disabled={formMode === 'edit'}
+                      />
                       <ErrorMessage name="userName" component="div" style={errorMessageStyle} />
                     </Grid>
 
                     <Grid item xs={12} sm={2}>
                       <Typography variant="body2">
                         Password
-                        <ValidationStar />
+                        {formMode === 'create' && <ValidationStar />}
                       </Typography>
-                      <Field as={FieldPadding} name="password" type="password" variant="outlined" fullWidth />
+                      <Field 
+                        as={FieldPadding} 
+                        name="password" 
+                        type="password" 
+                        variant="outlined" 
+                        fullWidth 
+                        placeholder={formMode === 'edit' ? 'Leave blank to keep current password' : ''}
+                      />
                       <ErrorMessage name="password" component="div" style={errorMessageStyle} />
                     </Grid>
 
@@ -264,10 +401,10 @@ export default function UserForm({ onClose, formMode }) {
                       </Typography>
                       <Field as={SelectFieldPadding} name="role" variant="outlined" value={values.role} fullWidth>
                         <MenuItem value="">
-                          <em>None</em>
+                          <em>Select Role</em>
                         </MenuItem>
-                        {hardcodedRoles.map((role) => (
-                          <MenuItem key={role.role_id} value={role.role_id}>
+                        {rolesList.map((role) => (
+                          <MenuItem key={role.role_id} value={role.role_name}>
                             {role.role_name}
                           </MenuItem>
                         ))}
@@ -336,10 +473,10 @@ export default function UserForm({ onClose, formMode }) {
                       </Typography>
                       <Field as={SelectFieldPadding} name="department" variant="outlined" value={values.department} fullWidth>
                         <MenuItem value="">
-                          <em>None</em>
+                          <em>Select Department</em>
                         </MenuItem>
-                        {hardcodedDepartments.map((department) => (
-                          <MenuItem key={department.dept_id} value={department.dept_id}>
+                        {departmentsList.map((department) => (
+                          <MenuItem key={department.dept_id} value={department.dept_name}>
                             {department.dept_name}
                           </MenuItem>
                         ))}
@@ -354,10 +491,10 @@ export default function UserForm({ onClose, formMode }) {
                       </Typography>
                       <Field as={SelectFieldPadding} name="designation" variant="outlined" value={values.designation} fullWidth>
                         <MenuItem value="">
-                          <em>None</em>
+                          <em>Select Designation</em>
                         </MenuItem>
-                        {hardcodedDesignations.map((designation) => (
-                          <MenuItem key={designation.designation_id} value={designation.designation_id}>
+                        {designationsList.map((designation) => (
+                          <MenuItem key={designation.designation_id} value={designation.designation_name}>
                             {designation.designation_name}
                           </MenuItem>
                         ))}
@@ -523,10 +660,14 @@ export default function UserForm({ onClose, formMode }) {
             </Table>
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
-              <SubmitButton variant="contained" type="submit" disabled={isSubmitting}>
-                {formMode === 'create' ? 'Submit' : 'Update'}
+              <SubmitButton 
+                variant="contained" 
+                type="submit" 
+                disabled={isSubmitting || operationLoading}
+              >
+                {operationLoading ? 'Processing...' : (formMode === 'create' ? 'Submit' : 'Update')}
               </SubmitButton>
-              <CancelButton type="button" onClick={onClose}>
+              <CancelButton type="button" onClick={onClose} disabled={operationLoading}>
                 Cancel
               </CancelButton>
             </Box>
