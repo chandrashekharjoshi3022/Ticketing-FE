@@ -157,9 +157,9 @@ export default function TicketRaise() {
       try {
         setIsLoading(true);
         const response = await axios.get('http://localhost:5000/api/admin/priorities');
-        
+
         let prioritiesData = response.data;
-        
+
         if (Array.isArray(prioritiesData)) {
           setPriorities(prioritiesData);
         } else if (prioritiesData && Array.isArray(prioritiesData.priorities)) {
@@ -178,50 +178,6 @@ export default function TicketRaise() {
         setIsLoading(false);
       }
     };
-    
-    fetchPriorities();
-  }, []);
-  // useEffect(() => {
-  //   const fetchPriorities = async () => {
-  //     try {
-  //       const response = await axios.get('http://localhost:5000/api/admin/priorities');
-  //       setPriorities(response.data);
-  //     } catch (error) {
-  //       console.error('Error fetching priorities:', error);
-  //     }
-  //   };
-  //   fetchPriorities();
-  // }, []);
-
-  // Update the priorities useEffect with better error handling
-  useEffect(() => {
-    const fetchPriorities = async () => {
-      try {
-        setIsLoading(true);
-        const response = await axios.get('http://localhost:5000/api/admin/priorities');
-
-        // Ensure we always have an array, even if the response structure changes
-        let prioritiesData = response.data;
-
-        // Handle different possible response structures
-        if (Array.isArray(prioritiesData)) {
-          setPriorities(prioritiesData);
-        } else if (prioritiesData && Array.isArray(prioritiesData.priorities)) {
-          setPriorities(prioritiesData.priorities);
-        } else if (prioritiesData && Array.isArray(prioritiesData.data)) {
-          setPriorities(prioritiesData.data);
-        } else {
-          console.warn('Unexpected priorities response structure:', prioritiesData);
-          setPriorities([]); // Fallback to empty array
-        }
-      } catch (error) {
-        console.error('Error fetching priorities:', error);
-        setPriorities([]); // Fallback to empty array on error
-        toast.error('Failed to load priorities');
-      } finally {
-        setIsLoading(false);
-      }
-    };
 
     fetchPriorities();
   }, []);
@@ -232,62 +188,6 @@ export default function TicketRaise() {
       setPriority(ticketDetails.priority || '');
     }
   }, [ticketDetails]);
-
-  // const handlePriorityUpdate = async () => {
-  //   if (!ticketDetails?.ticket_id || !priority) return;
-
-  //   try {
-  //     setIsLoading(true);
-
-  //     // Find the priority object to get both name and ID
-  //     const selectedPriority = priorities.find(p => p.name === priority);
-
-  //     await axios.put(`http://localhost:5000/api/ticket/${ticketDetails.ticket_id}/priority`, {
-  //       priority: priority,
-  //       priority_id: selectedPriority?.priority_id || selectedPriority?.id
-  //     });
-
-  //     // Refresh ticket details
-  //     await dispatch(fetchTicketDetails(ticketDetails.ticket_id)).unwrap();
-  //     setSuccessMessage('Priority updated successfully!');
-  //     toast.success('Priority updated successfully!', { autoClose: 2000 });
-  //     setPriority('');
-  //   } catch (err) {
-  //     console.error('Failed to update priority:', err);
-  //     window.alert(err?.response?.data?.message || 'Failed to update priority');
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // }
-
-  const handlePriorityUpdate = async () => {
-    if (!ticketDetails?.ticket_id || !priority) return;
-
-    try {
-      setIsLoading(true);
-
-      // Find the priority object to get both name and ID
-      const selectedPriority = priorities.find((p) => p.name === priority);
-
-      // Use the TicketService instead of direct axios call
-      await TicketService.updateTicketPriority({
-        ticketId: ticketDetails.ticket_id,
-        priority: priority,
-        priority_id: selectedPriority?.priority_id || selectedPriority?.id
-      });
-
-      // Refresh ticket details
-      await dispatch(fetchTicketDetails(ticketDetails.ticket_id)).unwrap();
-      setSuccessMessage('Priority updated successfully!');
-      toast.success('Priority updated successfully!', { autoClose: 2000 });
-      setPriority('');
-    } catch (err) {
-      console.error('Failed to update priority:', err);
-      window.alert(err?.response?.data?.message || 'Failed to update priority');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // Show loading if auth is not initialized yet
   if (!isAuthInitialized) {
@@ -706,7 +606,7 @@ export default function TicketRaise() {
           }
         }}
       >
-        <TableCell sx={{ padding: 0 }} colSpan={12} padding="0">
+        <TableCell sx={{ padding: 0, paddingLeft: '16px' }} colSpan={12}>
           <Box display="flex" justifyContent="space-between" alignItems="center">
             <Box display="flex" alignItems="center" gap={1}>
               <Typography fontSize={'16px'} fontWeight={600} color="primary">
@@ -753,7 +653,7 @@ export default function TicketRaise() {
               <Box display="flex" alignItems="center" gap={1}>
                 <Typography variant="h4" fontWeight={600}>
                   <PendingActionsIcon sx={{ mr: 1, verticalAlign: 'bottom' }} />
-                  {showTicketForm ? ' Raise Ticket ' : 'Ticket View'}
+                  {showTicketForm ? ' Raise Ticket ' : '  Ticket View'}
                 </Typography>
                 <Box display="flex" alignItems="center" gap={1} sx={{ ml: 2 }}>
                   <Typography variant="body2" color="textSecondary">
@@ -885,15 +785,6 @@ export default function TicketRaise() {
                   </Box>
                 ) : ticketDetails ? (
                   <>
-                    {/* Debugging log */}
-                    {console.log('Ticket Details for Priority Update:', {
-                      isAdmin,
-                      isOtherIssue: ticketDetails?.is_other_issue,
-                      ticketDetails,
-                      priority,
-                      currentPriority: ticketDetails?.priority
-                    })}
-
                     <Grid container spacing={2}>
                       <Grid item xs={12} md={2}>
                         <CustomParagraphDark>Category:</CustomParagraphDark>
@@ -926,46 +817,6 @@ export default function TicketRaise() {
                           )}
                         </CustomParagraphLight>
                       </Grid>
-                      {/* ONLY PRIORITY SECTION - Inside the main Grid container */}
-                      {isAdmin && ticketDetails?.is_other_issue ? (
-                        <Grid item xs={12} md={2}>
-                          <CustomParagraphDark>Priority</CustomParagraphDark>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <FormControl size="small" sx={{ minWidth: 120 }}>
-                              <Select value={priority || ticketDetails.priority} onChange={(e) => setPriority(e.target.value)} displayEmpty>
-                                <MenuItem value="">
-                                  <em>Select Priority</em>
-                                </MenuItem>
-                                {priorities.map((p) => (
-                                  <MenuItem key={p.priority_id ?? p.id} value={p.name}>
-                                    {p.name}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
-                            {priority && priority !== ticketDetails.priority && (
-                              <Button variant="contained" size="small" onClick={handlePriorityUpdate} disabled={isLoading}>
-                                Update
-                              </Button>
-                            )}
-                          </Box>
-                          <Typography variant="caption" color="textSecondary">
-                            This is an "Other" issue type - priority can be changed
-                          </Typography>
-                        </Grid>
-                      ) : (
-                        <Grid item xs={12} md={2}>
-                          <CustomParagraphDark>Priority</CustomParagraphDark>
-                          <CustomParagraphLight>
-                            {ticketDetails?.priority}
-                            {isAdmin && (
-                              <Typography variant="caption" display="block" color="textSecondary">
-                                {ticketDetails?.is_other_issue ? 'Set by user' : 'Set by issue type'}
-                              </Typography>
-                            )}
-                          </CustomParagraphLight>
-                        </Grid>
-                      )}
 
                       {isAdmin && (
                         <Grid item xs={12} md={2}>
@@ -1026,8 +877,6 @@ export default function TicketRaise() {
                           <CustomHeading>Add Your Comment</CustomHeading>
                         </Box>
 
-                        {/* File preview for attached files */}
-
                         <Box sx={{ backgroundColor: '#f8f9fa', borderRadius: 1, mt: 2 }}>
                           <ReactQuill
                             value={replyMessage}
@@ -1041,20 +890,6 @@ export default function TicketRaise() {
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, mb: 1, gap: 2 }}>
                           <Box display="flex" alignItems="center" gap={2}>
-                            <input
-                              accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-                              style={{ display: 'none' }}
-                              id="upload-screenshot"
-                              type="file"
-                              multiple
-                              onChange={handleFileUpload}
-                            />
-                            <label htmlFor="upload-screenshot">
-                              <Button variant="outlined" size="small" component="span" startIcon={<UploadFileIcon />}>
-                                Upload Files ({attachedFiles.length})
-                              </Button>
-                            </label>
-
                             {/* Status Dropdown */}
                             <Box sx={{ minWidth: 120 }}>
                               {/* <CustomParagraphLight>Upload Files</CustomParagraphLight> */}
@@ -1095,14 +930,48 @@ export default function TicketRaise() {
                                 {!isAdmin && !isExecutive && <MenuItem value="Closed">Closed</MenuItem>}
 
                                 {(isAdmin || isExecutive) && [
-                                  <MenuItem key="Open" value="Open">Open</MenuItem>,
-                                  <MenuItem key="Pending" value="Pending">Pending</MenuItem>,
-                                  <MenuItem key="Resolved" value="Resolved">Resolved</MenuItem>,
-                                  <MenuItem key="Closed" value="Closed">Closed</MenuItem>
+                                  <MenuItem key="Open" value="Open">
+                                    Open
+                                  </MenuItem>,
+                                  <MenuItem key="Pending" value="Pending">
+                                    Pending
+                                  </MenuItem>,
+                                  <MenuItem key="Resolved" value="Resolved">
+                                    Resolved
+                                  </MenuItem>,
+                                  <MenuItem key="Closed" value="Closed">
+                                    Closed
+                                  </MenuItem>
                                 ]}
                               </Select>
                             </FormControl>
-
+                            {isAdmin && ticketDetails?.is_other_issue && (
+                              <FormControl size="small" sx={{ minWidth: 150 }}>
+                                <Select
+                                  value={priority}
+                                  onChange={(e) => setPriority(e.target.value)}
+                                  displayEmpty
+                                  sx={{
+                                    '& .MuiSelect-select': {
+                                      padding: '6px',
+                                      fontSize: '11px'
+                                    },
+                                    '& .MuiMenuItem-root': {
+                                      fontSize: '11px'
+                                    }
+                                  }}
+                                >
+                                  <MenuItem value="">
+                                    <em>Select Priority</em>
+                                  </MenuItem>
+                                  {priorities.map((p) => (
+                                    <MenuItem key={p.priority_id ?? p.id} value={p.name}>
+                                      {p.name}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            )}
                             {isAdmin && (
                               <FormControl size="small" sx={{ minWidth: 150 }}>
                                 {/* <CustomParagraphLight>Select Assignee</CustomParagraphLight> */}
@@ -1178,20 +1047,20 @@ export default function TicketRaise() {
                                                 const w = window.open();
                                                 if (w) {
                                                   w.document.write(`
-                            <!DOCTYPE html>
-                            <html>
-                              <head>
-                                <title>${file.name}</title>
-                                <style>
-                                  body { margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f5f5f5; }
-                                  img { max-width: 100%; max-height: 90vh; object-fit: contain; }
-                                </style>
-                              </head>
-                              <body>
-                                <img src="${fileUrl}" alt="${file.name}" />
-                              </body>
-                            </html>
-                          `);
+                                                    <!DOCTYPE html>
+                                                    <html>
+                                                      <head>
+                                                        <title>${file.name}</title>
+                                                        <style>
+                                                          body { margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f5f5f5; }
+                                                          img { max-width: 100%; max-height: 90vh; object-fit: contain; }
+                                                        </style>
+                                                      </head>
+                                                      <body>
+                                                        <img src="${fileUrl}" alt="${file.name}" />
+                                                      </body>
+                                                    </html>
+                                                  `);
                                                 }
                                               }}
                                             />
@@ -1225,8 +1094,7 @@ export default function TicketRaise() {
                             </Grid>
                           </Box>
                         )}
-
-                        <Box display="flex" alignItems="center" justifyContent={'end'} gap={2} mt={3}>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8, mb: 1, gap: 2 }}>
                           <Button
                             variant="outlined"
                             onClick={() => {
