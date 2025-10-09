@@ -70,17 +70,35 @@ const getInitialFormValues = (user = null) => ({
   pinCode1: user?.permanent_pincode || ''
 });
 
-// Validation Schema
-const validationSchema = Yup.object().shape({
+// Create separate validation schemas for create and edit modes
+const createValidationSchema = Yup.object().shape({
   userName: Yup.string()
     .matches(/^[a-zA-Z\s]*$/, 'User Name should be alphabetical')
     .required('User Name is required'),
-  // password: Yup.string()
-  //   .when('formMode', {
-  //     is: 'create',
-  //     then: (schema) => schema.required('Password is required'),
-  //     otherwise: (schema) => schema.notRequired()
-  //   }),
+  resigDate: Yup.date().required('Registration Date is required'),
+  firstName: Yup.string()
+    .matches(/^[a-zA-Z\s]*$/, 'First Name should be alphabetical')
+    .required('First name is required'),
+  lastName: Yup.string()
+    .matches(/^[a-zA-Z\s]*$/, 'Last Name should be alphabetical')
+    .required('Last Name is required'),
+  phoneNo: Yup.string()
+    .matches(/^\d{10}$/, 'Phone No must be 10 digits')
+    .required('Phone No is required'),
+  email: Yup.string().email('Invalid email format').required('Email is required'),
+  role: Yup.string().required('Please select role'),
+  dobBirth: Yup.date().required('DOB is required'),
+  designation: Yup.string().required('Designation is required'),
+  department: Yup.string().required('Department is required'),
+  pincode: Yup.string()
+    .matches(/^\d*$/, 'Pincode must be a number')
+    .min(6, 'Pincode must be exactly 6 digits')
+    .max(6, 'Pincode must be exactly 6 digits')
+    .required('Pincode is required')
+});
+
+const editValidationSchema = Yup.object().shape({
+  // Remove userName validation for edit mode since it's disabled
   resigDate: Yup.date().required('Registration Date is required'),
   firstName: Yup.string()
     .matches(/^[a-zA-Z\s]*$/, 'First Name should be alphabetical')
@@ -169,6 +187,9 @@ export default function UserForm({ user, formMode, onClose }) {
   const departmentsList = hardcodedDepartments;
   const designationsList = hardcodedDesignations;
 
+  // Use the appropriate validation schema based on form mode
+  const validationSchema = formMode === 'create' ? createValidationSchema : editValidationSchema;
+
   // Handle operation status changes
   useEffect(() => {
     if (operationError) {
@@ -211,6 +232,7 @@ export default function UserForm({ user, formMode, onClose }) {
       };
 
       if (formMode === 'create') {
+        // For new users, include username and password
         userData.username = values.userName;
         userData.password = values.password;
 
@@ -222,6 +244,10 @@ export default function UserForm({ user, formMode, onClose }) {
           onClose();
         }, 2000);
       } else {
+        // For updates, include username (it's read-only but we still need to send it for backend reference)
+        userData.username = values.userName;
+        
+        // Only include password if provided
         if (values.password) {
           userData.reset_password = true;
           userData.password = values.password;
@@ -317,12 +343,14 @@ export default function UserForm({ user, formMode, onClose }) {
         </Alert>
       </Snackbar>
 
-      <Formik initialValues={getInitialFormValues(user)} validationSchema={validationSchema} onSubmit={handleSubmit} enableReinitialize>
+      <Formik 
+        initialValues={getInitialFormValues(user)} 
+        validationSchema={validationSchema} 
+        onSubmit={handleSubmit} 
+        enableReinitialize
+      >
         {({ values, setFieldValue, isSubmitting, errors, touched }) => (
           <Form>
-            {/* Add formMode to context for conditional validation */}
-            <input type="hidden" name="formMode" value={formMode} />
-
             <Table>
               {renderTableHeader('userLoginDetails', 'User Login Detail')}
               {showTableHeading.userLoginDetails && (
@@ -331,13 +359,21 @@ export default function UserForm({ user, formMode, onClose }) {
                     <Grid item xs={12} sm={2}>
                       <Typography variant="body2">
                         User Name
-                        <ValidationStar />
+                        {formMode === 'create' && <ValidationStar />}
                       </Typography>
-                      <Field as={FieldPadding} name="userName" variant="outlined" fullWidth disabled={formMode === 'edit'} />
-                      <ErrorMessage name="userName" component="div" style={errorMessageStyle} />
+                      <Field 
+                        as={FieldPadding} 
+                        name="userName" 
+                        variant="outlined" 
+                        fullWidth 
+                        disabled={formMode === 'edit'}
+                      />
+                      {formMode === 'create' && (
+                        <ErrorMessage name="userName" component="div" style={errorMessageStyle} />
+                      )}
                     </Grid>
 
-                    {/* <Grid item xs={12} sm={2}>
+                    <Grid item xs={12} sm={2}>
                       <Typography variant="body2">
                         Password
                         {formMode === 'create' && <ValidationStar />}
@@ -350,8 +386,10 @@ export default function UserForm({ user, formMode, onClose }) {
                         fullWidth 
                         placeholder={formMode === 'edit' ? 'Leave blank to keep current password' : ''}
                       />
-                      <ErrorMessage name="password" component="div" style={errorMessageStyle} />
-                    </Grid> */}
+                      {formMode === 'create' && (
+                        <ErrorMessage name="password" component="div" style={errorMessageStyle} />
+                      )}
+                    </Grid>
 
                     <Grid item xs={12} sm={2}>
                       <Typography variant="body2">
