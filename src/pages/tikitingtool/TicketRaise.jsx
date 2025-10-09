@@ -58,6 +58,8 @@ import TicketService from '../../features/tickets/TicketService';
 import TicketForm from './TicketForm';
 import ImageCell from './ImageCell';
 import { toast } from 'react-toastify';
+import API from '../../api/axios'; // your API wrapper
+
 
 export default function TicketRaise() {
   const navigate = useNavigate();
@@ -142,7 +144,7 @@ export default function TicketRaise() {
   useEffect(() => {
     const fetchExecutives = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/auth/executives');
+        const response = await API.get('/auth/executives');
         setExecutives(response.data);
       } catch (error) {
         console.error(error);
@@ -156,7 +158,7 @@ export default function TicketRaise() {
     const fetchPriorities = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get('http://localhost:5000/api/admin/priorities');
+        const response = await API.get('/admin/priorities');
 
         let prioritiesData = response.data;
 
