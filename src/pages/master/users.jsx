@@ -1,76 +1,180 @@
-import { Button, Box } from '@mui/material';
+import { Button, Box, Snackbar, Alert, Typography } from '@mui/material';
 import MainCard from 'components/MainCard';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { DataGrid } from '@mui/x-data-grid';
-import Icon from '@mdi/react';
-import { mdiTagEdit } from '@mdi/js';
 import UserForm from './userForm';
 import PlusButton from 'components/CustomButton';
 import gridStyle from 'utils/gridStyle';
 
+// Redux imports
+import { 
+  fetchUsers, 
+  deleteUser, 
+  clearCurrentUser,
+  clearOperationStatus,
+  clearUserError
+} from '../../features/users/usersSlice';
+
 export default function UsersPages() {
+  const dispatch = useDispatch();
+  const { 
+    items: users, 
+    loading, 
+    error,
+    operationLoading,
+    operationError
+  } = useSelector((state) => state.users);
+  
   const [showOprForm, setShowOprForm] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [formMode, setFormMode] = useState('create');
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
-  // Hard-coded user data
-  const userData = [
-    {
-      id: 1,
-      userName: 'John Doe',
-      email: 'john@example.com',
-      phoneNo: '1234567890',
-      currentAddress: '123 Street, City, State, Country, 12345',
-      permanentAddress: '456 Street, City, State, Country, 67890',
-      dob: '1990-01-01',
-      designation: 'Manager',
-      department: 'Sales',
-      resigDate: '2025-01-01',
-      role: 'Admin',
-      status: 'Active',
-      remark: 'No remarks'
-    },
-    {
-      id: 2,
-      userName: 'Jane Smith',
-      email: 'jane@example.com',
-      phoneNo: '0987654321',
-      currentAddress: '789 Street, City, State, Country, 54321',
-      permanentAddress: '321 Street, City, State, Country, 98765',
-      dob: '1992-05-12',
-      designation: 'Developer',
-      department: 'IT',
-      resigDate: '2025-02-15',
-      role: 'User',
-      status: 'Inactive',
-      remark: 'On leave'
+  // Fetch users on component mount and when form closes
+  useEffect(() => {
+    if (!showOprForm) {
+      dispatch(fetchUsers());
     }
-    // Add more users as needed
-  ];
+  }, [dispatch, showOprForm]);
 
-  // Define columns
+  // Handle errors and operation status
+  useEffect(() => {
+    if (error) {
+      setSnackbarMessage(error.message || 'Failed to fetch users');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      dispatch(clearUserError());
+    }
+
+    if (operationError) {
+      setSnackbarMessage(operationError.message || 'Operation failed');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      dispatch(clearOperationStatus());
+    }
+  }, [error, operationError, dispatch]);
+
+  // Define columns with direct field access (no value getters needed)
   const columns = [
-    { field: 'id', headerName: 'ID', width: 80 },
-    { field: 'userName', headerName: 'User Name', width: 150 },
-    { field: 'resigDate', headerName: 'Resignation Date', width: 150 },
-    { field: 'role', headerName: 'Role', width: 100 },
-    { field: 'email', headerName: 'Email', width: 150 },
-    { field: 'phoneNo', headerName: 'Phone Number', width: 150 },
-    { field: 'dob', headerName: 'DOB', width: 150 },
-    { field: 'designation', headerName: 'Designation', width: 150 },
-    { field: 'department', headerName: 'Department', width: 150 },
-    { field: 'currentAddress', headerName: 'Current Address', width: 150 },
-    { field: 'permanentAddress', headerName: 'Permanent Address', width: 150 },
-    { field: 'status', headerName: 'Status', width: 100 },
-    { field: 'remark', headerName: 'Remark', width: 150 },
+    { 
+      field: 'user_id', 
+      headerName: 'ID', 
+      width: 80,
+    },
+    { 
+      field: 'username', 
+      headerName: 'Username', 
+      width: 150,
+    },
+    { 
+      field: 'email', 
+      headerName: 'Email', 
+      width: 200,
+    },
+    { 
+      field: 'first_name', 
+      headerName: 'First Name', 
+      width: 150,
+    },
+    { 
+      field: 'last_name', 
+      headerName: 'Last Name', 
+      width: 150,
+    },
+    { 
+      field: 'phone_no', 
+      headerName: 'Phone', 
+      width: 150,
+    },
+    { 
+      field: 'role_name', 
+      headerName: 'Role', 
+      width: 120,
+    },
+    { 
+      field: 'department', 
+      headerName: 'Department', 
+      width: 150,
+    },
+    { 
+      field: 'designation', 
+      headerName: 'Designation', 
+      width: 150,
+    },
+    // { 
+    //   field: 'registration_date', 
+    //   headerName: 'Registered', 
+    //   width: 120,
+    //   valueFormatter: (params) => {
+    //     if (!params.value) return 'N/A';
+    //     try {
+    //       return new Date(params.value).toLocaleDateString();
+    //     } catch (error) {
+    //       return 'Invalid Date';
+    //     }
+    //   }
+    // },
+
+
+    { 
+  field: 'registration_date', 
+  headerName: 'Registered', 
+  width: 120,
+  valueFormatter: (params) => {
+    // Safe check for params and value
+    if (!params || params.value == null) return 'N/A';
+    try {
+      return new Date(params.value).toLocaleDateString();
+    } catch {
+      return 'Invalid Date';
+    }
+  }
+},
+    { 
+      field: 'is_active', 
+      headerName: 'Status', 
+      width: 100,
+      renderCell: (params) => {
+        const isActive = params.row.is_active;
+        return (
+          <span style={{ 
+            color: isActive ? 'green' : 'red',
+            fontWeight: 'bold'
+          }}>
+            {isActive ? 'Active' : 'Inactive'}
+          </span>
+        );
+      }
+    },
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 120,
+      width: 180,
       renderCell: (params) => (
-        <Button color="primary" onClick={() => handleEdit(params.row.id)}>
-          Edit
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button 
+            color="primary" 
+            onClick={() => handleEdit(params.row)}
+            size="small"
+            variant="outlined"
+          >
+            Edit
+          </Button>
+          <Button 
+            color="error" 
+            onClick={() => handleDeleteClick(params.row)}
+            size="small"
+            variant="outlined"
+            disabled={operationLoading}
+          >
+            Delete
+          </Button>
+        </Box>
       )
     }
   ];
@@ -79,56 +183,239 @@ export default function UsersPages() {
     setSelectedUser(null);
     setFormMode('create');
     setShowOprForm(true);
+    dispatch(clearCurrentUser());
   };
 
-  const handleEdit = (id) => {
-    const user = userData.find((user) => user.id === id);
+  const handleEdit = (user) => {
+    if (!user) return;
     setSelectedUser(user);
     setFormMode('edit');
     setShowOprForm(true);
+  };
+
+  const handleDeleteClick = (user) => {
+    if (!user) return;
+    setUserToDelete(user);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete) return;
+    
+    try {
+      const userId = userToDelete.user_id || userToDelete.id;
+      if (!userId) {
+        throw new Error('User ID not found');
+      }
+      
+      await dispatch(deleteUser(userId)).unwrap();
+      
+      setSnackbarMessage('User deleted successfully!');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+      
+      // Refresh the user list
+      dispatch(fetchUsers());
+    } catch (error) {
+      setSnackbarMessage(error.message || 'Failed to delete user');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+    setDeleteConfirmOpen(false);
+    setUserToDelete(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirmOpen(false);
+    setUserToDelete(null);
   };
 
   const handleCloseForm = () => {
     setShowOprForm(false);
     setSelectedUser(null);
     setFormMode('create');
+    dispatch(clearCurrentUser());
   };
+
   const handleNavigate = () => {
     window.history.back();
   };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
+  // Transform users data for DataGrid with proper IDs
+  const gridUsers = Array.isArray(users) ? users.map(user => ({
+    ...user,
+    id: user.user_id // Use user_id as the id for DataGrid
+  })) : [];
+
+  // Debug: Log the users data to see what we're getting
+  useEffect(() => {
+    if (users.length > 0) {
+      console.log('Users data:', users);
+      console.log('First user:', users[0]);
+    }
+  }, [users]);
+
   return (
-    <MainCard
-      title={
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box>{!showOprForm ? <span>User List</span> : <span>Create User</span>}</Box>
-          <Box>
-            {!showOprForm ? (
-              <PlusButton label=" + Create User" onClick={handleCreateOpr} />
-            ) : (
-              <PlusButton label="Back" onClick={handleCloseForm} />
-            )}
-            {!showOprForm && (
-              <span style={{ marginLeft: '8px' }}>
-                <PlusButton label="Back" onClick={handleNavigate} />
-              </span>
-            )}
+    <>
+      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirmOpen && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1300
+          }}
+        >
+          <Box
+            sx={{
+              backgroundColor: 'white',
+              padding: 3,
+              borderRadius: 2,
+              minWidth: 400,
+              boxShadow: 3
+            }}
+          >
+            <Typography variant="h6" gutterBottom>
+              Confirm Delete
+            </Typography>
+            <Typography variant="body1" sx={{ mb: 3 }}>
+              Are you sure you want to delete user "{userToDelete?.first_name} {userToDelete?.last_name}"?
+              This action cannot be undone.
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+              <Button 
+                onClick={handleDeleteCancel}
+                disabled={operationLoading}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="contained" 
+                color="error" 
+                onClick={handleDeleteConfirm}
+                disabled={operationLoading}
+              >
+                {operationLoading ? 'Deleting...' : 'Delete'}
+              </Button>
+            </Box>
           </Box>
         </Box>
-      }
-    >
-      {showOprForm ? (
-        <UserForm user={selectedUser} formMode={formMode} onClose={handleCloseForm} />
-      ) : (
-        <DataGrid
-          getRowHeight={() => 'auto'}
-          sx={{ ...gridStyle, height: '80vh' }}
-          stickyHeader={true}
-          rows={userData}
-          columns={columns}
-          pageSize={5}
-          rowsPerPageOptions={[5]}
-        />
       )}
-    </MainCard>
+
+      <MainCard
+        title={
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box>
+              {!showOprForm ? (
+                <span>User Management ({gridUsers.length} users)</span>
+              ) : (
+                <span>
+                  {formMode === 'create' 
+                    ? 'Create New User' 
+                    : `Edit User - ${selectedUser?.first_name || ''} ${selectedUser?.last_name || ''}`
+                  }
+                </span>
+              )}
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {!showOprForm ? (
+                <>
+                  <PlusButton 
+                    label=" + Create User" 
+                    onClick={handleCreateOpr}
+                    disabled={loading}
+                  />
+                  <PlusButton 
+                    label="Refresh" 
+                    onClick={() => dispatch(fetchUsers())}
+                    disabled={loading}
+                  />
+                  <PlusButton 
+                    label="Back" 
+                    onClick={handleNavigate}
+                  />
+                </>
+              ) : (
+                <PlusButton 
+                  label="Back to List" 
+                  onClick={handleCloseForm}
+                />
+              )}
+            </Box>
+          </Box>
+        }
+      >
+        {showOprForm ? (
+          <UserForm 
+            user={selectedUser} 
+            formMode={formMode} 
+            onClose={handleCloseForm} 
+          />
+        ) : (
+          <DataGrid
+            getRowHeight={() => 'auto'}
+            sx={{ 
+              ...gridStyle, 
+              height: '80vh',
+              '& .MuiDataGrid-cell': {
+                padding: '8px'
+              }
+            }}
+            stickyHeader={true}
+            rows={gridUsers}
+            columns={columns}
+            loading={loading}
+            pageSize={10}
+            rowsPerPageOptions={[10, 25, 50]}
+            disableSelectionOnClick
+            autoHeight={false}
+            getRowId={(row) => row.user_id || row.id}
+            components={{
+              NoRowsOverlay: () => (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100%',
+                    p: 2
+                  }}
+                >
+                  <Typography variant="h6" color="textSecondary">
+                    {loading ? 'Loading users...' : 'No users found'}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+                    {loading ? 'Please wait while we load users' : 'Click "Create User" to add your first user'}
+                  </Typography>
+                </Box>
+              )
+            }}
+            initialState={{
+              sorting: {
+                sortModel: [{ field: 'user_id', sort: 'desc' }]
+              }
+            }}
+          />
+        )}
+      </MainCard>
+    </>
   );
 }
