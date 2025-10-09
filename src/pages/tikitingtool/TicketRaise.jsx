@@ -54,7 +54,7 @@ import { formatDate, formatDateTime, formatDateTimeSplit } from 'components/Date
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchTickets, fetchTicketDetails, createTicket, replyToTicket, clearTicketDetails } from '../../features/tickets/ticketSlice';
 import { selectUserRole, selectCurrentUser, selectIsInitialized } from '../../features/auth/authSlice';
-import TicketService from '../../features/tickets/TicketService'; // Add this import
+import TicketService from '../../features/tickets/TicketService';
 import TicketForm from './TicketForm';
 import ImageCell from './ImageCell';
 import { toast } from 'react-toastify';
@@ -152,6 +152,35 @@ export default function TicketRaise() {
   }, []);
 
   // Fetch priorities when component mounts
+  useEffect(() => {
+    const fetchPriorities = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axios.get('http://localhost:5000/api/admin/priorities');
+        
+        let prioritiesData = response.data;
+        
+        if (Array.isArray(prioritiesData)) {
+          setPriorities(prioritiesData);
+        } else if (prioritiesData && Array.isArray(prioritiesData.priorities)) {
+          setPriorities(prioritiesData.priorities);
+        } else if (prioritiesData && Array.isArray(prioritiesData.data)) {
+          setPriorities(prioritiesData.data);
+        } else {
+          console.warn('Unexpected priorities response structure:', prioritiesData);
+          setPriorities([]);
+        }
+      } catch (error) {
+        console.error('Error fetching priorities:', error);
+        setPriorities([]);
+        toast.error('Failed to load priorities');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchPriorities();
+  }, []);
   // useEffect(() => {
   //   const fetchPriorities = async () => {
   //     try {
@@ -290,7 +319,7 @@ export default function TicketRaise() {
       created_by: ticketDetails.created_by ?? ticketDetails.creator?.username ?? 'User',
       created_on: ticketDetails.created_on ?? ticketDetails.createdAt ?? '',
       status: ticketDetails.status ?? '',
-      allImages: ticketDetails.documents ?? [] // ticket-level documents
+      allImages: ticketDetails.documents ?? []
     };
 
     const replyRows = (ticketDetails.replies || []).map((reply, index) => {
@@ -309,7 +338,7 @@ export default function TicketRaise() {
         created_by: displayName,
         created_on: reply.created_at ?? reply.created_on ?? '',
         status: reply.status ?? '',
-        allImages: reply.documents ?? [] // reply-specific documents
+        allImages: reply.documents ?? []
       };
     });
 
@@ -344,6 +373,7 @@ export default function TicketRaise() {
     setReplyMessage('');
     setStatus('');
     setAssign('');
+    setPriority('');
     setAttachedFiles([]);
     dispatch(clearTicketDetails());
     setSuccessMessage('');
@@ -367,6 +397,11 @@ export default function TicketRaise() {
         formData.append('status', status);
       }
 
+      // Add priority to form data for admin users
+      if (isAdmin && priority) {
+        formData.append('priority', priority);
+      }
+
       if (isAdmin && assign) {
         formData.append('assigned_to', assign);
       }
@@ -385,9 +420,11 @@ export default function TicketRaise() {
       await dispatch(fetchTicketDetails(ticketDetails.ticket_id)).unwrap();
       await dispatch(fetchTickets()).unwrap();
 
+      // Reset all form fields
       setReplyMessage('');
       setStatus('');
       setAssign('');
+      setPriority('');
       setAttachedFiles([]);
       setSuccessMessage('Reply sent successfully!');
       toast.success('Reply sent successfully!', { autoClose: 2000 });
@@ -403,7 +440,6 @@ export default function TicketRaise() {
     const newFiles = Array.from(e.target.files);
     if (newFiles.length === 0) return;
 
-    // Check for duplicates by name and size
     const existingFiles = attachedFiles || [];
     const uniqueNewFiles = newFiles.filter(
       (newFile) =>
@@ -417,11 +453,8 @@ export default function TicketRaise() {
       return;
     }
 
-    // Append new files to existing files
     const updatedFiles = [...existingFiles, ...uniqueNewFiles];
     setAttachedFiles(updatedFiles);
-
-    // Reset file input to allow selecting same files again
     e.target.value = '';
   };
 
@@ -881,6 +914,18 @@ export default function TicketRaise() {
                         </CustomParagraphLight>
                       </Grid>
 
+                      {/* Priority Display Only */}
+                      <Grid item xs={12} md={2}>
+                        <CustomParagraphDark>Priority</CustomParagraphDark>
+                        <CustomParagraphLight>
+                          {ticketDetails?.priority || 'Not set'}
+                          {isAdmin && (
+                            <Typography variant="caption" display="block" color="textSecondary">
+                              {ticketDetails?.is_other_issue ? 'Can be updated in reply' : 'Set by issue type'}
+                            </Typography>
+                          )}
+                        </CustomParagraphLight>
+                      </Grid>
                       {/* ONLY PRIORITY SECTION - Inside the main Grid container */}
                       {isAdmin && ticketDetails?.is_other_issue ? (
                         <Grid item xs={12} md={2}>
@@ -996,6 +1041,21 @@ export default function TicketRaise() {
                         </Box>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, mb: 1, gap: 2 }}>
                           <Box display="flex" alignItems="center" gap={2}>
+                            <input
+                              accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                              style={{ display: 'none' }}
+                              id="upload-screenshot"
+                              type="file"
+                              multiple
+                              onChange={handleFileUpload}
+                            />
+                            <label htmlFor="upload-screenshot">
+                              <Button variant="outlined" size="small" component="span" startIcon={<UploadFileIcon />}>
+                                Upload Files ({attachedFiles.length})
+                              </Button>
+                            </label>
+
+                            {/* Status Dropdown */}
                             <Box sx={{ minWidth: 120 }}>
                               {/* <CustomParagraphLight>Upload Files</CustomParagraphLight> */}
                               <input
@@ -1035,18 +1095,10 @@ export default function TicketRaise() {
                                 {!isAdmin && !isExecutive && <MenuItem value="Closed">Closed</MenuItem>}
 
                                 {(isAdmin || isExecutive) && [
-                                  <MenuItem key="Open" value="Open">
-                                    Open
-                                  </MenuItem>,
-                                  <MenuItem key="Pending" value="Pending">
-                                    Pending
-                                  </MenuItem>,
-                                  <MenuItem key="Resolved" value="Resolved">
-                                    Resolved
-                                  </MenuItem>,
-                                  <MenuItem key="Closed" value="Closed">
-                                    Closed
-                                  </MenuItem>
+                                  <MenuItem key="Open" value="Open">Open</MenuItem>,
+                                  <MenuItem key="Pending" value="Pending">Pending</MenuItem>,
+                                  <MenuItem key="Resolved" value="Resolved">Resolved</MenuItem>,
+                                  <MenuItem key="Closed" value="Closed">Closed</MenuItem>
                                 ]}
                               </Select>
                             </FormControl>
@@ -1088,7 +1140,6 @@ export default function TicketRaise() {
                             </Typography>
                             <Grid container spacing={1}>
                               {attachedFiles.map((file, index) => {
-                                // Create object URL for image preview
                                 const fileUrl = URL.createObjectURL(file);
                                 const isImage = file.type.startsWith('image/');
 
@@ -1124,7 +1175,6 @@ export default function TicketRaise() {
                                                 cursor: 'pointer'
                                               }}
                                               onClick={() => {
-                                                // Open image in new tab for larger view
                                                 const w = window.open();
                                                 if (w) {
                                                   w.document.write(`
@@ -1157,7 +1207,6 @@ export default function TicketRaise() {
                                               fullWidth
                                               sx={{ fontSize: '0.7rem' }}
                                               onClick={() => {
-                                                // For non-image files, trigger download
                                                 const link = document.createElement('a');
                                                 link.href = fileUrl;
                                                 link.download = file.name;
@@ -1185,6 +1234,7 @@ export default function TicketRaise() {
                               setAttachedFiles([]);
                               setStatus('');
                               setAssign('');
+                              setPriority('');
                             }}
                             disabled={isSubmittingReply}
                           >
