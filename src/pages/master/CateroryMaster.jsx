@@ -78,7 +78,7 @@ export default function CateroryMaster() {
   };
 
   const columns = [
-    { field: 'name', headerName: 'Name', width: 250 },
+    { field: 'name', headerName: 'Category', width: 250 },
     { field: 'description', headerName: 'Description', width: 250 },
     {
       field: 'status',

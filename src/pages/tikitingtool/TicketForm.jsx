@@ -20,7 +20,6 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
-
 import SelectFieldPadding from 'components/selectFieldPadding';
 import FieldPadding from 'components/FieldPadding';
 import SubmitButton from 'components/CustomSubmitBtn';
@@ -38,7 +37,7 @@ import MainCard from 'components/MainCard';
 import { errorMessageStyle } from 'components/StyleComponent';
 import API from '../../api/axios'; // your API wrapper
 import { createTicket, fetchTickets } from '../../features/tickets/ticketSlice';
-
+import CloseIcon from '@mui/icons-material/Close';
 const FilePreviewDialog = ({ open, onClose, file, fileUrl }) => {
   if (!file) return null;
   const isImage = file.type && file.type.startsWith('image/');
@@ -47,7 +46,7 @@ const FilePreviewDialog = ({ open, onClose, file, fileUrl }) => {
       <DialogTitle>
         File Preview: {file.name}
         <IconButton aria-label="close" onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
-          <DeleteIcon sx={{ color: 'red' }} />
+          <CloseIcon sx={{ color: 'red' }} />
         </IconButton>
       </DialogTitle>
       <DialogContent>
