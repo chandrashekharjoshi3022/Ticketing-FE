@@ -2,13 +2,13 @@
 import API from '../../api/axios';
 
 const fetchSLAs = async (includeInactive = false) => {
-  const q = includeInactive ? '?includeInactive=true&includeIssueTypes=true' : '?includeIssueTypes=true';
+  const q = includeInactive ? '?includeInactive=true' : '';
   const res = await API.get(`/admin/slas${q}`);
   return res.data;
 };
 
 const fetchSLA = async (id) => {
-  const res = await API.get(`/admin/slas/${encodeURIComponent(id)}?includeIssueTypes=true`);
+  const res = await API.get(`/admin/slas/${encodeURIComponent(id)}`);
   return res.data;
 };
 
@@ -32,8 +32,18 @@ const fetchSLAsByUser = async (userId) => {
   return res.data;
 };
 
+const fetchSLAsByIssueType = async (issueTypeId) => {
+  const res = await API.get(`/admin/slas/issue-type/${encodeURIComponent(issueTypeId)}`);
+  return res.data;
+};
+
 const fetchUsers = async () => {
   const res = await API.get('/admin/slas/users');
+  return res.data;
+};
+
+const fetchIssueTypes = async () => {
+  const res = await API.get('/admin/slas/issue-types');
   return res.data;
 };
 
@@ -44,5 +54,7 @@ export default {
   updateSLA,
   deleteSLA,
   fetchSLAsByUser,
-  fetchUsers
+  fetchSLAsByIssueType,
+  fetchUsers,
+  fetchIssueTypes
 };

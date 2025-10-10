@@ -6,6 +6,7 @@ import subcategoriesReducer from 'features/subcategories/subcategorySlice';
 import prioritiesReducer from 'features/priorities/prioritySlice';
 import usersReducer from 'features/users/usersSlice'; // Add this line
 import slaReducer from 'features/sla/slaSlice';
+import issueTypeReducer from 'features/issueType/issueTypeSlice';
 
 export const store = configureStore({
   reducer: {
@@ -15,7 +16,9 @@ export const store = configureStore({
     subcategories: subcategoriesReducer,
     priorities: prioritiesReducer,
     users: usersReducer, // Add this line
-    sla: slaReducer
+    sla: slaReducer,
+     issueType: issueTypeReducer
+    
 
   },
 });

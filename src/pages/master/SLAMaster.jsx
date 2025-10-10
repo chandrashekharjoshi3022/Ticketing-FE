@@ -40,12 +40,22 @@ import {
   updateSLA,
   deleteSLA,
   fetchUsers,
-  clearSLAError
+  fetchIssueTypes,
+  clearSLAError,
+  setEditing
 } from 'features/sla/slaSlice';
 
 export default function SLAMaster() {
   const dispatch = useDispatch();
-  const { items: slas = [], users = [], loading } = useSelector((s) => s.sla || {});
+  const { 
+    items: slas = [], 
+    users = [], 
+    issueTypes = [], 
+    loading,
+    usersLoading,
+    issueTypesLoading
+  } = useSelector((s) => s.sla || {});
+  
   const [editing, setEditing] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [toDelete, setToDelete] = useState(null);
@@ -54,6 +64,7 @@ export default function SLAMaster() {
   useEffect(() => {
     dispatch(fetchSLAs());
     dispatch(fetchUsers());
+    dispatch(fetchIssueTypes());
   }, [dispatch]);
 
   const rows = (slas || []).map((s, idx) => ({
@@ -62,8 +73,9 @@ export default function SLAMaster() {
     user_id: s.user_id,
     user_name: s.user ? `${s.user.first_name} ${s.user.last_name}` : `User ${s.user_id}`,
     username: s.user?.username,
-    user_email: s.user?.email,
-    issue_type: s.issue_type,
+    issue_type_id: s.issue_type_id,
+    issue_type_name: s.issue_type ? s.issue_type.name : 'Unknown',
+    sla_name: s.name,
     response_target_minutes: s.response_target_minutes,
     resolve_target_minutes: s.resolve_target_minutes,
     response_time: `${s.response_target_minutes} minutes`,
@@ -75,16 +87,14 @@ export default function SLAMaster() {
     }),
     status: s.is_active ? 'Active' : 'Inactive',
     created_by: s.created_by,
-    updated_by: s.updated_by,
-    issue_types: s.issue_types || [],
-    issue_types_count: (s.issue_types || []).length
+    updated_by: s.updated_by
   }));
 
   const columns = [
     { 
       field: 'user_name', 
       headerName: 'User', 
-      width: 200,
+      width: 180,
       renderCell: (params) => (
         <Box>
           <Typography variant="body2" fontWeight="bold">
@@ -97,58 +107,57 @@ export default function SLAMaster() {
       )
     },
     { 
-      field: 'issue_type', 
+      field: 'issue_type_name', 
       headerName: 'Issue Type', 
-      width: 180 
+      width: 160 
     },
     { 
-      field: 'issue_types_count', 
-      headerName: 'Linked Issues', 
-      width: 120,
-      renderCell: (params) => (
-        <Chip 
-          label={params.value} 
-          size="small"
-          color={params.value > 0 ? "primary" : "default"}
-          variant={params.value > 0 ? "filled" : "outlined"}
-        />
-      )
+      field: 'sla_name', 
+      headerName: 'SLA Name', 
+      width: 150 
     },
     { 
       field: 'response_time', 
       headerName: 'Response Time', 
-      width: 140 
+      width: 130,
+      renderCell: (params) => (
+        <Typography variant="body2" fontWeight="medium">
+          {params.value}
+        </Typography>
+      )
     },
     { 
       field: 'resolve_time', 
       headerName: 'Resolve Time', 
-      width: 140 
+      width: 130,
+      renderCell: (params) => (
+        <Typography variant="body2" fontWeight="medium">
+          {params.value}
+        </Typography>
+      )
     },
     { 
       field: 'created_on', 
       headerName: 'Created On', 
-      width: 120 
+      width: 110 
     },
     { 
       field: 'status', 
       headerName: 'Status', 
-      width: 100,
+      width: 90,
       renderCell: (params) => (
-        <Box
-          sx={{
-            color: params.value === 'Active' ? 'green' : 'red',
-            fontWeight: 'bold',
-            fontSize: '0.875rem'
-          }}
-        >
-          {params.value}
-        </Box>
+        <Chip 
+          label={params.value} 
+          size="small"
+          color={params.value === 'Active' ? "success" : "error"}
+          variant="filled"
+        />
       )
     },
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 120,
+      width: 110,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
           <IconButton 
@@ -167,7 +176,6 @@ export default function SLAMaster() {
               setDeleteDialogOpen(true);
             }}
             title="Delete SLA"
-            disabled={params.row.issue_types_count > 0}
           >
             <DeleteIcon />
           </IconButton>
@@ -178,7 +186,8 @@ export default function SLAMaster() {
 
   const initialValues = {
     user_id: editing ? editing.user_id : '',
-    issue_type: editing ? editing.issue_type : '',
+    issue_type_id: editing ? editing.issue_type_id : '',
+    name: editing ? editing.sla_name : '',
     response_target_minutes: editing ? editing.response_target_minutes : 60,
     resolve_target_minutes: editing ? editing.resolve_target_minutes : 1440,
     status: editing ? (editing.status === 'Active' ? '1' : '0') : '1'
@@ -186,10 +195,11 @@ export default function SLAMaster() {
 
   const validationSchema = Yup.object({
     user_id: Yup.number().required('User is required'),
-    issue_type: Yup.string()
-      .required('Issue Type is required')
-      .min(2, 'Issue Type must be at least 2 characters')
-      .max(150, 'Issue Type must be less than 150 characters'),
+    issue_type_id: Yup.number().required('Issue Type is required'),
+    name: Yup.string()
+      .required('SLA Name is required')
+      .min(2, 'SLA Name must be at least 2 characters')
+      .max(150, 'SLA Name must be less than 150 characters'),
     response_target_minutes: Yup.number()
       .required('Response Time is required')
       .min(1, 'Response Time must be at least 1 minute')
@@ -204,7 +214,8 @@ export default function SLAMaster() {
   const handleSubmit = async (values, { resetForm }) => {
     const payload = {
       user_id: Number(values.user_id),
-      issue_type: values.issue_type.trim(),
+      issue_type_id: Number(values.issue_type_id),
+      name: values.name.trim(),
       response_target_minutes: Number(values.response_target_minutes),
       resolve_target_minutes: Number(values.resolve_target_minutes),
       is_active: values.status === '1'
@@ -252,8 +263,11 @@ export default function SLAMaster() {
   const handleRefresh = () => {
     dispatch(fetchSLAs());
     dispatch(fetchUsers());
+    dispatch(fetchIssueTypes());
     dispatch(clearSLAError());
   };
+
+  const isLoading = loading || usersLoading || issueTypesLoading;
 
   return (
     <MainCard
@@ -265,7 +279,7 @@ export default function SLAMaster() {
       }
     >
       <Box sx={{ height: '80dvh', overflowY: 'auto' }}>
-        {loading ? (
+        {isLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
             <LoaderLogo />
           </Box>
@@ -281,7 +295,7 @@ export default function SLAMaster() {
               {({ resetForm, isSubmitting }) => (
                 <Form>
                   <Grid container spacing={2} alignItems="flex-end" sx={{ mb: 2 }}>
-                    <Grid item xs={12} sm={2.4}>
+                    <Grid item xs={12} sm={2}>
                       <CustomParagraphLight>
                         User<ValidationStar>*</ValidationStar>
                       </CustomParagraphLight>
@@ -296,21 +310,36 @@ export default function SLAMaster() {
                       <ErrorMessage name="user_id" component="div" style={errorMessageStyle} />
                     </Grid>
 
-                    <Grid item xs={12} sm={2.4}>
+                    <Grid item xs={12} sm={2}>
                       <CustomParagraphLight>
                         Issue Type<ValidationStar>*</ValidationStar>
                       </CustomParagraphLight>
+                      <Field as={SelectFieldPadding} name="issue_type_id" fullWidth disabled={isSubmitting}>
+                        <MenuItem value="">Select Issue Type</MenuItem>
+                        {issueTypes.map((issueType) => (
+                          <MenuItem key={issueType.issue_type_id} value={issueType.issue_type_id}>
+                            {issueType.name}
+                          </MenuItem>
+                        ))}
+                      </Field>
+                      <ErrorMessage name="issue_type_id" component="div" style={errorMessageStyle} />
+                    </Grid>
+
+                    <Grid item xs={12} sm={2}>
+                      <CustomParagraphLight>
+                        SLA Name<ValidationStar>*</ValidationStar>
+                      </CustomParagraphLight>
                       <Field 
                         as={FieldPadding} 
-                        name="issue_type" 
-                        placeholder="Enter issue type" 
+                        name="name" 
+                        placeholder="SLA Name" 
                         fullWidth 
                         disabled={isSubmitting}
                       />
-                      <ErrorMessage name="issue_type" component="div" style={errorMessageStyle} />
+                      <ErrorMessage name="name" component="div" style={errorMessageStyle} />
                     </Grid>
 
-                    <Grid item xs={12} sm={1.8}>
+                    <Grid item xs={12} sm={1.5}>
                       <CustomParagraphLight>
                         Response Time (min)<ValidationStar>*</ValidationStar>
                       </CustomParagraphLight>
@@ -325,7 +354,7 @@ export default function SLAMaster() {
                       <ErrorMessage name="response_target_minutes" component="div" style={errorMessageStyle} />
                     </Grid>
 
-                    <Grid item xs={12} sm={1.8}>
+                    <Grid item xs={12} sm={1.5}>
                       <CustomParagraphLight>
                         Resolve Time (min)<ValidationStar>*</ValidationStar>
                       </CustomParagraphLight>
@@ -340,7 +369,7 @@ export default function SLAMaster() {
                       <ErrorMessage name="resolve_target_minutes" component="div" style={errorMessageStyle} />
                     </Grid>
 
-                    <Grid item xs={12} sm={1.2}>
+                    <Grid item xs={12} sm={1}>
                       <CustomParagraphLight>
                         Status<ValidationStar>*</ValidationStar>
                       </CustomParagraphLight>
@@ -351,7 +380,7 @@ export default function SLAMaster() {
                       <ErrorMessage name="status" component="div" style={errorMessageStyle} />
                     </Grid>
 
-                    <Grid item xs={12} sm={1.2} display="flex" gap={1}>
+                    <Grid item xs={12} sm={2} display="flex" gap={1}>
                       <SubmitButton 
                         type="submit" 
                         variant="contained" 
@@ -377,7 +406,7 @@ export default function SLAMaster() {
                   {editing && (
                     <Box sx={{ mb: 2, p: 1, bgcolor: 'info.light', borderRadius: 1 }}>
                       <Typography variant="body2" color="info.dark">
-                        <strong>Editing:</strong> {editing.user_name} - {editing.issue_type}
+                        <strong>Editing:</strong> {editing.user_name} - {editing.issue_type_name} - {editing.sla_name}
                         <IconButton 
                           size="small" 
                           onClick={() => setEditing(null)}
@@ -412,18 +441,8 @@ export default function SLAMaster() {
           <DialogTitle>Confirm Deactivate</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              {toDelete?.issue_types_count > 0 ? (
-                <Box>
-                  <Typography color="error" gutterBottom>
-                    Cannot deactivate this SLA because it is linked to {toDelete.issue_types_count} active issue type(s).
-                  </Typography>
-                  <Typography variant="body2">
-                    Please unlink the issue types before deactivating the SLA.
-                  </Typography>
-                </Box>
-              ) : (
-                `Are you sure you want to deactivate the SLA for "${toDelete?.user_name}" - "${toDelete?.issue_type}"? This will make it unavailable for new tickets.`
-              )}
+              Are you sure you want to deactivate the SLA for "{toDelete?.user_name}" - "{toDelete?.issue_type_name}" - "{toDelete?.sla_name}"? 
+              This will make it unavailable for new tickets.
             </DialogContentText>
           </DialogContent>
           <DialogActions>
@@ -431,8 +450,7 @@ export default function SLAMaster() {
               Cancel
             </NoButton>
             <YesButton 
-              onClick={handleDeleteConfirm} 
-              disabled={toDelete?.issue_types_count > 0}
+              onClick={handleDeleteConfirm}
               variant="contained"
               color="error"
             >

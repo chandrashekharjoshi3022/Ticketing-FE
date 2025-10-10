@@ -5,9 +5,9 @@ import SLAService from './slaService';
 // Thunks
 export const fetchSLAs = createAsyncThunk(
   'sla/fetchAll',
-  async (_, { rejectWithValue }) => {
+  async (includeInactive = false, { rejectWithValue }) => {
     try {
-      const res = await SLAService.fetchSLAs();
+      const res = await SLAService.fetchSLAs(includeInactive);
       return res?.slas ?? res?.data ?? res;
     } catch (err) {
       console.error('fetchSLAs error', err);
@@ -24,6 +24,19 @@ export const fetchUsers = createAsyncThunk(
       return res?.users ?? res?.data ?? res;
     } catch (err) {
       console.error('fetchUsers error', err);
+      return rejectWithValue(err.response?.data || { message: err.message });
+    }
+  }
+);
+
+export const fetchIssueTypes = createAsyncThunk(
+  'sla/fetchIssueTypes',
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await SLAService.fetchIssueTypes();
+      return res?.issue_types ?? res?.data ?? res;
+    } catch (err) {
+      console.error('fetchIssueTypes error', err);
       return rejectWithValue(err.response?.data || { message: err.message });
     }
   }
@@ -71,7 +84,10 @@ export const deleteSLA = createAsyncThunk(
 const initialState = {
   items: [],
   users: [],
+  issueTypes: [],
   loading: false,
+  usersLoading: false,
+  issueTypesLoading: false,
   error: null,
   lastUpdated: null
 };
@@ -85,6 +101,9 @@ const slaSlice = createSlice({
     },
     clearEditing: (state) => {
       state.editing = null;
+    },
+    setEditing: (state, action) => {
+      state.editing = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -106,14 +125,27 @@ const slaSlice = createSlice({
       
       // Fetch Users
       .addCase(fetchUsers.pending, (state) => {
-        state.loading = true;
+        state.usersLoading = true;
       })
       .addCase(fetchUsers.fulfilled, (state, action) => {
-        state.loading = false;
+        state.usersLoading = false;
         state.users = Array.isArray(action.payload) ? action.payload : [];
       })
       .addCase(fetchUsers.rejected, (state, action) => {
-        state.loading = false;
+        state.usersLoading = false;
+        state.error = action.payload || action.error;
+      })
+      
+      // Fetch Issue Types
+      .addCase(fetchIssueTypes.pending, (state) => {
+        state.issueTypesLoading = true;
+      })
+      .addCase(fetchIssueTypes.fulfilled, (state, action) => {
+        state.issueTypesLoading = false;
+        state.issueTypes = Array.isArray(action.payload) ? action.payload : [];
+      })
+      .addCase(fetchIssueTypes.rejected, (state, action) => {
+        state.issueTypesLoading = false;
         state.error = action.payload || action.error;
       })
 
@@ -173,5 +205,5 @@ const slaSlice = createSlice({
   }
 });
 
-export const { clearSLAError, clearEditing } = slaSlice.actions;
+export const { clearSLAError, clearEditing, setEditing } = slaSlice.actions;
 export default slaSlice.reducer;
