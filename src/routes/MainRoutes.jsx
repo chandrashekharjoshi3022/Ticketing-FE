@@ -1,11 +1,10 @@
 import { lazy } from 'react';
-
-// project-imports
 import Loadable from 'components/Loadable';
 import DashboardLayout from 'layout/Dashboard';
 import SimpleLayout from 'layout/Simple';
 import { SimpleLayoutType } from 'config';
-import PrivateRoute from './PrivateRoute'; // ✅ NEW
+import PrivateRoute from './PrivateRoute';
+
 // pages
 import VendorsPages from 'pages/master/vender';
 import UsersPages from 'pages/master/users';
@@ -22,91 +21,59 @@ import SLAMaster from 'pages/master/SLAMaster';
 
 const MaintenanceError = Loadable(lazy(() => import('pages/maintenance/error/404')));
 const AppContactUS = Loadable(lazy(() => import('pages/contact-us')));
+const Unauthorized = Loadable(lazy(() => import('pages/Unauthorized'))); // Add this
 const SamplePage = Loadable(lazy(() => import('pages/extra-pages/dashboard')));
 
 const MainRoutes = {
   path: '/',
   children: [
-    // ✅ Protected Routes (only for logged-in users)
-    {
-      element: <PrivateRoute />, // protect all below
-      children: [
-        {
-          path: '/',
-          element: <DashboardLayout />,
-          children: [{ path: 'dashboard', element: <SamplePage /> }]
-        },
-        {
-          path: '/',
-          element: <DashboardLayout />,
-          children: [
-            {
-              path: 'ticket/raise-ticket',
-              element: <TicketRaise />
-            },
-            {
-              path: 'ticket/reply-ticket',
-              element: <TicketReply />
-            }
-          ]
-        },
-
-        {
-          path: '/',
-          element: <DashboardLayout />,
-          children: [{ path: 'mastertab', element: <MasterTab /> }]
-        },
-        {
-          path: '/',
-          element: <DashboardLayout />,
-          children: [{ path: 'first', element: <First /> }]
-        },
-        {
-          path: '/',
-          element: <DashboardLayout />,
-          children: [{ path: 'raise-ticket', element: <TicketRaise /> }]
-        },
-        {
-          path: '/',
-          element: <DashboardLayout />,
-          children: [
-            { path: 'master/vendor', element: <VendorsPages /> },
-            { path: 'master/users', element: <UsersPages /> },
-            { path: 'master/items', element: <ItemsPages /> }
-          ]
-        }
-      ]
-    },
-
+    // ✅ Public Routes
     {
       path: '/',
       element: <SimpleLayout layout={SimpleLayoutType.SIMPLE} />,
-      children: [{ path: 'contact-us', element: <AppContactUS /> }]
+      children: [
+        { path: 'contact-us', element: <AppContactUS /> },
+        { path: 'unauthorized', element: <Unauthorized /> } // Add unauthorized route
+      ]
     },
 
+    // ✅ Protected Routes (only for logged-in users)
     {
-      path: '/',
-      element: <DashboardLayout />,
+      element: <PrivateRoute />,
       children: [
+        // Routes accessible to all authenticated users
         {
-          path: '/category',
-          element: <CateroryMaster />
+          path: '/',
+          element: <DashboardLayout />,
+          children: [
+            { path: 'dashboard', element: <SamplePage /> },
+            { path: 'ticket/raise-ticket', element: <TicketRaise /> },
+            { path: 'ticket/reply-ticket', element: <TicketReply /> },
+            { path: 'first', element: <First /> },
+            { path: 'raise-ticket', element: <TicketRaise /> }
+          ]
         },
+
+        // ✅ Admin-only routes (block user and executive)
         {
-          path: '/subcategory',
-          element: <SubCategoryMaster />
-        },
-        {
-          path: '/issuetype',
-          element: <IssueTypeMaster />
-        },
-        {
-          path: '/priority',
-          element: <PriorityMaster />
-        },
-        {
-          path: '/slamaster',
-          element: <SLAMaster />
+          element: <PrivateRoute requiredRoles={['admin', 'managerr', 'superadmin']} />, // Adjust roles as needed
+          children: [
+            {
+              path: '/',
+              element: <DashboardLayout />,
+              children: [
+                { path: 'mastertab', element: <MasterTab /> },
+                { path: 'master/vendor', element: <VendorsPages /> },
+                { path: 'master/users', element: <UsersPages /> },
+                { path: 'master/items', element: <ItemsPages /> },
+                { path: '/category', element: <CateroryMaster /> },
+                { path: '/subcategory', element: <SubCategoryMaster /> },
+                { path: '/issuetype', element: <IssueTypeMaster /> },
+                { path: '/priority', element: <PriorityMaster /> },
+                { path: '/slamaster', element: <SLAMaster /> }
+              ]
+            }
+          ]
         }
       ]
     },

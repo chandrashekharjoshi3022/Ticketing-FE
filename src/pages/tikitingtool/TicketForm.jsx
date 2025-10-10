@@ -170,6 +170,8 @@ const TicketForm = () => {
     try {
       const res = await API.get('/admin/slas');
       const list = Array.isArray(res.data) ? res.data : res.data.slas ?? [];
+
+      console.log('Fetched SLAs:', list); // Debug log
       setSlas(list);
     } catch (err) {
       console.error('fetchSLAs error', err);
