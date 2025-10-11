@@ -1,6 +1,18 @@
-// src/pages/master/SubCategoryMaster.jsx
+// src/pages/master/SLAMaster.jsx
 import React, { useEffect, useState } from 'react';
-import { Box, Grid, MenuItem, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
+import {
+  Box,
+  Grid,
+  MenuItem,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Typography,
+  Chip
+} from '@mui/material';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import MainCard from 'components/MainCard';
@@ -16,96 +28,144 @@ import LoaderLogo from 'components/LoaderLogo';
 import { NoButton, YesButton } from 'components/DialogActionsButton';
 import gridStyle from 'utils/gridStyle';
 import { useDispatch, useSelector } from 'react-redux';
-
-import {
-  fetchSubCategories,
-  createSubCategory,
-  updateSubCategory,
-  deleteSubCategory,
-  clearSubcategoryError
-} from 'features/subcategories/subcategorySlice';
-
-import { fetchCategories, createCategory, updateCategory, deleteCategory } from 'features/categories/categorySlice';
 import { useNavigate } from 'react-router';
 import { errorMessageStyle } from 'components/StyleComponent';
 import { toast } from 'react-toastify';
 import CustomParagraphLight from 'components/CustomParagraphLight';
+import ValidationStar from 'components/ValidationStar';
+
+import {
+  fetchSLAs,
+  createSLA,
+  updateSLA,
+  deleteSLA,
+  fetchUsers,
+  fetchIssueTypes,
+  clearSLAError,
+  setEditing
+} from 'features/sla/slaSlice';
 
 export default function SLAMaster() {
   const dispatch = useDispatch();
-  const { items: subcategories = [], loading: subLoading } = useSelector((s) => s.subcategories || {});
-  const { items: categories = [], loading: catLoading } = useSelector((s) => s.categories || {});
-
+  const { 
+    items: slas = [], 
+    users = [], 
+    issueTypes = [], 
+    loading,
+    usersLoading,
+    issueTypesLoading
+  } = useSelector((s) => s.sla || {});
+  
   const [editing, setEditing] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [toDelete, setToDelete] = useState(null);
   const navigate = useNavigate();
+
   useEffect(() => {
-    dispatch(fetchCategories());
-    dispatch(fetchSubCategories());
+    dispatch(fetchSLAs());
+    dispatch(fetchUsers());
+    dispatch(fetchIssueTypes());
   }, [dispatch]);
 
-  // const rows = (subcategories || []).map((s, idx) => ({
-  //   id: idx + 1,
-  //   subcategory_id: s.subcategory_id ?? s.id,
-  //   name: s.name,
-  //   category_id: s.category_id,
-  //   category_name: s.category?.name ?? categories.find((c) => (c.category_id ?? c.id) === s.category_id)?.name ?? '',
-  //   description: s.description ?? '',
-  //   status: s.is_active ? 'Active' : 'Inactive'
-  // }));
-  const rows = [
-    {
-      id: 1,
-      name: 'USR001',
-      category_name: 'Login Issue',
-      response_time: '2 hours',
-      resolve_time: '1 day',
-      created_on: '2025-10-08',
-      status: 'Open'
-    },
-    {
-      id: 2,
-      name: 'USR002',
-      category_name: 'Payment Failure',
-      response_time: '1 hour',
-      resolve_time: '6 hours',
-      created_on: '2025-10-07',
-      status: 'Closed'
-    },
-    {
-      id: 3,
-      name: 'USR003',
-      category_name: 'Bug Report',
-      response_time: '3 hours',
-      resolve_time: '2 days',
-      created_on: '2025-10-06',
-      status: 'In Progress'
-    },
-    {
-      id: 4,
-      name: 'USR004',
-      category_name: 'Account Locked',
-      response_time: '30 mins',
-      resolve_time: '3 hours',
-      created_on: '2025-10-05',
-      status: 'Resolved'
-    }
-  ];
+  const rows = (slas || []).map((s, idx) => ({
+    id: s.sla_id ?? s.id ?? idx + 1,
+    sla_id: s.sla_id ?? s.id,
+    user_id: s.user_id,
+    user_name: s.user ? `${s.user.first_name} ${s.user.last_name}` : `User ${s.user_id}`,
+    username: s.user?.username,
+    issue_type_id: s.issue_type_id,
+    issue_type_name: s.issue_type ? s.issue_type.name : 'Unknown',
+    sla_name: s.name,
+    response_target_minutes: s.response_target_minutes,
+    resolve_target_minutes: s.resolve_target_minutes,
+    response_time: `${s.response_target_minutes} minutes`,
+    resolve_time: `${s.resolve_target_minutes} minutes`,
+    created_on: new Date(s.created_on).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    }),
+    status: s.is_active ? 'Active' : 'Inactive',
+    created_by: s.created_by,
+    updated_by: s.updated_by
+  }));
+
   const columns = [
-    { field: 'name', headerName: 'User ID', width: 220 },
-    { field: 'category_name', headerName: 'Issue Type', width: 200 },
-    { field: 'response_time', headerName: 'Response Time', width: 220, flex: 1 },
-    { field: 'resolve_time', headerName: 'Resolve Time', width: 220, flex: 1 },
-    { field: 'created_on', headerName: 'Created On', width: 220, flex: 1 },
-    { field: 'status', headerName: 'Status', width: 120 },
+    { 
+      field: 'user_name', 
+      headerName: 'User', 
+      width: 180,
+      renderCell: (params) => (
+        <Box>
+          <Typography variant="body2" fontWeight="bold">
+            {params.value}
+          </Typography>
+          <Typography variant="caption" color="textSecondary">
+            {params.row.username}
+          </Typography>
+        </Box>
+      )
+    },
+    { 
+      field: 'issue_type_name', 
+      headerName: 'Issue Type', 
+      width: 160 
+    },
+    { 
+      field: 'sla_name', 
+      headerName: 'SLA Name', 
+      width: 150 
+    },
+    { 
+      field: 'response_time', 
+      headerName: 'Response Time', 
+      width: 130,
+      renderCell: (params) => (
+        <Typography variant="body2" fontWeight="medium">
+          {params.value}
+        </Typography>
+      )
+    },
+    { 
+      field: 'resolve_time', 
+      headerName: 'Resolve Time', 
+      width: 130,
+      renderCell: (params) => (
+        <Typography variant="body2" fontWeight="medium">
+          {params.value}
+        </Typography>
+      )
+    },
+    { 
+      field: 'created_on', 
+      headerName: 'Created On', 
+      width: 110 
+    },
+    { 
+      field: 'status', 
+      headerName: 'Status', 
+      width: 90,
+      renderCell: (params) => (
+        <Chip 
+          label={params.value} 
+          size="small"
+          color={params.value === 'Active' ? "success" : "error"}
+          variant="filled"
+        />
+      )
+    },
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 140,
+      width: 110,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <IconButton color="primary" size="small" onClick={() => setEditing(params.row)}>
+          <IconButton 
+            color="primary" 
+            size="small" 
+            onClick={() => setEditing(params.row)}
+            title="Edit SLA"
+          >
             <EditIcon />
           </IconButton>
           <IconButton
@@ -115,6 +175,7 @@ export default function SLAMaster() {
               setToDelete(params.row);
               setDeleteDialogOpen(true);
             }}
+            title="Delete SLA"
           >
             <DeleteIcon />
           </IconButton>
@@ -124,55 +185,90 @@ export default function SLAMaster() {
   ];
 
   const initialValues = {
-    name: editing ? editing.name : '',
-    category_id: editing ? editing.category_id : categories[0]?.category_id ?? categories[0]?.id ?? '',
-    description: editing ? editing.description : '',
+    user_id: editing ? editing.user_id : '',
+    issue_type_id: editing ? editing.issue_type_id : '',
+    name: editing ? editing.sla_name : '',
+    response_target_minutes: editing ? editing.response_target_minutes : 60,
+    resolve_target_minutes: editing ? editing.resolve_target_minutes : 1440,
     status: editing ? (editing.status === 'Active' ? '1' : '0') : '1'
   };
 
   const validationSchema = Yup.object({
-    name: Yup.string().required('Name is required'),
-    category_id: Yup.mixed().required('Category is required'),
-    description: Yup.string().nullable(),
+    user_id: Yup.number().required('User is required'),
+    issue_type_id: Yup.number().required('Issue Type is required'),
+    name: Yup.string()
+      .required('SLA Name is required')
+      .min(2, 'SLA Name must be at least 2 characters')
+      .max(150, 'SLA Name must be less than 150 characters'),
+    response_target_minutes: Yup.number()
+      .required('Response Time is required')
+      .min(1, 'Response Time must be at least 1 minute')
+      .max(525600, 'Response Time must be less than 1 year'),
+    resolve_target_minutes: Yup.number()
+      .required('Resolve Time is required')
+      .min(1, 'Resolve Time must be at least 1 minute')
+      .max(525600, 'Resolve Time must be less than 1 year'),
     status: Yup.string().required('Status is required')
   });
 
   const handleSubmit = async (values, { resetForm }) => {
     const payload = {
-      category_id: Number(values.category_id),
-      name: values.name,
-      description: values.description ?? null,
+      user_id: Number(values.user_id),
+      issue_type_id: Number(values.issue_type_id),
+      name: values.name.trim(),
+      response_target_minutes: Number(values.response_target_minutes),
+      resolve_target_minutes: Number(values.resolve_target_minutes),
       is_active: values.status === '1'
     };
+
     try {
       if (editing) {
-        await dispatch(updateSubCategory({ id: editing.subcategory_id, payload })).unwrap();
+        await dispatch(updateSLA({ 
+          id: editing.sla_id, 
+          payload 
+        })).unwrap();
+        toast.success('SLA updated successfully', { autoClose: 2000 });
       } else {
-        await dispatch(createSubCategory(payload)).unwrap();
+        await dispatch(createSLA(payload)).unwrap();
+        toast.success('SLA created successfully', { autoClose: 2000 });
       }
-      await dispatch(fetchSubCategories());
+      
+      await dispatch(fetchSLAs());
       resetForm();
       setEditing(null);
-      toast.success('Sub Category Submit Successfully', { autoClose: 2000 });
     } catch (err) {
-      console.error('Submit subcategory error', err);
+      console.error('Submit SLA error', err);
+      const errorMsg = err.message || 'Failed to submit SLA';
+      toast.error(errorMsg, { autoClose: 3000 });
     }
   };
 
   const handleDeleteConfirm = async () => {
     if (!toDelete) return;
     try {
-      await dispatch(deleteSubCategory(toDelete.subcategory_id)).unwrap();
+      await dispatch(deleteSLA(toDelete.sla_id)).unwrap();
       setDeleteDialogOpen(false);
       setToDelete(null);
-      await dispatch(fetchSubCategories());
+      await dispatch(fetchSLAs());
+      toast.success('SLA deactivated successfully', { autoClose: 2000 });
     } catch (err) {
-      console.error('Delete subcategory error', err);
+      console.error('Delete SLA error', err);
+      const errorMsg = err.message || 'Failed to delete SLA';
+      toast.error(errorMsg, { autoClose: 3000 });
     }
   };
 
-  const isLoading = subLoading || catLoading;
   const handleBackClick = () => navigate('/mastertab');
+
+  const handleRefresh = () => {
+    dispatch(fetchSLAs());
+    dispatch(fetchUsers());
+    dispatch(fetchIssueTypes());
+    dispatch(clearSLAError());
+  };
+
+  const isLoading = loading || usersLoading || issueTypesLoading;
+
   return (
     <MainCard
       title={
@@ -194,89 +290,133 @@ export default function SLAMaster() {
               initialValues={initialValues}
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
-              key={editing ? editing.subcategory_id : 'new'}
+              key={editing ? editing.sla_id : 'new'}
             >
-              {({ resetForm }) => (
+              {({ resetForm, isSubmitting }) => (
                 <Form>
-                  <Grid container spacing={2} alignItems="center" sx={{ mb: 1 }}>
-                    <Grid item xs={12} sm={1}>
-                      <CustomParagraphLight>User ID</CustomParagraphLight>
-                      <Field as={SelectFieldPadding} name="user_id" fullWidth sx={{ width: '100%' }}>
-                        <MenuItem value="1">User1</MenuItem>
-                        <MenuItem value="0">User2</MenuItem>
+                  <Grid container spacing={2} alignItems="flex-end" sx={{ mb: 2 }}>
+                    <Grid item xs={12} sm={2}>
+                      <CustomParagraphLight>
+                        User<ValidationStar>*</ValidationStar>
+                      </CustomParagraphLight>
+                      <Field as={SelectFieldPadding} name="user_id" fullWidth disabled={isSubmitting}>
+                        <MenuItem value="">Select User</MenuItem>
+                        {users.map((user) => (
+                          <MenuItem key={user.user_id} value={user.user_id}>
+                            {user.first_name} {user.last_name} ({user.username})
+                          </MenuItem>
+                        ))}
                       </Field>
+                      <ErrorMessage name="user_id" component="div" style={errorMessageStyle} />
                     </Grid>
+
                     <Grid item xs={12} sm={2}>
-                      <CustomParagraphLight>Issue Type</CustomParagraphLight>
-                      <Field as={FieldPadding} name="issue_type" placeholder="Issue Type" fullWidth sx={{ width: '100%' }} />
-                      <ErrorMessage name="issue_type" component="div" style={errorMessageStyle} />
+                      <CustomParagraphLight>
+                        Issue Type<ValidationStar>*</ValidationStar>
+                      </CustomParagraphLight>
+                      <Field as={SelectFieldPadding} name="issue_type_id" fullWidth disabled={isSubmitting}>
+                        <MenuItem value="">Select Issue Type</MenuItem>
+                        {issueTypes.map((issueType) => (
+                          <MenuItem key={issueType.issue_type_id} value={issueType.issue_type_id}>
+                            {issueType.name}
+                          </MenuItem>
+                        ))}
+                      </Field>
+                      <ErrorMessage name="issue_type_id" component="div" style={errorMessageStyle} />
                     </Grid>
+
                     <Grid item xs={12} sm={2}>
-                      <CustomParagraphLight>Response Time</CustomParagraphLight>
-                      <Field
-                        as={FieldPadding}
-                        name="response_target_minutes"
-                        placeholder="Response  Time"
-                        fullWidth
-                        sx={{ width: '100%' }}
+                      <CustomParagraphLight>
+                        SLA Name<ValidationStar>*</ValidationStar>
+                      </CustomParagraphLight>
+                      <Field 
+                        as={FieldPadding} 
+                        name="name" 
+                        placeholder="SLA Name" 
+                        fullWidth 
+                        disabled={isSubmitting}
+                      />
+                      <ErrorMessage name="name" component="div" style={errorMessageStyle} />
+                    </Grid>
+
+                    <Grid item xs={12} sm={1.5}>
+                      <CustomParagraphLight>
+                        Response Time (min)<ValidationStar>*</ValidationStar>
+                      </CustomParagraphLight>
+                      <Field 
+                        as={FieldPadding} 
+                        name="response_target_minutes" 
+                        type="number"
+                        placeholder="Response minutes" 
+                        fullWidth 
+                        disabled={isSubmitting}
                       />
                       <ErrorMessage name="response_target_minutes" component="div" style={errorMessageStyle} />
                     </Grid>
-                    <Grid item xs={12} sm={2}>
-                      <CustomParagraphLight>Resolve Time</CustomParagraphLight>
-                      <Field as={FieldPadding} name="resolve_target_minutes" placeholder="Resolve  Time" fullWidth sx={{ width: '100%' }} />
+
+                    <Grid item xs={12} sm={1.5}>
+                      <CustomParagraphLight>
+                        Resolve Time (min)<ValidationStar>*</ValidationStar>
+                      </CustomParagraphLight>
+                      <Field 
+                        as={FieldPadding} 
+                        name="resolve_target_minutes" 
+                        type="number"
+                        placeholder="Resolve minutes" 
+                        fullWidth 
+                        disabled={isSubmitting}
+                      />
                       <ErrorMessage name="resolve_target_minutes" component="div" style={errorMessageStyle} />
                     </Grid>
 
-                    <Grid item xs={12} sm={2}>
-                      <CustomParagraphLight>Created On</CustomParagraphLight>
-                      <Field as={FieldPadding} name="created_on" placeholder="Created On" fullWidth sx={{ width: '100%' }} />
-                      <ErrorMessage name="created_on" component="div" style={errorMessageStyle} />
-                    </Grid>
-
                     <Grid item xs={12} sm={1}>
-                      <CustomParagraphLight>Status</CustomParagraphLight>
-                      <Field as={SelectFieldPadding} name="status" fullWidth sx={{ width: '100%' }}>
+                      <CustomParagraphLight>
+                        Status<ValidationStar>*</ValidationStar>
+                      </CustomParagraphLight>
+                      <Field as={SelectFieldPadding} name="status" fullWidth disabled={isSubmitting}>
                         <MenuItem value="1">Active</MenuItem>
                         <MenuItem value="0">Inactive</MenuItem>
                       </Field>
+                      <ErrorMessage name="status" component="div" style={errorMessageStyle} />
                     </Grid>
 
-                    <Grid item xs={12} sm={1} display={'flex'} alignSelf={'flex-end'} justifyContent={'end'}>
-                      <SubmitButton type="submit" variant="contained">
+                    <Grid item xs={12} sm={2} display="flex" gap={1}>
+                      <SubmitButton 
+                        type="submit" 
+                        variant="contained" 
+                        disabled={isSubmitting}
+                        fullWidth
+                      >
                         {editing ? 'Update' : 'Create'}
                       </SubmitButton>
-                    </Grid>
-
-                    <Grid item xs={12} sm={1} display={'flex'} alignSelf={'flex-end'}>
                       <CustomRefreshBtn
                         onClick={() => {
                           resetForm();
                           setEditing(null);
-                          dispatch(fetchSubCategories());
-                          dispatch(fetchCategories());
-                          dispatch(clearSubcategoryError());
+                          handleRefresh();
                         }}
+                        disabled={isSubmitting}
+                        fullWidth
                       >
                         Refresh
                       </CustomRefreshBtn>
                     </Grid>
-
-                    {/* <Grid item xs={12} sm={12} display="flex" gap={1} justifyContent="flex-end">
-                      <SubmitButton type="submit">{editing ? 'Update' : 'Create'}</SubmitButton>
-                      <CustomRefreshBtn
-                        onClick={() => {
-                          resetForm();
-                          setEditing(null);
-                          dispatch(fetchSubCategories());
-                          dispatch(fetchCategories());
-                          dispatch(clearSubcategoryError());
-                        }}
-                      >
-                        Refresh
-                      </CustomRefreshBtn>
-                    </Grid> */}
                   </Grid>
+
+                  {editing && (
+                    <Box sx={{ mb: 2, p: 1, bgcolor: 'info.light', borderRadius: 1 }}>
+                      <Typography variant="body2" color="info.dark">
+                        <strong>Editing:</strong> {editing.user_name} - {editing.issue_type_name} - {editing.sla_name}
+                        <IconButton 
+                          size="small" 
+                          onClick={() => setEditing(null)}
+                          sx={{ ml: 1 }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Typography>
+                    </Box>
+                  )}
                 </Form>
               )}
             </Formik>
@@ -286,19 +426,36 @@ export default function SLAMaster() {
               sx={{ ...gridStyle, height: '60vh' }}
               rows={rows}
               columns={columns}
-              pageSizeOptions={[10, 25]}
+              pageSizeOptions={[10, 25, 50]}
+              initialState={{ 
+                pagination: { paginationModel: { pageSize: 10 } },
+                sorting: { sortModel: [{ field: 'created_on', sort: 'desc' }] }
+              }}
+              loading={loading}
+              disableRowSelectionOnClick
             />
           </>
         )}
 
-        <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-          <DialogTitle>Confirm Delete</DialogTitle>
+        <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle>Confirm Deactivate</DialogTitle>
           <DialogContent>
-            <DialogContentText>Are you sure you want to delete this subcategory?</DialogContentText>
+            <DialogContentText>
+              Are you sure you want to deactivate the SLA for "{toDelete?.user_name}" - "{toDelete?.issue_type_name}" - "{toDelete?.sla_name}"? 
+              This will make it unavailable for new tickets.
+            </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <NoButton onClick={() => setDeleteDialogOpen(false)}>No</NoButton>
-            <YesButton onClick={handleDeleteConfirm}>Yes</YesButton>
+            <NoButton onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </NoButton>
+            <YesButton 
+              onClick={handleDeleteConfirm}
+              variant="contained"
+              color="error"
+            >
+              Deactivate
+            </YesButton>
           </DialogActions>
         </Dialog>
       </Box>

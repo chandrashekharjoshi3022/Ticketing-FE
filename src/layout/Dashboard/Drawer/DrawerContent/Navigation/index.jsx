@@ -1,5 +1,7 @@
-import { useLayoutEffect, useState } from 'react';
+// src/layout/Dashboard/Drawer/DrawerContent/Navigation/index.jsx
 
+
+import { useLayoutEffect, useState } from 'react';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
@@ -14,8 +16,7 @@ import menuItem from 'menu-items';
 import useConfig from 'hooks/useConfig';
 import { HORIZONTAL_MAX_ITEM, MenuOrientation } from 'config';
 import { useGetMenuMaster } from 'api/menu';
-
-// ==============================|| DRAWER CONTENT - NAVIGATION ||============================== //
+import useConditionalMenuItems from './useConditionalMenuItems'; // Import the new hook
 
 export default function Navigation() {
   const { menuOrientation } = useConfig();
@@ -26,12 +27,9 @@ export default function Navigation() {
   const [selectedID, setSelectedID] = useState('');
   const [selectedItems, setSelectedItems] = useState('');
   const [selectedLevel, setSelectedLevel] = useState(0);
-  const [menuItems, setMenuItems] = useState({ items: [] });
-
-  useLayoutEffect(() => {
-    setMenuItems(menuItem);
-    // eslint-disable-next-line
-  }, [menuItem]);
+  
+  // Use the conditional hook - this will handle the role-based filtering
+  const menuItems = useConditionalMenuItems();
 
   const isHorizontal = menuOrientation === MenuOrientation.HORIZONTAL && !downLG;
 
@@ -82,9 +80,6 @@ export default function Navigation() {
         );
       default:
         return null;
-      // <Typography key={item.id} variant="h6" color="error" align="center">
-      //   Fix - Navigation Group
-      // </Typography>
     }
   });
 
@@ -94,7 +89,6 @@ export default function Navigation() {
         pt: drawerOpen ? (isHorizontal ? 0 : 0) : 0,
         ...(!isHorizontal && { '& > ul:first-of-type': { mt: 0 } }),
         display: isHorizontal ? { xs: 'block', lg: 'flex' } : 'block',
-        // background: '#B1C9DD',
         background: '#A7AAE1'
       }}
     >

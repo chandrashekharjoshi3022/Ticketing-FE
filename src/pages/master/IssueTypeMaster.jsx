@@ -1,3 +1,4 @@
+// src/pages/master/IssueTypeMaster.jsx
 import {
   Box,
   Typography,
@@ -16,6 +17,7 @@ import { useEffect, useState } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useDispatch, useSelector } from 'react-redux';
 
 import MainCard from 'components/MainCard';
 import ValidationStar from 'components/ValidationStar';
@@ -29,93 +31,51 @@ import LoaderLogo from 'components/LoaderLogo';
 import { YesButton, NoButton } from 'components/DialogActionsButton';
 import gridStyle from 'utils/gridStyle';
 import { useNavigate } from 'react-router-dom';
-import API from '../../api/axios';
 import { errorMessageStyle } from 'components/StyleComponent';
 import { toast } from 'react-toastify';
+import API from '../../api/axios'; // your API wrapper
+import {
+  fetchIssueTypes,
+  createIssueType,
+  updateIssueType,
+  deleteIssueType,
+  clearIssueTypeError
+} from 'features/issueType/issueTypeSlice';
 
 export default function IssueTypeMaster() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const [issueTypes, setIssueTypes] = useState([]);
-  // REMOVED: subcategories state
-  const [slaList, setSlaList] = useState([]);
+  const { items: issueTypes = [], loading } = useSelector((s) => s.issueType || {});
   const [priorities, setPriorities] = useState([]);
   const [editingIssueType, setEditingIssueType] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [issueTypeToDelete, setIssueTypeToDelete] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [prioritiesLoading, setPrioritiesLoading] = useState(false);
 
   const handleBackClick = () => navigate('/mastertab');
 
   useEffect(() => {
-    fetchIssueTypes();
-    // REMOVED: fetchSubCategories call
-    fetchSLAs();
+    dispatch(fetchIssueTypes());
     fetchPriorities();
-  }, []);
+  }, [dispatch]);
 
-  // fetch issue types and normalize for grid
-  const fetchIssueTypes = async () => {
-    setLoading(true);
-    try {
-      const res = await API.get('/admin/issuetypes');
-      // backend likely returns { issue_types: [...] } or [...]
-      const listRaw = Array.isArray(res.data) ? res.data : Array.isArray(res.data.issue_types) ? res.data.issue_types : [];
-
-      console.log(listRaw)
-      const list = listRaw.map((it, index) => ({
-        id: index + 1,
-        issue_type_id: it.issue_type_id ?? it.id,
-        name: it.name,
-        // REMOVED: subcategory-related fields
-        sla_id: it.sla?.sla_id ?? it.sla_id,
-        sla: it.sla?.issue_type ?? '-',
-        response_time: it.sla?.response_target_minutes ?? '-',
-        resolve_time: it.sla?.resolve_target_minutes ?? '-',
-        priority_id: it.default_priority?.priority_id ?? it.priority_id ?? null,
-        priority_name: it.default_priority?.name ?? (it.priority ? it.priority.name : null) ?? '-',
-        status: it.is_active ? 'Active' : 'Inactive'
-      }));
-      setIssueTypes(list);
-    } catch (err) {
-      console.error('Error fetching issue types:', err);
-      setIssueTypes([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // REMOVED: fetchSubCategories function
-
-  // fetch SLAs
-  const fetchSLAs = async () => {
-    try {
-      const res = await API.get('/admin/slas');
-      const list = Array.isArray(res.data) ? res.data : Array.isArray(res.data.slas) ? res.data.slas : [];
-      setSlaList(list);
-    } catch (err) {
-      console.error('Error fetching SLAs:', err);
-      setSlaList([]);
-    }
-  };
-
-  // fetch priorities for the new dropdown
   const fetchPriorities = async () => {
+    setPrioritiesLoading(true);
     try {
-      const res = await API.get('/admin/priorities');
-      // backend might respond { priorities: [...] } or [...]
-      const list = Array.isArray(res.data) ? res.data : Array.isArray(res.data.priorities) ? res.data.priorities : [];
+      const response = await API.get('/admin/priorities');
+      const list = Array.isArray(response.data) ? response.data : Array.isArray(response.data.priorities) ? response.data.priorities : [];
       setPriorities(list);
     } catch (err) {
       console.error('Error fetching priorities:', err);
-      setPriorities([]);
+      toast.error('Failed to fetch priorities', { autoClose: 2000 });
+    } finally {
+      setPrioritiesLoading(false);
     }
   };
 
   const handleEdit = (row) => {
-    // we want full object to populate form
     setEditingIssueType(row);
-    // ensure form reinitializes because we use enableReinitialize
   };
 
   const handleDeleteClick = (row) => {
@@ -125,18 +85,15 @@ export default function IssueTypeMaster() {
 
   const handleDeleteConfirm = async () => {
     if (!issueTypeToDelete) return;
-    setLoading(true);
     try {
-      await API.delete(`/admin/issuetypes/${issueTypeToDelete.issue_type_id}`);
-      await fetchIssueTypes();
-      toast.success('Issue Type Deleted Successfully', { autoClose: 2000 });
-    } catch (err) {
-      console.error('Error deleting issue type:', err);
-      toast.error('Failed to delete Issue Type', { autoClose: 2000 });
-    } finally {
-      setLoading(false);
+      await dispatch(deleteIssueType(issueTypeToDelete.issue_type_id)).unwrap();
       setDeleteDialogOpen(false);
       setIssueTypeToDelete(null);
+      toast.success('Issue Type deleted successfully', { autoClose: 2000 });
+    } catch (err) {
+      console.error('Error deleting issue type:', err);
+      const errorMsg = err.message || 'Failed to delete issue type';
+      toast.error(errorMsg, { autoClose: 3000 });
     }
   };
 
@@ -147,17 +104,18 @@ export default function IssueTypeMaster() {
 
   const columns = [
     { field: 'name', headerName: 'Issue Type', width: 220 },
-    // REMOVED: subcategory column
     { field: 'priority_name', headerName: 'Priority', width: 140 },
-    { field: 'sla', headerName: 'SLA Type', width: 220 },
-    { field: 'response_time', headerName: 'Response (min)', width: 140 },
-    { field: 'resolve_time', headerName: 'Resolve (min)', width: 140 },
     {
       field: 'status',
       headerName: 'Status',
       width: 120,
       renderCell: (params) => (
-        <Typography sx={{ color: params.value === 'Active' ? 'green' : 'red', fontWeight: 'bold' }}>{params.value}</Typography>
+        <Typography sx={{ 
+          color: params.value === 'Active' ? 'green' : 'red', 
+          fontWeight: 'bold' 
+        }}>
+          {params.value}
+        </Typography>
       )
     },
     {
@@ -166,10 +124,10 @@ export default function IssueTypeMaster() {
       width: 150,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <IconButton  color="primary" size="small" onClick={() => handleEdit(params.row)}>
+          <IconButton color="primary" size="small" onClick={() => handleEdit(params.row)}>
             <EditIcon />
           </IconButton>
-          <IconButton  color="error" size="small" onClick={() => handleDeleteClick(params.row)}>
+          <IconButton color="error" size="small" onClick={() => handleDeleteClick(params.row)}>
             <DeleteIcon />
           </IconButton>
         </Box>
@@ -177,56 +135,68 @@ export default function IssueTypeMaster() {
     }
   ];
 
-  // initial values consider editingIssueType (enableReinitialize)
+  const rows = (issueTypes || []).map((it, idx) => ({
+    id: it.issue_type_id ?? it.id ?? idx + 1,
+    issue_type_id: it.issue_type_id ?? it.id,
+    name: it.name,
+    priority_id: it.priority_id,
+    priority_name: it.default_priority?.name ?? '-',
+    status: it.is_active ? 'Active' : 'Inactive',
+    description: it.description
+  }));
+
   const initialValues = {
-    // REMOVED: subcategory_id
     name: editingIssueType ? editingIssueType.name : '',
-    sla_id: editingIssueType ? editingIssueType.sla_id : '',
     priority_id: editingIssueType ? editingIssueType.priority_id : '',
+    description: editingIssueType ? editingIssueType.description : '',
     status: editingIssueType ? (editingIssueType.status === 'Active' ? '1' : '0') : '1'
   };
 
   const validationSchema = Yup.object({
-    // REMOVED: subcategory_id validation
-    name: Yup.string().required('Issue Type name is required'),
-    sla_id: Yup.string().required('SLA is required'),
-    priority_id: Yup.string().required('Priority is required'),
-    status: Yup.string().required('Status is required')
+    name: Yup.string()
+      .required('Issue Type name is required')
+      .min(2, 'Issue Type must be at least 2 characters')
+      .max(150, 'Issue Type must be less than 150 characters'),
+    priority_id: Yup.number().required('Priority is required'),
+    status: Yup.string().required('Status is required'),
+    description: Yup.string().nullable()
   });
 
   const handleSubmit = async (values, { resetForm }) => {
-    setLoading(true);
+    const payload = {
+      name: values.name.trim(),
+      priority_id: Number(values.priority_id),
+      description: values.description || null,
+      is_active: values.status === '1'
+    };
+
     try {
-      const payload = {
-        // REMOVED: subcategory_id
-        name: values.name,
-        sla_id: values.sla_id || null,
-        priority_id: values.priority_id || null,
-        is_active: values.status === '1'
-      };
-
       if (editingIssueType) {
-        await API.put(`/admin/issuetypes/${editingIssueType.issue_type_id}`, payload);
-        toast.success('Issue Type Updated Successfully', { autoClose: 2000 });
+        await dispatch(updateIssueType({ 
+          id: editingIssueType.issue_type_id, 
+          payload 
+        })).unwrap();
+        toast.success('Issue Type updated successfully', { autoClose: 2000 });
       } else {
-        await API.post('/admin/issuetypes', payload);
-        toast.success('Issue Type Created Successfully', { autoClose: 2000 });
+        await dispatch(createIssueType(payload)).unwrap();
+        toast.success('Issue Type created successfully', { autoClose: 2000 });
       }
-
-      await fetchIssueTypes();
+      
+      await dispatch(fetchIssueTypes());
       resetForm();
       setEditingIssueType(null);
     } catch (err) {
       console.error('Error saving issue type:', err);
-      toast.error('Failed to save Issue Type', { autoClose: 2000 });
-    } finally {
-      setLoading(false);
+      const errorMsg = err.message || 'Failed to save issue type';
+      toast.error(errorMsg, { autoClose: 3000 });
     }
   };
 
+  const isLoading = loading || prioritiesLoading;
+
   return (
     <>
-      {loading ? (
+      {isLoading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
           <LoaderLogo />
         </Box>
@@ -239,46 +209,28 @@ export default function IssueTypeMaster() {
             </Box>
           }
         >
-          <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit} enableReinitialize>
-            {({ resetForm }) => (
+          <Formik 
+            initialValues={initialValues} 
+            validationSchema={validationSchema} 
+            onSubmit={handleSubmit} 
+            enableReinitialize
+          >
+            {({ resetForm, isSubmitting }) => (
               <Form>
-                <Grid container spacing={2}>
-                  {/* REMOVED: Sub Category field */}
-
-                  <Grid item xs={12} sm={2}>
+                <Grid container spacing={2} alignItems="flex-end">
+                  <Grid item xs={12} sm={3}>
                     <CustomParagraphLight>
                       Issue Type <ValidationStar>*</ValidationStar>
                     </CustomParagraphLight>
-                    <Field as={FieldPadding} name="name" fullWidth />
+                    <Field as={FieldPadding} name="name" fullWidth disabled={isSubmitting} />
                     <ErrorMessage name="name" component="div" style={errorMessageStyle} />
-                  </Grid>
-
-                  <Grid item xs={12} sm={2}>
-                    <CustomParagraphLight>
-                      SLA <ValidationStar>*</ValidationStar>
-                    </CustomParagraphLight>
-                    <Field as={SelectFieldPadding} name="sla_id" fullWidth>
-                      <MenuItem value="">
-                        <em>Select SLA</em>
-                      </MenuItem>
-                      {slaList.map((sla) => {
-                        const id = sla.sla_id ?? sla.id;
-                        const label = `${sla.issue_type} (Response Time - ${sla.response_target_minutes}(min) / Resolve Time - ${sla.resolve_target_minutes}(min))`;
-                        return (
-                          <MenuItem key={id} value={id}>
-                            {label}
-                          </MenuItem>
-                        );
-                      })}
-                    </Field>
-                    <ErrorMessage name="sla_id" component="div" style={errorMessageStyle} />
                   </Grid>
 
                   <Grid item xs={12} sm={2}>
                     <CustomParagraphLight>
                       Priority <ValidationStar>*</ValidationStar>
                     </CustomParagraphLight>
-                    <Field as={SelectFieldPadding} name="priority_id" fullWidth>
+                    <Field as={SelectFieldPadding} name="priority_id" fullWidth disabled={isSubmitting}>
                       <MenuItem value="">
                         <em>Select Priority</em>
                       </MenuItem>
@@ -299,41 +251,87 @@ export default function IssueTypeMaster() {
                     <CustomParagraphLight>
                       Status <ValidationStar>*</ValidationStar>
                     </CustomParagraphLight>
-                    <Field as={SelectFieldPadding} name="status" fullWidth>
+                    <Field as={SelectFieldPadding} name="status" fullWidth disabled={isSubmitting}>
                       <MenuItem value="1">Active</MenuItem>
                       <MenuItem value="0">Inactive</MenuItem>
                     </Field>
                     <ErrorMessage name="status" component="div" style={errorMessageStyle} />
                   </Grid>
 
-                  <Grid item xs={12} sm={2} display="flex" alignItems="flex-end" gap={1}>
-                    <SubmitButton type="submit">{editingIssueType ? 'Update' : 'Submit'}</SubmitButton>
+                  <Grid item xs={12} sm={3}>
+                    <CustomParagraphLight>
+                      Description
+                    </CustomParagraphLight>
+                    <Field as={FieldPadding} name="description" fullWidth disabled={isSubmitting} />
+                    <ErrorMessage name="description" component="div" style={errorMessageStyle} />
+                  </Grid>
+
+                  <Grid item xs={12} sm={2} display="flex" gap={1}>
+                    <SubmitButton type="submit" disabled={isSubmitting}>
+                      {editingIssueType ? 'Update' : 'Create'}
+                    </SubmitButton>
                     <CustomRefreshBtn
                       onClick={() => {
                         resetForm();
                         setEditingIssueType(null);
+                        dispatch(fetchIssueTypes());
+                        dispatch(clearIssueTypeError());
                       }}
+                      disabled={isSubmitting}
                     >
                       Refresh
                     </CustomRefreshBtn>
                   </Grid>
                 </Grid>
+
+                {editingIssueType && (
+                  <Box sx={{ mt: 2, p: 1, bgcolor: 'info.light', borderRadius: 1 }}>
+                    <Typography variant="body2" color="info.dark">
+                      <strong>Editing:</strong> {editingIssueType.name}
+                      <IconButton 
+                        size="small" 
+                        onClick={() => setEditingIssueType(null)}
+                        sx={{ ml: 1 }}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Typography>
+                  </Box>
+                )}
               </Form>
             )}
           </Formik>
 
           <Box sx={{ mt: 3 }}>
-            <DataGrid rows={issueTypes} columns={columns} sx={gridStyle} autoHeight />
+            <DataGrid 
+              rows={rows} 
+              columns={columns} 
+              sx={gridStyle} 
+              autoHeight
+              loading={loading}
+              pageSizeOptions={[10, 25, 50]}
+              initialState={{ 
+                pagination: { paginationModel: { pageSize: 10 } },
+                sorting: { sortModel: [{ field: 'name', sort: 'asc' }] }
+              }}
+            />
           </Box>
 
           <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
-            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogTitle>Confirm Deactivation</DialogTitle>
             <DialogContent>
-              <DialogContentText>Are you sure you want to delete this Issue Type?</DialogContentText>
+              <DialogContentText>
+                Are you sure you want to deactivate this Issue Type? 
+                {issueTypeToDelete?.sla_count > 0 && (
+                  <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+                    Note: This issue type is used by {issueTypeToDelete.sla_count} active SLA(s).
+                  </Typography>
+                )}
+              </DialogContentText>
             </DialogContent>
             <DialogActions>
-              <NoButton onClick={handleDeleteCancel}>No</NoButton>
-              <YesButton onClick={handleDeleteConfirm}>Yes</YesButton>
+              <NoButton onClick={handleDeleteCancel}>Cancel</NoButton>
+              <YesButton onClick={handleDeleteConfirm}>Deactivate</YesButton>
             </DialogActions>
           </Dialog>
         </MainCard>
