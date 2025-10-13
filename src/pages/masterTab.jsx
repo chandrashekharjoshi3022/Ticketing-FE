@@ -44,6 +44,16 @@ const MasterTab = () => {
       icon: <AccountCircleIcon sx={{ color: colors.primary, fontSize: 40 }} />,
       label: 'User',
       path: '/master/users'
+    },
+        {
+      icon: <AccountCircleIcon sx={{ color: colors.primary, fontSize: 40 }} />,
+      label: 'WorkingHoursManagement',
+      path: '/master/WorkingHoursManagement'
+    },
+            {
+      icon: <AccountCircleIcon sx={{ color: colors.primary, fontSize: 40 }} />,
+      label: 'SystemRegistration',
+      path: '/master/SystemRegistration'
     }
   ];
 

@@ -18,6 +18,8 @@ import CateroryMaster from 'pages/master/CateroryMaster';
 import SubCategoryMaster from 'pages/master/SubCategoryMaster';
 import PriorityMaster from 'pages/master/PriorityMaster';
 import SLAMaster from 'pages/master/SLAMaster';
+import WorkingHoursManagement from 'pages/master/WorkingHoursManagement';
+import SystemRegistration from 'pages/master/SystemRegistration';
 
 const MaintenanceError = Loadable(lazy(() => import('pages/maintenance/error/404')));
 const AppContactUS = Loadable(lazy(() => import('pages/contact-us')));
@@ -65,12 +67,14 @@ const MainRoutes = {
                 { path: 'mastertab', element: <MasterTab /> },
                 { path: 'master/vendor', element: <VendorsPages /> },
                 { path: 'master/users', element: <UsersPages /> },
+                 { path: 'master/WorkingHoursManagement', element: <WorkingHoursManagement /> },
                 { path: 'master/items', element: <ItemsPages /> },
                 { path: '/category', element: <CateroryMaster /> },
                 { path: '/subcategory', element: <SubCategoryMaster /> },
                 { path: '/issuetype', element: <IssueTypeMaster /> },
                 { path: '/priority', element: <PriorityMaster /> },
-                { path: '/slamaster', element: <SLAMaster /> }
+                { path: '/slamaster', element: <SLAMaster /> },
+                 { path: 'master/SystemRegistration', element: <SystemRegistration /> }
               ]
             }
           ]
