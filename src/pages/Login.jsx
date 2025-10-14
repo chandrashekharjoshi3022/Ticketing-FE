@@ -278,13 +278,13 @@ export default function Login({ forgot }) {
                   </Grid>
 
                   {/* Forgot Password Link */}
-                  <Grid item xs={12}>
+                  {/* <Grid item xs={12}>
                     <Stack direction="row" justifyContent="flex-end" alignItems="center">
                       <Link variant="body1" component={RouterLink} to={forgot || '/forgot-password'} sx={loginStyles.forgotLink}>
                         Forgot your password?
                       </Link>
                     </Stack>
-                  </Grid>
+                  </Grid> */}
 
                   {/* Login Button */}
                   <Grid item xs={12}>
@@ -304,7 +304,7 @@ export default function Login({ forgot }) {
                   </Grid>
 
                   {/* Additional Links */}
-                  <Grid item xs={12}>
+                  {/* <Grid item xs={12}>
                     <Stack direction="row" justifyContent="center" spacing={1}>
                       <Typography variant="body2" color="text.secondary">
                         Don't have an account?
@@ -313,7 +313,7 @@ export default function Login({ forgot }) {
                         Sign up
                       </Link>
                     </Stack>
-                  </Grid>
+                  </Grid> */}
                 </Grid>
               </form>
             )}

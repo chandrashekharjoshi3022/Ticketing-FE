@@ -459,13 +459,30 @@ export default function TicketRaise() {
 
   // Columns definition
   const columns = [
+    // {
+    //   field: 'actions',
+    //   headerName: 'Actions',
+    //   width: 100,
+    //   renderCell: (params) => (
+    //     <Box sx={{ display: 'flex', gap: 1 }}>
+    //       <IconButton color="primary" onClick={() => handleView(params.row)} size="small" title="View Ticket">
+    //         <VisibilityIcon />
+    //       </IconButton>
+    //       {params.row.status !== 'Closed' && (
+    //         <IconButton color="secondary" onClick={() => handleView(params.row)} size="small" title="Reply to Ticket">
+    //           <ReplyIcon />
+    //         </IconButton>
+    //       )}
+    //     </Box>
+    //   )
+    // },
     {
       field: 'ticket_no',
       headerName: 'Ticket No.',
       width: 130,
       renderCell: (params) => (
-        <Typography variant="body2" color="primary" fontWeight="bold">
-          {params.value}
+        <Typography variant="body2" color="primary" fontWeight="bold" onClick={() => handleView(params.row)} sx={{ cursor: 'pointer' }}>
+          <Box color={'navy'}>{params.value}</Box>
         </Typography>
       )
     },
@@ -532,23 +549,6 @@ export default function TicketRaise() {
       field: 'priority',
       headerName: 'Priority',
       width: 120
-    },
-    {
-      field: 'actions',
-      headerName: 'Actions',
-      width: 100,
-      renderCell: (params) => (
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <IconButton color="primary" onClick={() => handleView(params.row)} size="small" title="View Ticket">
-            <VisibilityIcon />
-          </IconButton>
-          {params.row.status !== 'Closed' && (
-            <IconButton color="secondary" onClick={() => handleView(params.row)} size="small" title="Reply to Ticket">
-              <ReplyIcon />
-            </IconButton>
-          )}
-        </Box>
-      )
     }
   ];
 
@@ -709,7 +709,7 @@ export default function TicketRaise() {
                     >
                       <Tab label={`All (${statusCounts.All})`} value="All" />
                       <Tab label={`Open (${statusCounts.Open})`} value="Open" />
-                      <Tab label={`In Progress (${statusCounts.Pending})`} value="In Progress" />
+                      <Tab label={`Pending (${statusCounts.Pending})`} value="Pending" />
                       <Tab label={`Closed (${statusCounts.Closed})`} value="Closed" />
                     </Tabs>
 
@@ -812,7 +812,7 @@ export default function TicketRaise() {
                           {ticketDetails?.priority || 'Not set'}
                           {isAdmin && (
                             <Typography variant="caption" display="block" color="textSecondary">
-                              {ticketDetails?.is_other_issue ? 'Can be updated in reply' : 'Set by issue type'}
+                              {ticketDetails?.is_other_issue ? '' : ''}
                             </Typography>
                           )}
                         </CustomParagraphLight>
@@ -832,7 +832,281 @@ export default function TicketRaise() {
                     </Grid>
 
                     <Divider sx={{ my: 1 }} />
-                    <Box>
+                    {(isExecutive || isAdmin || ticketDetails.user_id === userId) && ticketDetails.status !== 'Closed' && (
+                      <>
+                        <Box display="flex" alignItems="center" justifyContent="space-between">
+                          <CustomParagraphDark>Add Your Comment</CustomParagraphDark>
+                        </Box>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} md={6} gap={2} mt={1}>
+                            <Grid container spacing={2}>
+                              <Grid item xs={12} md={3}>
+                                <FormControl size="small" sx={{ minWidth: '100%' }}>
+                                  <Select
+                                    value={status}
+                                    onChange={(e) => setStatus(e.target.value)}
+                                    displayEmpty
+                                    sx={{
+                                      '& .MuiSelect-select': { padding: '6px', fontSize: '11px' },
+                                      '& .MuiMenuItem-root': { fontSize: '11px' }
+                                    }}
+                                  >
+                                    <MenuItem value="">
+                                      <em>Select Status</em>
+                                    </MenuItem>
+
+                                    {!isAdmin && !isExecutive && <MenuItem value="Closed">Closed</MenuItem>}
+
+                                    {(isAdmin || isExecutive) && [
+                                      <MenuItem key="Open" value="Open">
+                                        Open
+                                      </MenuItem>,
+                                      <MenuItem key="Pending" value="Pending">
+                                        Pending
+                                      </MenuItem>,
+                                      <MenuItem key="Resolved" value="Resolved">
+                                        Resolved
+                                      </MenuItem>,
+                                      <MenuItem key="Closed" value="Closed">
+                                        Closed
+                                      </MenuItem>
+                                    ]}
+                                  </Select>
+                                </FormControl>
+                              </Grid>
+                              <Grid item xs={12} md={3}>
+                                {isAdmin && (
+                                  <FormControl size="small" sx={{ minWidth: '100%' }}>
+                                    <Select
+                                      value={assign}
+                                      displayEmpty
+                                      onChange={(e) => setAssign(e.target.value)}
+                                      sx={{
+                                        '& .MuiSelect-select': { padding: '6px', fontSize: '11px' },
+                                        '& .MuiMenuItem-root': { fontSize: '11px' }
+                                      }}
+                                    >
+                                      <MenuItem value="">
+                                        <em>Select Assignee</em>
+                                      </MenuItem>
+                                      {executives.map((executive) => (
+                                        <MenuItem key={executive.user_id} value={executive.user_id}>
+                                          {executive.username}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                )}
+                              </Grid>
+                              <Grid item xs={12} md={2.8}>
+                                {isAdmin && ticketDetails?.is_other_issue && (
+                                  <FormControl size="small" sx={{ minWidth: '100%' }}>
+                                    <Select
+                                      value={priority}
+                                      onChange={(e) => setPriority(e.target.value)}
+                                      displayEmpty
+                                      sx={{
+                                        '& .MuiSelect-select': { padding: '6px', fontSize: '11px' },
+                                        '& .MuiMenuItem-root': { fontSize: '11px' }
+                                      }}
+                                    >
+                                      <MenuItem value="">
+                                        <em>Select Priority</em>
+                                      </MenuItem>
+                                      {priorities.map((p) => (
+                                        <MenuItem key={p.priority_id ?? p.id} value={p.name}>
+                                          {p.name}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                )}
+                              </Grid>
+                              <Grid item xs={12} md={3.2}>
+                                <input
+                                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                                  style={{ display: 'none' }}
+                                  id="upload-screenshot"
+                                  type="file"
+                                  multiple
+                                  onChange={handleFileUpload}
+                                />
+                                <label htmlFor="upload-screenshot">
+                                  <Button
+                                    variant="outlined"
+                                    size="small"
+                                    component="span"
+                                    startIcon={<UploadFileIcon />}
+                                    fullWidth
+                                    sx={{
+                                      borderColor: 'grey.400',
+                                      color: 'grey.700',
+                                      '&:hover': {
+                                        borderColor: 'grey.600',
+                                        backgroundColor: 'grey.100'
+                                      }
+                                    }}
+                                  >
+                                    Upload Files ({attachedFiles.length})
+                                  </Button>
+                                </label>
+                              </Grid>
+                              <Grid item xs={12}>
+                                <ReactQuill
+                                  value={replyMessage}
+                                  onChange={setReplyMessage}
+                                  modules={{
+                                    toolbar: [
+                                      ['bold', 'italic', 'underline'],
+                                      [{ list: 'ordered' }, { list: 'bullet' }],
+                                      ['link'],
+                                      ['clean']
+                                    ]
+                                  }}
+                                  style={{ height: 150, marginBottom: 16 }}
+                                  placeholder="Type your reply here..."
+                                />
+                              </Grid>
+                            </Grid>
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            {/* <Box sx={{ backgroundColor: '#f8f9fa', borderRadius: 1 }}>
+                              
+                            </Box> */}
+
+                            {attachedFiles.length > 0 && (
+                              <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 1, backgroundColor: '#fafafa' }}>
+                                {/* <Typography variant="subtitle2" gutterBottom>
+                                      Files to be attached ({attachedFiles.length}):
+                                    </Typography> */}
+                                <Grid container spacing={1}>
+                                  {attachedFiles.map((file, index) => {
+                                    const fileUrl = URL.createObjectURL(file);
+                                    const isImage = file.type.startsWith('image/');
+
+                                    return (
+                                      <Grid item xs={4} key={index}>
+                                        <Card variant="outlined" sx={{ position: 'relative' }}>
+                                          <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
+                                              <Typography variant="body2" sx={{ flexGrow: 1, fontSize: '0.8rem', wordBreak: 'break-word' }}>
+                                                {getFileIcon(file.type)} {file.name}
+                                              </Typography>
+                                              <IconButton
+                                                size="small"
+                                                onClick={() => removeAttachedFile(index)}
+                                                color="error"
+                                                sx={{ ml: 0.5 }}
+                                              >
+                                                <DeleteIcon fontSize="small" />
+                                              </IconButton>
+                                            </Box>
+
+                                            <Typography variant="caption" color="textSecondary" display="block">
+                                              {(file.size / 1024).toFixed(2)} KB • {file.type.split('/')[1] || file.type}
+                                            </Typography>
+
+                                            {/* Image preview for image files */}
+                                            {isImage && (
+                                              <Box sx={{ mt: 1 }}>
+                                                <img
+                                                  src={fileUrl}
+                                                  alt={file.name}
+                                                  style={{
+                                                    width: '100%',
+                                                    height: 90,
+                                                    objectFit: 'cover',
+                                                    border: '1px solid #e0e0e0',
+                                                    borderRadius: 4,
+                                                    cursor: 'pointer'
+                                                  }}
+                                                  onClick={() => {
+                                                    const w = window.open();
+                                                    if (w) {
+                                                      w.document.write(`
+                                                    <!DOCTYPE html>
+                                                    <html>
+                                                      <head>
+                                                        <title>${file.name}</title>
+                                                        <style>
+                                                          body { margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f5f5f5; }
+                                                          img { max-width: 100%; max-height: 90vh; object-fit: contain; }
+                                                        </style>
+                                                      </head>
+                                                      <body>
+                                                        <img src="${fileUrl}" alt="${file.name}" />
+                                                      </body>
+                                                    </html>
+                                                  `);
+                                                    }
+                                                  }}
+                                                />
+                                              </Box>
+                                            )}
+
+                                            {/* Preview button for non-image files */}
+                                            {!isImage && (
+                                              <Box sx={{ display: 'flex', gap: 0.5, mt: 1 }}>
+                                                <Button
+                                                  size="small"
+                                                  variant="outlined"
+                                                  fullWidth
+                                                  sx={{ fontSize: '0.7rem' }}
+                                                  onClick={() => {
+                                                    const link = document.createElement('a');
+                                                    link.href = fileUrl;
+                                                    link.download = file.name;
+                                                    link.click();
+                                                  }}
+                                                >
+                                                  Download
+                                                </Button>
+                                              </Box>
+                                            )}
+                                          </CardContent>
+                                        </Card>
+                                      </Grid>
+                                    );
+                                  })}
+                                </Grid>
+                              </Box>
+                            )}
+                          </Grid>
+                          <Grid item xs={12}>
+                            <Box
+                              sx={{
+                                gap: 2,
+                                mt: 2
+                              }}
+                            >
+                              <Button
+                                variant="outlined"
+                                onClick={() => {
+                                  setReplyMessage('');
+                                  setAttachedFiles([]);
+                                  setStatus('');
+                                  setAssign('');
+                                  setPriority('');
+                                }}
+                                disabled={isSubmittingReply}
+                              >
+                                Clear All
+                              </Button>
+                              <Button
+                                variant="contained"
+                                onClick={handleReplySubmit}
+                                sx={{ marginLeft: 1 }}
+                                startIcon={isSubmittingReply ? <CircularProgress size={16} /> : <ReplyIcon />}
+                              >
+                                {isSubmittingReply ? 'Sending...' : 'Send Reply'}
+                              </Button>
+                            </Box>
+                          </Grid>
+                        </Grid>
+                      </>
+                    )}
+                    {/* <Divider sx={{ my: 4 }} /> */}
+                    <Box mt={4}>
                       <CustomHeading>Conversation History</CustomHeading>
                     </Box>
 
@@ -870,254 +1144,6 @@ export default function TicketRaise() {
                       hideFooter
                       disableColumnMenu
                     />
-
-                    {(isExecutive || isAdmin || ticketDetails.user_id === userId) && ticketDetails.status !== 'Closed' && (
-                      <>
-                        <Box display="flex" alignItems="center" justifyContent="space-between">
-                          <CustomHeading>Add Your Comment</CustomHeading>
-                        </Box>
-
-                        <Box sx={{ backgroundColor: '#f8f9fa', borderRadius: 1, mt: 2 }}>
-                          <ReactQuill
-                            value={replyMessage}
-                            onChange={setReplyMessage}
-                            modules={{
-                              toolbar: [['bold', 'italic', 'underline'], [{ list: 'ordered' }, { list: 'bullet' }], ['link'], ['clean']]
-                            }}
-                            style={{ height: 150, marginBottom: 16, marginTop: 8 }}
-                            placeholder="Type your reply here..."
-                          />
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, mb: 1, gap: 2 }}>
-                          <Box display="flex" alignItems="center" gap={2}>
-                            {/* Status Dropdown */}
-                            <Box sx={{ minWidth: 120 }}>
-                              {/* <CustomParagraphLight>Upload Files</CustomParagraphLight> */}
-                              <input
-                                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
-                                style={{ display: 'none' }}
-                                id="upload-screenshot"
-                                type="file"
-                                multiple
-                                onChange={handleFileUpload}
-                              />
-                              <label htmlFor="upload-screenshot">
-                                <Button variant="outlined" size="small" component="span" startIcon={<UploadFileIcon />}>
-                                  Upload Files ({attachedFiles.length})
-                                </Button>
-                              </label>
-                            </Box>
-                            <FormControl size="small" sx={{ minWidth: 150 }}>
-                              {/* <CustomParagraphLight>Select Status</CustomParagraphLight> */}
-                              <Select
-                                value={status}
-                                onChange={(e) => setStatus(e.target.value)}
-                                displayEmpty
-                                sx={{
-                                  '& .MuiSelect-select': {
-                                    padding: '6px',
-                                    fontSize: '11px'
-                                  },
-                                  '& .MuiMenuItem-root': {
-                                    fontSize: '11px'
-                                  }
-                                }}
-                              >
-                                <MenuItem value="">
-                                  <em>Select Status</em>
-                                </MenuItem>
-
-                                {!isAdmin && !isExecutive && <MenuItem value="Closed">Closed</MenuItem>}
-
-                                {(isAdmin || isExecutive) && [
-                                  <MenuItem key="Open" value="Open">
-                                    Open
-                                  </MenuItem>,
-                                  <MenuItem key="Pending" value="Pending">
-                                    Pending
-                                  </MenuItem>,
-                                  <MenuItem key="Resolved" value="Resolved">
-                                    Resolved
-                                  </MenuItem>,
-                                  <MenuItem key="Closed" value="Closed">
-                                    Closed
-                                  </MenuItem>
-                                ]}
-                              </Select>
-                            </FormControl>
-                            {isAdmin && ticketDetails?.is_other_issue && (
-                              <FormControl size="small" sx={{ minWidth: 150 }}>
-                                <Select
-                                  value={priority}
-                                  onChange={(e) => setPriority(e.target.value)}
-                                  displayEmpty
-                                  sx={{
-                                    '& .MuiSelect-select': {
-                                      padding: '6px',
-                                      fontSize: '11px'
-                                    },
-                                    '& .MuiMenuItem-root': {
-                                      fontSize: '11px'
-                                    }
-                                  }}
-                                >
-                                  <MenuItem value="">
-                                    <em>Select Priority</em>
-                                  </MenuItem>
-                                  {priorities.map((p) => (
-                                    <MenuItem key={p.priority_id ?? p.id} value={p.name}>
-                                      {p.name}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                              </FormControl>
-                            )}
-                            {isAdmin && (
-                              <FormControl size="small" sx={{ minWidth: 150 }}>
-                                {/* <CustomParagraphLight>Select Assignee</CustomParagraphLight> */}
-                                <Select
-                                  value={assign}
-                                  displayEmpty
-                                  onChange={(e) => setAssign(e.target.value)}
-                                  sx={{
-                                    '& .MuiSelect-select': {
-                                      padding: '6px',
-                                      fontSize: '11px' // Set font size for the selected value
-                                    },
-                                    '& .MuiMenuItem-root': {
-                                      fontSize: '11px' // Set font size for dropdown options
-                                    }
-                                  }}
-                                >
-                                  <MenuItem value="">
-                                    <em>Select Assignee</em>
-                                  </MenuItem>
-                                  {executives.map((executive) => (
-                                    <MenuItem key={executive.user_id} value={executive.user_id}>
-                                      {executive.username}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                              </FormControl>
-                            )}
-                          </Box>
-                        </Box>
-                        {attachedFiles.length > 0 && (
-                          <Box sx={{ mt: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1, backgroundColor: '#fafafa' }}>
-                            <Typography variant="subtitle2" gutterBottom>
-                              Files to be attached ({attachedFiles.length}):
-                            </Typography>
-                            <Grid container spacing={1}>
-                              {attachedFiles.map((file, index) => {
-                                const fileUrl = URL.createObjectURL(file);
-                                const isImage = file.type.startsWith('image/');
-
-                                return (
-                                  <Grid item xs={12} sm={6} md={3} key={index}>
-                                    <Card variant="outlined" sx={{ position: 'relative' }}>
-                                      <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
-                                        <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
-                                          <Typography variant="body2" sx={{ flexGrow: 1, fontSize: '0.8rem', wordBreak: 'break-word' }}>
-                                            {getFileIcon(file.type)} {file.name}
-                                          </Typography>
-                                          <IconButton size="small" onClick={() => removeAttachedFile(index)} color="error" sx={{ ml: 0.5 }}>
-                                            <DeleteIcon fontSize="small" />
-                                          </IconButton>
-                                        </Box>
-
-                                        <Typography variant="caption" color="textSecondary" display="block">
-                                          {(file.size / 1024).toFixed(2)} KB • {file.type.split('/')[1] || file.type}
-                                        </Typography>
-
-                                        {/* Image preview for image files */}
-                                        {isImage && (
-                                          <Box sx={{ mt: 1 }}>
-                                            <img
-                                              src={fileUrl}
-                                              alt={file.name}
-                                              style={{
-                                                width: '100%',
-                                                height: 80,
-                                                objectFit: 'cover',
-                                                border: '1px solid #e0e0e0',
-                                                borderRadius: 4,
-                                                cursor: 'pointer'
-                                              }}
-                                              onClick={() => {
-                                                const w = window.open();
-                                                if (w) {
-                                                  w.document.write(`
-                                                    <!DOCTYPE html>
-                                                    <html>
-                                                      <head>
-                                                        <title>${file.name}</title>
-                                                        <style>
-                                                          body { margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #f5f5f5; }
-                                                          img { max-width: 100%; max-height: 90vh; object-fit: contain; }
-                                                        </style>
-                                                      </head>
-                                                      <body>
-                                                        <img src="${fileUrl}" alt="${file.name}" />
-                                                      </body>
-                                                    </html>
-                                                  `);
-                                                }
-                                              }}
-                                            />
-                                          </Box>
-                                        )}
-
-                                        {/* Preview button for non-image files */}
-                                        {!isImage && (
-                                          <Box sx={{ display: 'flex', gap: 0.5, mt: 1 }}>
-                                            <Button
-                                              size="small"
-                                              variant="outlined"
-                                              fullWidth
-                                              sx={{ fontSize: '0.7rem' }}
-                                              onClick={() => {
-                                                const link = document.createElement('a');
-                                                link.href = fileUrl;
-                                                link.download = file.name;
-                                                link.click();
-                                              }}
-                                            >
-                                              Download
-                                            </Button>
-                                          </Box>
-                                        )}
-                                      </CardContent>
-                                    </Card>
-                                  </Grid>
-                                );
-                              })}
-                            </Grid>
-                          </Box>
-                        )}
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8, mb: 1, gap: 2 }}>
-                          <Button
-                            variant="outlined"
-                            onClick={() => {
-                              setReplyMessage('');
-                              setAttachedFiles([]);
-                              setStatus('');
-                              setAssign('');
-                              setPriority('');
-                            }}
-                            disabled={isSubmittingReply}
-                          >
-                            Clear All
-                          </Button>
-                          <Button
-                            variant="contained"
-                            onClick={handleReplySubmit}
-                            startIcon={isSubmittingReply ? <CircularProgress size={16} /> : <ReplyIcon />}
-                          >
-                            {isSubmittingReply ? 'Sending...' : 'Send Reply'}
-                          </Button>
-                        </Box>
-                      </>
-                    )}
                   </>
                 ) : (
                   <Box sx={{ textAlign: 'center', py: 4 }}>

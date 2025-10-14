@@ -24,7 +24,7 @@ export default function SamplePage() {
 
   const totalTickets = tickets?.length || 0;
   const openTickets = tickets?.filter((t) => t.status === 'Open').length || 0;
-  const pendingTickets = tickets?.filter((t) => t.status === 'In Progress').length || 0;
+  const pendingTickets = tickets?.filter((t) => t.status === 'Pending').length || 0;
   const closedTickets = tickets?.filter((t) => t.status === 'Closed').length || 0;
   const ResolvedTickets = tickets?.filter((t) => t.status === 'Resolved').length || 0;
 

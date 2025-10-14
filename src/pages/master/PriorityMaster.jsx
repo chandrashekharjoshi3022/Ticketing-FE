@@ -31,6 +31,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchPriorities, createPriority, updatePriority, deletePriority } from 'features/priorities/prioritySlice';
 import { useNavigate } from 'react-router';
 import { errorMessageStyle } from 'components/StyleComponent';
+import CustomParagraphLight from 'components/CustomParagraphLight';
 
 export default function PriorityMaster() {
   const dispatch = useDispatch();
@@ -60,11 +61,12 @@ export default function PriorityMaster() {
       width: 140,
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <IconButton  color="primary" size="small" onClick={() => setEditing(params.row)}>
+          <IconButton color="primary" size="small" onClick={() => setEditing(params.row)}>
             <EditIcon />
           </IconButton>
           <IconButton
-            color="error" size="small"
+            color="error"
+            size="small"
             onClick={() => {
               setToDelete(params.row);
               setDeleteDialogOpen(true);
@@ -143,11 +145,14 @@ export default function PriorityMaster() {
                 <Form>
                   <Grid container spacing={2} alignItems="center" sx={{ mb: 1 }}>
                     <Grid item xs={12} sm={2}>
+                      <CustomParagraphLight>Priority Name</CustomParagraphLight>
                       <Field as={FieldPadding} name="name" placeholder="Priority name (e.g. High)" fullWidth sx={{ width: '100%' }} />
                       <ErrorMessage name="name" component="div" style={errorMessageStyle} />
                     </Grid>
 
                     <Grid item xs={12} sm={2}>
+                      <CustomParagraphLight>Sort Order</CustomParagraphLight>
+
                       <Field
                         as={FieldPadding}
                         type="number"
@@ -158,9 +163,13 @@ export default function PriorityMaster() {
                       />
                       <ErrorMessage name="sort_order" component="div" style={errorMessageStyle} />
                     </Grid>
+                    <Grid item xs={12} sm={1} display={'flex'} alignSelf={'flex-end'} justifyContent={'end'}>
+                      <SubmitButton type="submit" variant="contained">
+                        {editing ? 'Update' : 'Submit'}
+                      </SubmitButton>
+                    </Grid>
 
-                    <Grid item xs={12} sm={2} display="flex" gap={1} justifyContent="flex-end">
-                      <SubmitButton type="submit">{editing ? 'Update' : 'Create'}</SubmitButton>
+                    <Grid item xs={12} sm={1} display={'flex'} alignSelf={'flex-end'}>
                       <CustomRefreshBtn
                         onClick={() => {
                           resetForm();
@@ -171,6 +180,18 @@ export default function PriorityMaster() {
                         Refresh
                       </CustomRefreshBtn>
                     </Grid>
+                    {/* <Grid item xs={12} sm={2} display="flex" gap={1} justifyContent="flex-end">
+                      <SubmitButton type="submit">{editing ? 'Update' : 'Create'}</SubmitButton>
+                      <CustomRefreshBtn
+                        onClick={() => {
+                          resetForm();
+                          setEditing(null);
+                          dispatch(fetchPriorities());
+                        }}
+                      >
+                        Refresh
+                      </CustomRefreshBtn>
+                    </Grid> */}
                   </Grid>
                 </Form>
               )}
