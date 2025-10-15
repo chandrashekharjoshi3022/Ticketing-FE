@@ -736,7 +736,7 @@ export default function TicketRaise() {
                       noRowsOverlay: () => (
                         <Box>
                           <Typography variant="body2" sx={{ color: 'red', fontWeight: 500 }}>
-                            Not Found Data
+                            No Record Found
                           </Typography>
                         </Box>
                       )
