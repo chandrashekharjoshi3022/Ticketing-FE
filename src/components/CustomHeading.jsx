@@ -2,7 +2,7 @@ import React from 'react';
 import { styled } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 const CustomHeadingw = styled(Typography)({
-  fontSize: '13px',
+  fontSize: '14px',
   color: 'navy',
   fontWeight: '600'
 });

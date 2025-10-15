@@ -1,4 +1,3 @@
-// src/components/TicketFormFull.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Box,
@@ -19,34 +18,32 @@ import {
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch } from 'react-redux';
-import { toast } from 'react-toastify';
 import SelectFieldPadding from 'components/selectFieldPadding';
 import FieldPadding from 'components/FieldPadding';
 import SubmitButton from 'components/CustomSubmitBtn';
 import CustomRefreshBtn from 'components/CustomRefreshBtn';
 import CustomParagraphLight from 'components/CustomParagraphLight';
 import ValidationStar from 'components/ValidationStar';
-import LoaderLogo from 'components/LoaderLogo';
 import { NoButton, YesButton } from 'components/DialogActionsButton';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import MainCard from 'components/MainCard';
 import { errorMessageStyle } from 'components/StyleComponent';
 import API from '../../api/axios'; // your API wrapper
 import { createTicket, fetchTickets } from '../../features/tickets/ticketSlice';
 import CloseIcon from '@mui/icons-material/Close';
+import CancelButton from 'components/CustomCancelButton';
 const FilePreviewDialog = ({ open, onClose, file, fileUrl }) => {
   if (!file) return null;
   const isImage = file.type && file.type.startsWith('image/');
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>
+      <DialogTitle sx={{ bgcolor: '#c2d4ff', marginBottom: 2 }}>
         File Preview: {file.name}
-        <IconButton aria-label="close" onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8 }}>
-          <CloseIcon sx={{ color: 'red' }} />
+        <IconButton aria-label="close" onClick={onClose} sx={{ position: 'absolute', right: 8, top: 8, fontWeight: 800 }}>
+          <CloseIcon sx={{ color: 'red', fontWeight: 800 }} />
         </IconButton>
       </DialogTitle>
       <DialogContent>
@@ -68,14 +65,11 @@ const FilePreviewDialog = ({ open, onClose, file, fileUrl }) => {
           </Box>
         )}
       </DialogContent>
-      {/* <DialogActions>
-        <Button onClick={onClose}>Close</Button>
-      </DialogActions> */}
     </Dialog>
   );
 };
 
-const TicketForm = () => {
+const TicketForm = ({ onCancel }) => {
   const dispatch = useDispatch();
   const fileInputRef = useRef(null);
 
@@ -94,14 +88,15 @@ const TicketForm = () => {
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedFileUrl, setSelectedFileUrl] = useState('');
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  const [raisedTicketId, setRaisedTicketId] = useState(null);
 
   useEffect(() => {
     fetchCategories();
     fetchPriorities();
     fetchSLAs();
-    fetchIssueTypes(); // ADD: Fetch all issue types on component mount
+    fetchIssueTypes();
   }, []);
-
   const fetchCategories = async () => {
     try {
       const res = await API.get('/admin/categories');
@@ -130,7 +125,7 @@ const TicketForm = () => {
 
   const fetchIssueTypes = async () => {
     try {
-      const res = await API.get('/admin/issuetypes'); // REMOVE: subcategoryId parameter
+      const res = await API.get('/admin/issuetypes');
       const list = Array.isArray(res.data) ? res.data : res.data.issue_types ?? [];
       setIssueTypes(list);
     } catch (err) {
@@ -138,21 +133,6 @@ const TicketForm = () => {
       setIssueTypes([]);
     }
   };
-
-  // const fetchIssueTypes = async (subcategoryId) => {
-  //   if (!subcategoryId) {
-  //     setIssueTypes([]);
-  //     return;
-  //   }
-  //   try {
-  //     const res = await API.get(`/admin/issuetypes?subcategoryId=${encodeURIComponent(subcategoryId)}`);
-  //     const list = Array.isArray(res.data) ? res.data : res.data.issue_types ?? [];
-  //     setIssueTypes(list);
-  //   } catch (err) {
-  //     console.error('fetchIssueTypes error', err);
-  //     setIssueTypes([]);
-  //   }
-  // };
 
   const fetchPriorities = async () => {
     try {
@@ -169,8 +149,6 @@ const TicketForm = () => {
     try {
       const res = await API.get('/admin/slas');
       const list = Array.isArray(res.data) ? res.data : res.data.slas ?? [];
-
-      console.log('Fetched SLAs:', list); // Debug log
       setSlas(list);
     } catch (err) {
       console.error('fetchSLAs error', err);
@@ -213,7 +191,15 @@ const TicketForm = () => {
     setSelectedFileUrl(url);
     setPreviewDialogOpen(true);
   };
+  const handleRaiseTicket = () => {
+    // Close confirmation dialog first
+    setConfirmDialogOpen(false);
 
+    // Simulate API call or success
+    setTimeout(() => {
+      setSuccessDialogOpen(true); // Open success dialog after raising ticket
+    }, 300);
+  };
   const handleClosePreview = () => {
     setPreviewDialogOpen(false);
     if (selectedFileUrl) {
@@ -259,7 +245,6 @@ const TicketForm = () => {
     issueType: Yup.string().required('Issue Type required'),
     priority: Yup.string().required('Priority required'),
     comments: Yup.string().required('Comments required'),
-    // files optional - size checks only if present
     files: Yup.array()
       .test('fileSize', 'File too large (max 5MB each)', (value) => {
         if (!value || value.length === 0) return true;
@@ -273,27 +258,28 @@ const TicketForm = () => {
   });
 
   const handleSubmitClick = (values, formikHelpers) => {
-    // Files are optional
+    const { setSubmitting } = formikHelpers;
+
     setSubmitValues({ values, formikHelpers });
     setConfirmDialogOpen(true);
+
+    // ✅ Stop Formik from thinking it’s still submitting
+    setSubmitting(false);
   };
 
   const handleConfirmSubmit = async () => {
     if (!submitValues) return;
-    setIsLoading(true);
+    // setIsLoading(true);
     try {
       const { values, formikHelpers } = submitValues;
       const { resetForm, setSubmitting } = formikHelpers;
 
-      // Resolve selected objects
       const selCategory = categories.find((c) => String(c.category_id) === String(values.category));
       const selSub = subcategories.find((s) => String(s.subcategory_id) === String(values.subCategory));
       const selIssue = issueTypes.find((it) => String(it.issue_type_id ?? it.id) === String(values.issueType));
       const selPriority = priorities.find((p) => String(p.priority_id ?? p.id) === String(values.priority));
 
       const formData = new FormData();
-
-      // Common fields for all issue types
       formData.append('category_id', values.category || '');
       formData.append('category', selCategory ? selCategory.category_name ?? selCategory.name ?? '' : '');
       formData.append('subCategory_id', values.subCategory || '');
@@ -301,38 +287,36 @@ const TicketForm = () => {
       formData.append('priority_id', values.priority || '');
       formData.append('priority', selPriority ? selPriority.name : '');
 
-      // Issue Type handling
       if (String(values.issueType) === 'Other' || String(values.issueType).toLowerCase() === 'other') {
         formData.append('issueType', 'Other');
         if (values.issueName) formData.append('issueName', values.issueName);
-        // Use default SLA for Other issues
         formData.append('sla_id', String(1));
       } else {
-        // Regular issue type
         formData.append('issueType_id', values.issueType || '');
         formData.append('issueType', selIssue ? selIssue.name ?? selIssue.issue_type ?? '' : '');
-
-        // Use SLA from issue type or default
         const issueSlaId = selIssue?.sla_id ?? selIssue?.sla?.sla_id ?? '1';
         formData.append('sla_id', issueSlaId);
       }
 
       formData.append('comment', values.comments || '');
+      (values.files || []).forEach((f) => formData.append('files', f));
 
-      (values.files || []).forEach((f) => {
-        formData.append('files', f);
-      });
+      // ✅ Create ticket
+      const response = await dispatch(createTicket(formData)).unwrap();
+      // Assuming response contains ticket_id
+      const ticketId = response?.ticket?.ticket_id;
 
-      // Dispatch createTicket
-      await dispatch(createTicket(formData)).unwrap();
       await dispatch(fetchTickets()).unwrap();
 
       resetForm();
       setSubmitting(false);
       setConfirmDialogOpen(false);
+      setSuccessDialogOpen(true);
       setSubmitValues(null);
-      setSuccessMessage('Ticket raised successfully!');
-      toast.success('Ticket raised successfully!', { autoClose: 2000 });
+
+      // ✅ Show success dialog with ticket number
+      if (ticketId) setRaisedTicketId(ticketId);
+      setSuccessDialogOpen(true);
 
       if (selectedFileUrl) {
         URL.revokeObjectURL(selectedFileUrl);
@@ -344,29 +328,6 @@ const TicketForm = () => {
       setIsLoading(false);
     }
   };
-
-  // handlers that cascade selections
-  // const onCategoryChange = async (categoryId, setFieldValue) => {
-  //   setFieldValue('subCategory', '');
-  //   setFieldValue('issueType', '');
-  //   setFieldValue('priority', '');
-  //   setFieldValue('issueName', '');
-  //   setSubcategories([]);
-  //   // setIssueTypes([]);
-  //   if (categoryId) {
-  //     await fetchSubcategories(categoryId);
-  //   }
-  // };
-
-  // const onSubCategoryChange = async (subcategoryId, setFieldValue) => {
-  //   setFieldValue('issueType', '');
-  //   setFieldValue('priority', '');
-  //   setFieldValue('issueName', '');
-  //   // setIssueTypes([]);
-  //   // if (subcategoryId) {
-  //   //   await fetchIssueTypes(subcategoryId);
-  //   // }
-  // };
 
   const onCategoryChange = async (categoryId, setFieldValue) => {
     setFieldValue('subCategory', '');
@@ -385,47 +346,6 @@ const TicketForm = () => {
     setFieldValue('issueName', '');
   };
 
-  // IMPORTANT: when selecting an issueType that is NOT "Other",
-  // auto-set its default priority and disable the priority selector.
-  // const onIssueTypeChange = (issueTypeId, setFieldValue, values) => {
-  //   setFieldValue('priority', '');
-  //   setFieldValue('issueName', '');
-  //   if (!issueTypeId) {
-  //     return;
-  //   }
-  //   if (String(issueTypeId) === 'Other' || String(issueTypeId).toLowerCase() === 'other') {
-  //     setFieldValue('priority', '');
-  //     return;
-  //   }
-  //   const it = issueTypes.find((x) => String(x.issue_type_id ?? x.id) === String(issueTypeId));
-  //   const defaultPri = it?.priority_id ?? it?.default_priority?.priority_id ?? '';
-  //   if (defaultPri) {
-  //     setFieldValue('priority', String(defaultPri));
-  //   } else {
-  //     setFieldValue('priority', '');
-  //   }
-  // };
-
-  // const onIssueTypeChange = (issueTypeId, setFieldValue, values) => {
-  //   setFieldValue('issueName', '');
-
-  //   if (!issueTypeId) {
-  //     return;
-  //   }
-
-  //   if (String(issueTypeId) === 'Other' || String(issueTypeId).toLowerCase() === 'other') {
-
-  //     return;
-  //   }
-
-  //   const it = issueTypes.find((x) => String(x.issue_type_id ?? x.id) === String(issueTypeId));
-  //   const defaultPri = it?.priority_id ?? it?.default_priority?.priority_id ?? '';
-
-  //   if (defaultPri && !values.priority) {
-  //     setFieldValue('priority', String(defaultPri));
-  //   }
-  // };
-
   const onIssueTypeChange = (issueTypeId, setFieldValue, values) => {
     setFieldValue('issueName', '');
 
@@ -435,19 +355,15 @@ const TicketForm = () => {
     }
 
     if (String(issueTypeId) === 'Other' || String(issueTypeId).toLowerCase() === 'other') {
-      // For "Other" issue type, clear priority and let user choose
       setFieldValue('priority', '');
       return;
     }
-
-    // For regular issue types, auto-set the priority from the issue type and lock it
     const it = issueTypes.find((x) => String(x.issue_type_id ?? x.id) === String(issueTypeId));
     const defaultPri = it?.priority_id ?? it?.default_priority?.priority_id ?? '';
 
     if (defaultPri) {
       setFieldValue('priority', String(defaultPri));
     } else {
-      // If no priority found, set to default Medium priority
       const mediumPriority = priorities.find((p) => p.name === 'Medium');
       if (mediumPriority) {
         setFieldValue('priority', String(mediumPriority.priority_id ?? mediumPriority.id));
@@ -456,13 +372,7 @@ const TicketForm = () => {
   };
 
   return (
-    <>
-      {successMessage && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage('')}>
-          {successMessage}
-        </Alert>
-      )}
-
+    <Box style={{ height: '85dvh', overflowY: 'auto', overflowX: 'hidden' }}>
       {errorMessage && (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErrorMessage('')}>
           {errorMessage}
@@ -587,9 +497,7 @@ const TicketForm = () => {
                     ))}
                   </Field>
                   <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mt: 0.5 }}>
-                    {String(values.issueType) === 'Other' || values.issueType === ''
-                      ? ''
-                      : ''}
+                    {String(values.issueType) === 'Other' || values.issueType === '' ? '' : ''}
                   </Typography>
                   <ErrorMessage name="priority" component="div" style={errorMessageStyle} />
                 </Grid>
@@ -657,19 +565,6 @@ const TicketForm = () => {
                                     {formatFileSize(file.size)} • {file.type?.split('/')[1] || file.type}
                                   </Typography>
                                 </Box>
-
-                                {/* <Box sx={{ display: 'flex', gap: 0.5, mt: 1.5 }}>
-                                  <Button
-                                    size="small"
-                                    startIcon={<VisibilityIcon />}
-                                    onClick={() => handlePreviewFile(file)}
-                                    variant="outlined"
-                                    fullWidth
-                                    sx={{ fontSize: '0.7rem' }}
-                                  >
-                                    Preview
-                                  </Button>
-                                </Box> */}
                               </CardContent>
                             </Card>
                           </Grid>
@@ -707,29 +602,68 @@ const TicketForm = () => {
                   >
                     Reset
                   </CustomRefreshBtn>
-
-                  {/* Submit always enabled (files optional) */}
                   <SubmitButton type="button" variant="contained" onClick={() => handleSubmit()} disabled={isSubmitting}>
-                    {isSubmitting ? 'Submitting...' : 'Submit Ticket'}
+                    {isSubmitting ? 'Submitting...' : 'Submit'}
                   </SubmitButton>
                 </Grid>
               </Grid>
             </Form>
 
-            <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)}>
-              <DialogTitle>Confirm Raise Ticket</DialogTitle>
+            <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)} maxWidth="xs" fullWidth>
+              <DialogTitle
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  backgroundColor: '#244b78',
+                  color: 'white',
+                  padding: '10px 20px',
+                  fontWeight: '600',
+                  marginBottom: '15px'
+                }}
+              >
+                Confirm Raise Ticket
+              </DialogTitle>
               <DialogContent>
-                <DialogContentText>
-                  Are you sure you want to raise this ticket? This action cannot be undone.
-                  <br />
-                  <strong>Files to upload: {submitValues?.values?.files?.length ?? 0}</strong>
-                </DialogContentText>
+                <DialogContentText>Are you sure you want to raise this ticket?</DialogContentText>
               </DialogContent>
               <DialogActions>
-                <NoButton onClick={() => setConfirmDialogOpen(false)}>Cancel</NoButton>
-                <YesButton onClick={handleConfirmSubmit} disabled={isLoading}>
+                <CancelButton onClick={() => setConfirmDialogOpen(false)}>Cancel</CancelButton>
+                <SubmitButton onClick={handleConfirmSubmit} disabled={isLoading}>
                   {isLoading ? 'Submitting...' : 'Yes, Raise Ticket'}
-                </YesButton>
+                </SubmitButton>
+              </DialogActions>
+            </Dialog>
+            <Dialog open={successDialogOpen} onClose={() => setSuccessDialogOpen(false)} maxWidth="xs" fullWidth>
+              <DialogTitle
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  backgroundColor: '#244b78',
+                  color: 'white',
+                  padding: '10px 20px',
+                  fontWeight: '600',
+                  marginBottom: '15px'
+                }}
+              >
+                Ticket Generated
+              </DialogTitle>
+              <DialogContent sx={{ textAlign: 'center', fontWeight: 700, color: 'green' }}>
+                <DialogContentText sx={{ textAlign: 'center', fontWeight: 700, color: 'green' }}>
+                  {' '}
+                  🎉 Ticket No. {raisedTicketId} Raised Successfully!
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions sx={{ justifyContent: 'center' }}>
+                <SubmitButton
+                  onClick={() => {
+                    onCancel();
+                    setSuccessDialogOpen(false);
+                  }}
+                >
+                  OK
+                </SubmitButton>
               </DialogActions>
             </Dialog>
 
@@ -737,7 +671,7 @@ const TicketForm = () => {
           </>
         )}
       </Formik>
-    </>
+    </Box>
   );
 };
 

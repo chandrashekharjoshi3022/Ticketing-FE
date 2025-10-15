@@ -52,7 +52,7 @@ export default function SamplePage() {
           </Typography>
 
           {/* ✅ User info with role */}
-          <Box display="flex" alignItems="center" gap={1} sx={{ ml: 2 }}>
+          {/* <Box display="flex" alignItems="center" gap={1} sx={{ ml: 2 }}>
             <Typography variant="body2" color="textSecondary">
               Welcome, {currentUser?.username || 'Guest'}
             </Typography>
@@ -63,7 +63,7 @@ export default function SamplePage() {
               size="small"
               variant="outlined"
             />
-          </Box>
+          </Box> */}
         </Box>
       }
     >

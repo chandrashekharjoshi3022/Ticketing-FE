@@ -1,3 +1,5 @@
+import { height } from '@mui/system';
+
 const gridStyle = {
   // height:'100%',
   // paddingBottom: '200px',
@@ -8,7 +10,9 @@ const gridStyle = {
     border: '1px solid rgba(224, 224, 224, 1)',
     display: 'flex',
     alignItems: 'center'
+    
   },
+  '--DataGrid-headersTotalHeight': '0px',
   '& .MuiDataGrid-columnHeader': {
     backgroundColor: '#f5f5f5',
     border: '1px solid rgba(224, 224, 224, 1)',
@@ -19,8 +23,12 @@ const gridStyle = {
     display: 'flex',
     alignItems: 'center'
   },
-  '& .css-qzaw2-MuiTablePagination-root': {
+  '& .MuiTablePagination-root': {
     overflow: 'hidden'
+  },
+  '& .MuiDataGrid-cell p': {
+    margin: 0,
+    padding: 0
   },
   '& input[type=number]': {
     MozAppearance: 'textfield',
@@ -37,7 +45,7 @@ const gridStyle = {
     }
   },
   '& .MuiDataGrid-menuIcon': {
-    display: 'none',
+    display: 'none'
   },
   '& .MuiCheckbox-root': {
     width: '18px',
@@ -51,8 +59,21 @@ const gridStyle = {
     padding: '0px'
   },
 
-  '& .css-qzaw2-MuiTablePagination-root': {
+  '& .MuiTablePagination-root': {
     overflow: 'hidden'
+  },
+  '& .MuiDataGrid-footerContainer': {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    // padding: '0 16px',
+    height: '8px',
+    borderTop: '1px solid rgba(224, 224, 224, 1)',
+    backgroundColor: '#fafbfb'
+  },
+  '& .MuiDataGrid-selectedRowCount': {
+    display: 'none'
   }
 };
 
