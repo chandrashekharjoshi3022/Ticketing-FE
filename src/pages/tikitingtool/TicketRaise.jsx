@@ -48,6 +48,8 @@ import { selectUserRole, selectCurrentUser, selectIsInitialized } from '../../fe
 import TicketForm from './TicketForm';
 import ImageCell from './ImageCell';
 import { toast } from 'react-toastify';
+import API from '../../api/axios'; // your API wrapper
+
 
 export default function TicketRaise() {
   const navigate = useNavigate();

@@ -33,8 +33,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import { errorMessageStyle } from 'components/StyleComponent';
 import API from '../../api/axios'; // your API wrapper
 import { createTicket, fetchTickets } from '../../features/tickets/ticketSlice';
-import CloseIcon from '@mui/icons-material/Close';
-import CancelButton from 'components/CustomCancelButton';
+
+
 const FilePreviewDialog = ({ open, onClose, file, fileUrl }) => {
   if (!file) return null;
   const isImage = file.type && file.type.startsWith('image/');
