@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+// import axios from 'axios';
+
+import API from '../../api/axios'; // your API wrapper
 import {
   Box,
   Typography,
@@ -121,7 +123,7 @@ export default function TicketRaise() {
   useEffect(() => {
     const fetchExecutives = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/auth/executives');
+        const response = await API.get('/auth/executives');
         setExecutives(response.data);
       } catch (error) {
         console.error(error);
@@ -134,7 +136,7 @@ export default function TicketRaise() {
     const fetchPriorities = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get('http://localhost:5000/api/admin/priorities');
+        const response = await API.get('/admin/priorities');
 
         let prioritiesData = response.data;
 
@@ -166,32 +168,105 @@ export default function TicketRaise() {
     }
   }, [ticketDetails]);
 
-  useEffect(() => {
-    if (status || priority || assign) {
-      const assigneeName = executives.find((e) => e.user_id === assign)?.username || '';
+  // useEffect(() => {
+  //   if (status || priority || assign) {
+  //     const assigneeName = executives.find((e) => e.user_id === assign)?.username || '';
 
-      let autoMessage = '';
+  //     let autoMessage = '';
 
-      if (status) {
-        autoMessage += `<strong>${status}</strong> Status`;
-      }
+  //     if (status) {
+  //       autoMessage += `<strong>${status}</strong> Status`;
+  //     }
 
-      if (assigneeName) {
-        autoMessage += ` assigned to <strong>${assigneeName}</strong>`;
-      }
+  //     if (assigneeName) {
+  //       autoMessage += ` assigned to <strong>${assigneeName}</strong>`;
+  //     }
 
-      if (priority) {
-        autoMessage += ` with <strong>${priority}</strong> priority`;
-      }
+  //     if (priority) {
+  //       autoMessage += ` with <strong>${priority}</strong> priority`;
+  //     }
 
-      if (autoMessage) {
-        setReplyMessage(`<p>${autoMessage}</p>`);
-      }
-    } else if (!status && !priority && !assign) {
-      // Clear message if all fields are empty
-      setReplyMessage('');
+  //     if (autoMessage) {
+  //       setReplyMessage(`<p>${autoMessage}</p>`);
+  //     }
+  //   } else if (!status && !priority && !assign) {
+  //     // Clear message if all fields are empty
+  //     setReplyMessage('');
+  //   }
+  // }, [status, priority, assign, executives]);
+
+
+
+  const lastAutoMessageRef = React.useRef('');
+  
+    useEffect(() => {
+    const assigneeName = executives.find((e) => e.user_id === assign)?.username || '';
+  
+    let autoMessage = '';
+  
+    if (status) {
+      autoMessage += `<strong>${status}</strong> Status`;
     }
+  
+    if (assigneeName) {
+      autoMessage += (autoMessage ? ' ' : '') + `assigned to <strong>${assigneeName}</strong>`;
+    }
+  
+    if (priority) {
+      autoMessage += (autoMessage ? ' ' : '') + `with <strong>${priority}</strong> priority`;
+    }
+  
+    // wrap only if we have content
+    const newAutoHtml = autoMessage ? `<p>${autoMessage}</p>` : '';
+  
+    if (!newAutoHtml) {
+      // If there was a previous auto message appended, remove it from replyMessage.
+      if (lastAutoMessageRef.current) {
+        setReplyMessage((prev) => {
+          if (!prev) return '';
+          const idx = prev.indexOf(lastAutoMessageRef.current);
+          if (idx !== -1) {
+            const updated = prev.slice(0, idx) + prev.slice(idx + lastAutoMessageRef.current.length);
+            return updated;
+          }
+          return prev;
+        });
+        lastAutoMessageRef.current = '';
+      }
+      return;
+    }
+  
+    // If we have a new auto message
+    setReplyMessage((prev) => {
+      const prevText = prev || '';
+  
+      // if editor empty -> set to new auto
+      if (!prevText.trim()) {
+        lastAutoMessageRef.current = newAutoHtml;
+        return newAutoHtml;
+      }
+  
+      // if we never appended an auto before -> append it
+      if (!lastAutoMessageRef.current) {
+        lastAutoMessageRef.current = newAutoHtml;
+        return prevText + newAutoHtml;
+      }
+  
+      // if we appended before, try to replace only that portion
+      if (prevText.includes(lastAutoMessageRef.current)) {
+        const replaced = prevText.replace(lastAutoMessageRef.current, newAutoHtml);
+        lastAutoMessageRef.current = newAutoHtml;
+        return replaced;
+      }
+  
+      // fallback: append if not found
+      lastAutoMessageRef.current = newAutoHtml;
+      return prevText + newAutoHtml;
+    });
   }, [status, priority, assign, executives]);
+
+
+
 
   if (!isAuthInitialized) {
     return (

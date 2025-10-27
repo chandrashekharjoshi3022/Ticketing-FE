@@ -15,7 +15,7 @@ const normalizeTicket = (t, idx = 0) => ({
   updated_by: t.updated_by ?? t.updatedBy ?? t.updated ?? '',
   status: t.status ?? 'Open',
   files: t.files ?? (t.screenshot_url ? [t.screenshot_url] : []),
-  created_by: t.created_by_username ?? t.creator?.username ?? t.user?.username ?? t.created_by ?? 'Unknown',
+  created_by: t.created_by_username ?? t.creator?.username ?? t.user?.username ?? t.created_by ??  t?.client?.contact_person ?? 'Unknown',
   user_id: t.user_id ?? t.creator?.user_id ?? t.user?.user_id,
   user: t.creator
     ? {
