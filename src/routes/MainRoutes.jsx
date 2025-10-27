@@ -67,14 +67,14 @@ const MainRoutes = {
                 { path: 'mastertab', element: <MasterTab /> },
                 { path: 'master/vendor', element: <VendorsPages /> },
                 { path: 'master/users', element: <UsersPages /> },
-                 { path: 'master/WorkingHoursManagement', element: <WorkingHoursManagement /> },
+                { path: 'master/WorkingHoursManagement', element: <WorkingHoursManagement /> },
                 { path: 'master/items', element: <ItemsPages /> },
                 { path: '/category', element: <CateroryMaster /> },
                 { path: '/subcategory', element: <SubCategoryMaster /> },
                 { path: '/issuetype', element: <IssueTypeMaster /> },
                 { path: '/priority', element: <PriorityMaster /> },
                 { path: '/slamaster', element: <SLAMaster /> },
-                 { path: 'master/SystemRegistration', element: <SystemRegistration /> }
+                { path: 'master/SystemRegistration', element: <SystemRegistration /> }
               ]
             }
           ]

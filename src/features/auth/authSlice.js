@@ -3,19 +3,25 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import AuthService from './AuthService';
 
 export const login = createAsyncThunk('auth/login', async (data, thunkAPI) => {
-  try { 
-    const response = await AuthService.login(data);
-    return response;
-  } catch (err) { 
-    return thunkAPI.rejectWithValue(err.response?.data?.message || err.message); 
+  try {
+    let response;
+    try {
+      response = await AuthService.login(data);
+    } catch (error) {
+      console.error('Login failed:', error);
+    } finally {
+      return response;
+    }
+  } catch (err) {
+    return thunkAPI.rejectWithValue(err.response?.data?.message || err.message);
   }
 });
 
 export const getMe = createAsyncThunk('auth/getMe', async (_, thunkAPI) => {
-  try { 
+  try {
     const response = await AuthService.getMe();
     return response;
-  } catch (err) { 
+  } catch (err) {
     // For getMe, we don't want to show errors - just mark as initialized
     console.log('getMe failed - user not authenticated');
     return thunkAPI.rejectWithValue('Not authenticated');
@@ -31,7 +37,7 @@ const initialState = {
   isLoading: false,
   isError: false,
   message: '',
-  isInitialized: false,
+  isInitialized: false
 };
 
 const authSlice = createSlice({

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Box, Typography, Grid, Chip, Card, CardContent } from '@mui/material';
 import MainCard from 'components/MainCard';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
@@ -21,6 +21,12 @@ export default function SamplePage() {
   useEffect(() => {
     dispatch(fetchTickets());
   }, [dispatch]);
+  useEffect(() => {
+    if (!sessionStorage.getItem('pageReloaded')) {
+      sessionStorage.setItem('pageReloaded', 'true');
+      window.location.reload();
+    }
+  }, []);
 
   const totalTickets = tickets?.length || 0;
   const openTickets = tickets?.filter((t) => t.status === 'Open').length || 0;

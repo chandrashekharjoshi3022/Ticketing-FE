@@ -161,15 +161,15 @@ export default function Login({ forgot }) {
 
   useEffect(() => {
     if (user) {
-      navigate('/dashboard');
+      try {
+        dispatch(getMe());
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
+      } finally {
+        navigate('/dashboard');
+      }
     }
   }, [user, navigate]);
-
-  useEffect(() => {
-    if (user) {
-      dispatch(getMe());
-    }
-  }, [user]);
 
   const handleClickShowPassword = () => setShowPassword(!showPassword);
   const handleMouseDownPassword = (event) => event.preventDefault();
