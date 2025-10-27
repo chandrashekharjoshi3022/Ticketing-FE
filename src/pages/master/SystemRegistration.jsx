@@ -1,30 +1,8 @@
 // src/components/SystemRegistration/SystemRegistration.js
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  Card,
-  Row,
-  Col,
-  Button,
-  Form,
-  Input,
-  Switch,
-  Table,
-  Space,
-  Modal,
-  message,
-  Tag,
-  Divider,
-  Alert,
-  Spin,
-} from 'antd';
-import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  ReloadOutlined,
-  EyeOutlined,
-} from '@ant-design/icons';
+import { Card, Row, Col, Button, Form, Input, Switch, Table, Space, Modal, message, Tag, Divider, Alert, Spin } from 'antd';
+import { PlusOutlined, EditOutlined, DeleteOutlined, ReloadOutlined, EyeOutlined } from '@ant-design/icons';
 import {
   fetchSystems,
   createSystem,
@@ -33,22 +11,29 @@ import {
   setCurrentSystem,
   clearCurrentSystem,
   clearError,
-  clearSuccess,
+  clearSuccess
 } from '../../features/SystemRegistration/systemRegistrationSlice';
-
-
-
-
+import MainCard from 'components/MainCard';
+import { DataGrid } from '@mui/x-data-grid';
+import { Box, Chip, Grid, IconButton } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import gridStyle from 'utils/gridStyle';
+import * as Yup from 'yup';
+import { ErrorMessage, Field, Formik } from 'formik';
+import CustomParagraphDark from 'components/CustomParagraphDark';
+import ValidationStar from 'components/ValidationStar';
+import FieldPadding from 'components/FieldPadding';
+import { errorMessageStyle } from 'components/StyleComponent';
+const validationSchema = Yup.object({
+  system_name: Yup.string().required('Please enter system name').min(3, 'System name must be at least 3 characters'),
+  contact_email: Yup.string().email('Please enter valid email').required('Please enter contact email'),
+  description: Yup.string().required('Please enter description').min(10, 'Description must be at least 10 characters')
+});
 const SystemRegistration = () => {
   const dispatch = useDispatch();
-  const {
-    systems,
-    currentSystem,
-    loading,
-    error,
-    success,
-    formMode,
-  } = useSelector((state) => state.systemRegistration);
+  const { systems, currentSystem, loading, error, success, formMode } = useSelector((state) => state.systemRegistration);
 
   const [form] = Form.useForm();
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -67,11 +52,7 @@ const SystemRegistration = () => {
 
   useEffect(() => {
     if (success) {
-      message.success(
-        formMode === 'create'
-          ? 'System registered successfully!'
-          : 'System updated successfully!'
-      );
+      message.success(formMode === 'create' ? 'System registered successfully!' : 'System updated successfully!');
       dispatch(clearSuccess());
       handleCloseModal();
     }
@@ -87,7 +68,7 @@ const SystemRegistration = () => {
     dispatch(setCurrentSystem(system));
     form.setFieldsValue({
       system_name: system.system_name,
-      description: system.description,
+      description: system.description
     });
     setIsModalVisible(true);
   };
@@ -104,10 +85,12 @@ const SystemRegistration = () => {
       if (formMode === 'create' || !currentSystem) {
         await dispatch(createSystem(values)).unwrap();
       } else {
-        await dispatch(updateSystem({
-          systemId: currentSystem.system_id,
-          systemData: values
-        })).unwrap();
+        await dispatch(
+          updateSystem({
+            systemId: currentSystem.system_id,
+            systemData: values
+          })
+        ).unwrap();
       }
     } catch (error) {
       // Error handled by slice
@@ -125,93 +108,96 @@ const SystemRegistration = () => {
 
   const columns = [
     {
-      title: 'System Name',
-      dataIndex: 'system_name',
-      key: 'system_name',
-      render: (text, record) => (
-        <Space direction="vertical" size={0}>
-          <strong>{text}</strong>
-          <div style={{ fontSize: '12px', color: '#666' }}>
-            ID: {record.system_id}
-          </div>
-        </Space>
-      ),
+      field: 'system_name',
+      headerName: 'System Name',
+      flex: 1,
+      renderCell: (params) => (
+        <Box>
+          <strong>{params.value}</strong>
+          <div style={{ fontSize: '12px', color: '#666' }}>ID: {params.row.system_id}</div>
+        </Box>
+      )
     },
     {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-      ellipsis: true,
+      field: 'description',
+      headerName: 'Description',
+      flex: 1,
+      renderCell: (params) => (
+        <Box title={params.value} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {params.value}
+        </Box>
+      )
     },
     {
-      title: 'System User',
-      dataIndex: 'system_user',
-      key: 'system_user',
-      render: (user) => (
-        user ? (
-          <Space direction="vertical" size={0}>
-            <div>Username: <strong>{user.username}</strong></div>
-            <div>Email: {user.email}</div>
+      field: 'system_user',
+      headerName: 'System User',
+      flex: 1.2,
+      renderCell: (params) => {
+        const user = params.value;
+        return user ? (
+          <Box>
             <div>
-              <Tag color={user.is_active ? 'green' : 'red'}>
-                {user.is_active ? 'Active' : 'Inactive'}
-              </Tag>
+              Username: <strong>{user.username}</strong>
             </div>
-          </Space>
-        ) : 'N/A'
-      ),
+            <div>Email: {user.email}</div>
+            {/* <Chip label={user.is_active ? 'Active' : 'Inactive'} color={user.is_active ? 'success' : 'error'} size="small" /> */}
+          </Box>
+        ) : (
+          'N/A'
+        );
+      }
     },
     {
-      title: 'Status',
-      dataIndex: 'is_active',
-      key: 'is_active',
-      render: (is_active, record) => (
-        <Switch
-          checked={is_active}
-          onChange={(checked) => handleStatusChange(record.system_id, checked)}
-          checkedChildren="Active"
-          unCheckedChildren="Inactive"
-        />
-      ),
+      field: 'is_active',
+      headerName: 'Status',
+      width: 130,
+      renderCell: (params) => <Switch checked={params.value} onChange={(e) => handleStatusChange(params.row.system_id, e.target.checked)} />
     },
     {
-      title: 'Created By',
-      dataIndex: 'admin_creator',
-      key: 'admin_creator',
-      render: (admin) => admin?.username || 'N/A',
+      field: 'admin_creator',
+      headerName: 'Created By',
+      width: 140,
+      valueGetter: (params) => params.value?.username || 'N/A'
     },
     {
-      title: 'Created On',
-      dataIndex: 'created_on',
-      key: 'created_on',
-      render: (date) => new Date(date).toLocaleDateString(),
+      field: 'created_on',
+      headerName: 'Created On',
+      width: 130,
+      valueGetter: (params) => new Date(params.value).toLocaleDateString()
     },
     {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space size="middle">
-          <Button
-            type="link"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-            size="small"
-          >
-            Edit
-          </Button>
-          <Button
-            type="link"
-            icon={<EyeOutlined />}
-            onClick={() => handleViewDetails(record)}
-            size="small"
-          >
-            View
-          </Button>
-        </Space>
-      ),
-    },
-  ];
+      field: 'actions',
+      headerName: 'Actions',
+      width: 120,
+      renderCell: (params) => (
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <IconButton color="primary" size="small" onClick={() => handleEdit(params.row)}>
+            <EditIcon fontSize="small" />
+          </IconButton>
 
+          <IconButton color="navy" size="small" onClick={() => handleViewDetails(params.row)}>
+            <VisibilityIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      )
+    }
+    // {
+    //   field: 'actions',
+    //   headerName: 'Actions',
+    //   width: 140,
+    //   sortable: false,
+    //   renderCell: (params) => (
+    //     <>
+    //       <Button size="small" onClick={() => handleEdit(params.row)}>
+    //         <EditIcon fontSize="small" />
+    //       </Button>
+    //       <Button size="small" onClick={() => handleViewDetails(params.row)}>
+    //         <VisibilityIcon fontSize="small" />
+    //       </Button>
+    //     </>
+    //   )
+    // }
+  ];
   const handleViewDetails = (system) => {
     Modal.info({
       title: `System Details - ${system.system_name}`,
@@ -226,9 +212,7 @@ const SystemRegistration = () => {
             <Col span={12}>
               <strong>Status:</strong>
               <div>
-                <Tag color={system.is_active ? 'green' : 'red'}>
-                  {system.is_active ? 'Active' : 'Inactive'}
-                </Tag>
+                <Tag color={system.is_active ? 'green' : 'red'}>{system.is_active ? 'Active' : 'Inactive'}</Tag>
               </div>
             </Col>
             <Col span={24}>
@@ -272,7 +256,7 @@ const SystemRegistration = () => {
           </Row>
         </div>
       ),
-      onOk() { },
+      onOk() {}
     });
   };
 
@@ -282,160 +266,128 @@ const SystemRegistration = () => {
 
   return (
     <div>
-      <Card
+      <MainCard
         title="System Registration Management"
         extra={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleCreateNew}
-            loading={loading}
-          >
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateNew} loading={loading}>
             Register New System
           </Button>
         }
       >
-        <Row gutter={[16, 16]}>
-          <Col span={24}>
-            <Alert
-              message="System Registration Information"
-              description="Register external systems that can create and manage tickets. Each system gets a dedicated user account for authentication."
-              type="info"
-              showIcon
-              style={{ marginBottom: 16 }}
-            />
-          </Col>
-          <Col span={24}>
-            <Card
-              title="Registered Systems"
-              extra={
-                <Button
-                  icon={<ReloadOutlined />}
-                  onClick={() => dispatch(fetchSystems())}
-                  loading={loading}
-                >
-                  Refresh
-                </Button>
-              }
-            >
-              <Table
-                columns={columns}
-                dataSource={systems}
-                rowKey="system_id"
-                loading={loading}
-                pagination={{
-                  pageSize: 10,
-                  showSizeChanger: true,
-                  showQuickJumper: true,
-                }}
-              />
-            </Card>
-          </Col>
-        </Row>
-      </Card>
+        <Box>
+          <Alert
+            message="System Registration Information"
+            description="Register external systems that can create and manage tickets. Each system gets a dedicated user account for authentication."
+            type="info"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+            <h3>Registered Systems</h3>
+            <Button startIcon={<RefreshIcon />} onClick={() => dispatch(fetchSystems())} disabled={loading}>
+              Refresh
+            </Button>
+          </Box>
 
-      {/* Create/Edit Modal */}
-      <Modal
-        title={getModalTitle()}
-        open={isModalVisible}
-        onCancel={handleCloseModal}
-        footer={null}
-        width={600}
-        destroyOnClose
-      >
-        <Spin spinning={loading}>
-
-
-        </Spin><Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
+          <DataGrid
+            getRowHeight={() => 'auto'}
+            stickyHeader={true}
+            autoHeight={false}
+            rows={systems}
+            columns={columns}
+            getRowId={(row) => row.system_id}
+            loading={loading}
+            pageSizeOptions={[10, 20, 50]}
+            pagination
+            disableRowSelectionOnClick
+            sx={{
+              ...gridStyle,
+              height: '80vh'
+            }}
+          />
+        </Box>
+      </MainCard>
+      <Modal title={getModalTitle()} open={isModalVisible} onCancel={handleCloseModal} footer={null} width={600}>
+        <Formik
           initialValues={{
-            system_name: '',
-            description: '',
-            contact_email: ''
+            system_name: currentSystem?.system_name || '',
+            contact_email: currentSystem?.system_user?.email || '',
+            description: currentSystem?.description || ''
           }}
+          validationSchema={validationSchema}
+          enableReinitialize
+          onSubmit={(values) => handleSubmit(values)}
         >
-          <Row gutter={16}>
-            <Col span={24}>
-              <Form.Item
-                label="System Name"
-                name="system_name"
-                rules={[
-                  { required: true, message: 'Please enter system name' },
-                  { min: 3, message: 'System name must be at least 3 characters' },
-                ]}
-              >
-                <Input placeholder="Enter system name (e.g., HR-System, CRM-System)" />
-              </Form.Item>
-            </Col>
+          {({ handleSubmit, handleChange }) => (
+            <Form>
+              <Box padding={1}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <CustomParagraphDark >
+                      System Name <ValidationStar />
+                    </CustomParagraphDark>
 
-            <Col span={24}>
-              <Form.Item
-                label="Contact Email"
-                name="contact_email"
-                rules={[
-                  { required: true, message: 'Please enter contact email' },
-                  { type: 'email', message: 'Please enter a valid email' },
-                ]}
-              >
-                <Input
-                  placeholder="Enter email to send credentials (e.g., admin@external-company.com)"
-                  type="email"
-                />
-              </Form.Item>
-            </Col>
+                    <Field as={FieldPadding} name="system_name" variant="outlined" fullWidth />
+                    <ErrorMessage name="system_name" component="div" style={errorMessageStyle} />
+                  </Grid>
 
-            <Col span={24}>
-              <Form.Item
-                label="Description"
-                name="description"
-                rules={[
-                  { required: true, message: 'Please enter system description' },
-                  { min: 10, message: 'Description must be at least 10 characters' },
-                ]}
-              >
-                <Input.TextArea
-                  rows={4}
-                  placeholder="Enter system description and purpose..."
-                  showCount
-                  maxLength={500}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
+                  {/* Contact Email */}
+                  <Grid item xs={12}>
+                    <CustomParagraphDark >
+                      Contact Email <ValidationStar />
+                    </CustomParagraphDark>
 
+                    <Field as={FieldPadding} name="contact_email" variant="outlined" fullWidth />
+                    <ErrorMessage name="contact_email" component="div" style={errorMessageStyle} />
+                  </Grid>
 
-          {currentSystem?.system_user && (
-            <Alert
-              message="System User Account"
-              description={
-                <div>
-                  <p><strong>Username:</strong> {currentSystem.system_user.username}</p>
-                  <p><strong>Email:</strong> {currentSystem.system_user.email}</p>
-                  <p><strong>User ID:</strong> {currentSystem.system_user.user_id}</p>
-                  <p><em>Use these credentials for system authentication</em></p>
-                </div>
-              }
-              type="info"
-              style={{ marginBottom: 16 }}
-            />
+                  {/* Description */}
+                  <Grid item xs={12}>
+                    <CustomParagraphDark >
+                      Description <ValidationStar />
+                    </CustomParagraphDark>
+
+                    <Field as={FieldPadding} name="description" multiline rows={4} variant="outlined" fullWidth />
+                    <ErrorMessage name="description" component="div" style={errorMessageStyle} />
+                  </Grid>
+
+                  {/* Show only if system exists */}
+                  {currentSystem?.system_user && (
+                    <Grid item xs={12}>
+                      <Alert
+                        message="System User Account"
+                        description={
+                          <div>
+                            <p>
+                              <strong>Username:</strong> {currentSystem.system_user.username}
+                            </p>
+                            <p>
+                              <strong>Email:</strong> {currentSystem.system_user.email}
+                            </p>
+                            <p>
+                              <strong>User ID:</strong> {currentSystem.system_user.user_id}
+                            </p>
+                          </div>
+                        }
+                        type="info"
+                        style={{ marginBottom: 16 }}
+                      />
+                    </Grid>
+                  )}
+                </Grid>
+              </Box>
+
+              <Box display="flex" justifyContent="flex-end" gap={2}>
+                <Button onClick={handleCloseModal} disabled={loading}>
+                  Cancel
+                </Button>
+                <Button type="primary" htmlType="submit" loading={loading}>
+                  {formMode === 'create' ? 'Register System' : 'Update System'}
+                </Button>
+              </Box>
+            </Form>
           )}
-
-          <Divider />
-
-          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
-            <Space>
-              <Button onClick={handleCloseModal} disabled={loading}>
-                Cancel
-              </Button>
-              <Button type="primary" htmlType="submit" loading={loading}>
-                {formMode === 'create' ? 'Register System' : 'Update System'}
-              </Button>
-            </Space>
-          </Form.Item>
-
-        </Form>
+        </Formik>
       </Modal>
     </div>
   );

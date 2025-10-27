@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { login } from '../features/auth/authSlice';
+import { getMe, login } from '../features/auth/authSlice';
 
 // material-ui
 import {
@@ -160,8 +160,16 @@ export default function Login({ forgot }) {
   const { user, isLoading, isError, message } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (user) navigate('/dashboard');
+    if (user) {
+      navigate('/dashboard');
+    }
   }, [user, navigate]);
+
+  useEffect(() => {
+    if (user) {
+      dispatch(getMe());
+    }
+  }, [user]);
 
   const handleClickShowPassword = () => setShowPassword(!showPassword);
   const handleMouseDownPassword = (event) => event.preventDefault();
@@ -188,8 +196,12 @@ export default function Login({ forgot }) {
               password: Yup.string().max(255).required('Password is required')
             })}
             onSubmit={async (values, { setSubmitting }) => {
-              dispatch(login(values));
-              setSubmitting(false);
+              try {
+                dispatch(login(values));
+                setSubmitting(false);
+              } catch (error) {
+                toast.error('An unexpected error occurred. Please try again.');
+              }
             }}
           >
             {({ errors, handleBlur, handleChange, handleSubmit, touched, values, isSubmitting }) => (

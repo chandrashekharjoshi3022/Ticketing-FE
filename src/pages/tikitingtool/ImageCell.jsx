@@ -1,19 +1,9 @@
 // ImageCell.jsx - Fixed version
 import React, { useState } from 'react';
-import {
-  Box,
-  Tooltip,
-  IconButton,
-  Dialog,
-  DialogContent,
-  Typography,
-  Chip,
-  Button,
-  Alert,
-  Card,
-  CardContent
-} from '@mui/material';
+import { Box, Tooltip, IconButton, Dialog, DialogContent, Typography, Chip, Button, Alert, Card, CardContent } from '@mui/material';
 import { ZoomIn, Delete, PictureAsPdf, Description, InsertDriveFile } from '@mui/icons-material';
+import SubmitButton from 'components/CustomSubmitBtn';
+import CancelButton from 'components/CustomCancelButton';
 
 const getFileIcon = (mimeType) => {
   if (mimeType.startsWith('image/')) return '🖼️';
@@ -33,19 +23,19 @@ const getFileTypeIcon = (mimeType) => {
 // Fixed function to get image source
 const getImageSource = (doc) => {
   if (!doc || !doc.doc_base64) return null;
-  
+
   const raw = String(doc.doc_base64);
-  
+
   // If it's already a URL (starts with http), use it directly
   if (raw.startsWith('http://') || raw.startsWith('https://')) {
     return raw;
   }
-  
+
   // If it's a data URI, use it directly
   if (raw.startsWith('data:')) {
     return raw;
   }
-  
+
   // Otherwise, assume it's base64 and create data URI
   const mime = doc.mime_type || 'image/png'; // default to png if mime_type is missing
   return `data:${mime};base64,${raw}`;
@@ -90,7 +80,7 @@ const ImageCell = ({ images, onDelete, canDelete = false }) => {
     }
   };
 
-  const selectedImage = (selectedIndex != null) ? images[selectedIndex] : null;
+  const selectedImage = selectedIndex != null ? images[selectedIndex] : null;
   const selectedSrc = selectedImage ? getImageSource(selectedImage) : null;
   const isSelectedImage = selectedImage && selectedImage.mime_type && selectedImage.mime_type.startsWith('image/');
 
@@ -100,7 +90,7 @@ const ImageCell = ({ images, onDelete, canDelete = false }) => {
         {visibleImages.map((doc, index) => {
           const src = getImageSource(doc);
           const isImage = doc.mime_type && doc.mime_type.startsWith('image/');
-          
+
           return (
             <Tooltip key={doc.document_id ?? index} title={`${isImage ? 'View' : 'Download'} ${doc.doc_name ?? 'file'}`} arrow>
               <Box
@@ -142,12 +132,10 @@ const ImageCell = ({ images, onDelete, canDelete = false }) => {
                       backgroundColor: '#f8f9fa'
                     }}
                   >
-                    <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
-                      {getFileTypeIcon(doc.mime_type)}
-                    </CardContent>
+                    <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>{getFileTypeIcon(doc.mime_type)}</CardContent>
                   </Card>
                 )}
-                
+
                 <Box
                   className="file-overlay"
                   sx={{
@@ -162,7 +150,7 @@ const ImageCell = ({ images, onDelete, canDelete = false }) => {
                     justifyContent: 'center',
                     opacity: 0,
                     transition: 'opacity 0.2s',
-                    borderRadius: 1,
+                    borderRadius: 1
                   }}
                 >
                   {isImage ? <ZoomIn sx={{ color: 'white', fontSize: 16 }} /> : getFileTypeIcon(doc.mime_type)}
@@ -182,7 +170,7 @@ const ImageCell = ({ images, onDelete, canDelete = false }) => {
                       width: 20,
                       height: 20,
                       '&:hover': {
-                        backgroundColor: 'error.dark',
+                        backgroundColor: 'error.dark'
                       }
                     }}
                   >
@@ -225,8 +213,8 @@ const ImageCell = ({ images, onDelete, canDelete = false }) => {
                 {selectedImage.doc_name}
               </Typography>
               <Typography variant="body2" color="textSecondary" gutterBottom>
-                Type: {selectedImage.mime_type || 'unknown'} • 
-                Created: {selectedImage.created_on ? new Date(selectedImage.created_on).toLocaleString() : '-'}
+                Type: {selectedImage.mime_type || 'unknown'} • Created:{' '}
+                {selectedImage.created_on ? new Date(selectedImage.created_on).toLocaleString() : '-'}
               </Typography>
 
               {isSelectedImage ? (
@@ -262,8 +250,8 @@ const ImageCell = ({ images, onDelete, canDelete = false }) => {
 
               <Box sx={{ mt: 2, display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
                 {selectedSrc && (
-                  <Button
-                    variant="outlined"
+                  <SubmitButton
+                    variant="contained"
                     onClick={() => {
                       if (!selectedSrc) return;
                       const w = window.open();
@@ -296,11 +284,11 @@ const ImageCell = ({ images, onDelete, canDelete = false }) => {
                     disabled={!selectedSrc}
                   >
                     {isSelectedImage ? 'Open in New Tab' : 'Download File'}
-                  </Button>
+                  </SubmitButton>
                 )}
-                <Button variant="contained" onClick={handleClose}>
+                <CancelButton variant="contained" onClick={handleClose}>
                   Close
-                </Button>
+                </CancelButton>
               </Box>
 
               {images.length > 1 && (
@@ -314,7 +302,7 @@ const ImageCell = ({ images, onDelete, canDelete = false }) => {
                     Previous
                   </Button>
                   <Typography variant="body2" color="textSecondary">
-                    { (selectedIndex != null ? selectedIndex + 1 : '-') } of {images.length}
+                    {selectedIndex != null ? selectedIndex + 1 : '-'} of {images.length}
                   </Typography>
                   <Button
                     variant="outlined"

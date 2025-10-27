@@ -35,7 +35,7 @@ const MasterTab = () => {
       label: 'Priority',
       path: '/priority'
     },
-     {
+    {
       icon: <StoreIcon sx={{ color: colors.success, fontSize: 40 }} />,
       label: 'SLA Master',
       path: '/slamaster'
@@ -45,16 +45,16 @@ const MasterTab = () => {
       label: 'User',
       path: '/master/users'
     },
-        {
-      icon: <AccountCircleIcon sx={{ color: colors.primary, fontSize: 40 }} />,
-      label: 'WorkingHoursManagement',
-      path: '/master/WorkingHoursManagement'
-    },
-            {
-      icon: <AccountCircleIcon sx={{ color: colors.primary, fontSize: 40 }} />,
-      label: 'SystemRegistration',
-      path: '/master/SystemRegistration'
-    }
+    // {
+    //   icon: <AccountCircleIcon sx={{ color: colors.primary, fontSize: 40 }} />,
+    //   label: 'Working Hours Mgmt',
+    //   path: '/master/WorkingHoursManagement'
+    // },
+    // {
+    //   icon: <AccountCircleIcon sx={{ color: colors.primary, fontSize: 40 }} />,
+    //   label: 'System Registration',
+    //   path: '/master/SystemRegistration'
+    // }
   ];
 
   // boxesUppper.sort((a, b) => a.label.localeCompare(b.label));

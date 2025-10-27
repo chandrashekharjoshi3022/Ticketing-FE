@@ -40,13 +40,14 @@ import {
   clearError,
   clearSuccess
 } from '../../features/services/workingHoursSlice';
+import MainCard from 'components/MainCard';
 
 const { Option } = Select;
 
 const WorkingHoursManagement = () => {
   const dispatch = useDispatch();
-  const { items, loading, error, success } = useSelector(state => state.workingHours);
-  
+  const { items, loading, error, success } = useSelector((state) => state.workingHours);
+
   // State for modal and form
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -111,7 +112,7 @@ const WorkingHoursManagement = () => {
 
       // Convert bitmask to array of selected days
       const days = [];
-      daysOptions.forEach(day => {
+      daysOptions.forEach((day) => {
         if (editingItem.working_days & day.value) {
           days.push(day.value);
         }
@@ -181,10 +182,12 @@ const WorkingHoursManagement = () => {
       };
 
       if (editingItem) {
-        await dispatch(updateWorkingHours({
-          id: editingItem.working_hours_id,
-          data: workingHoursData
-        })).unwrap();
+        await dispatch(
+          updateWorkingHours({
+            id: editingItem.working_hours_id,
+            data: workingHoursData
+          })
+        ).unwrap();
         message.success('Working hours updated successfully');
       } else {
         await dispatch(createWorkingHours(workingHoursData)).unwrap();
@@ -200,19 +203,29 @@ const WorkingHoursManagement = () => {
   // Helper functions for display
   const getDaysText = (workingDays) => {
     const daysMap = {
-      1: 'Sun', 2: 'Mon', 4: 'Tue', 8: 'Wed', 16: 'Thu', 32: 'Fri', 64: 'Sat'
+      1: 'Sun',
+      2: 'Mon',
+      4: 'Tue',
+      8: 'Wed',
+      16: 'Thu',
+      32: 'Fri',
+      64: 'Sat'
     };
-    
+
     const selectedDays = Object.keys(daysMap)
-      .filter(bit => (workingDays & parseInt(bit)) !== 0)
-      .map(bit => daysMap[bit]);
-    
+      .filter((bit) => (workingDays & parseInt(bit)) !== 0)
+      .map((bit) => daysMap[bit]);
+
     return selectedDays.join(', ');
   };
 
   const getStatusTag = (record) => {
     if (record.is_default) {
-      return <Tag color="green" icon={<CheckCircleOutlined />}>Default</Tag>;
+      return (
+        <Tag color="green" icon={<CheckCircleOutlined />}>
+          Default
+        </Tag>
+      );
     }
     if (record.is_active) {
       return <Tag color="blue">Active</Tag>;
@@ -243,7 +256,9 @@ const WorkingHoursManagement = () => {
       title: 'Working Hours',
       key: 'hours',
       render: (_, record) => (
-        <span>{record.start_time} - {record.end_time}</span>
+        <span>
+          {record.start_time} - {record.end_time}
+        </span>
       )
     },
     {
@@ -256,11 +271,7 @@ const WorkingHoursManagement = () => {
       dataIndex: 'is_default',
       key: 'is_default',
       render: (isDefault, record) => (
-        <Switch
-          checked={isDefault}
-          onChange={() => !isDefault && handleSetDefault(record.working_hours_id)}
-          disabled={isDefault}
-        />
+        <Switch checked={isDefault} onChange={() => !isDefault && handleSetDefault(record.working_hours_id)} disabled={isDefault} />
       )
     },
     {
@@ -269,11 +280,7 @@ const WorkingHoursManagement = () => {
       render: (_, record) => (
         <Space size="middle">
           <Tooltip title="Edit">
-            <Button
-              type="link"
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}
-            />
+            <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
           </Tooltip>
           {!record.is_default && (
             <Popconfirm
@@ -297,7 +304,7 @@ const WorkingHoursManagement = () => {
   return (
     <div>
       {/* Main List Card */}
-      <Card
+      <MainCard
         title={
           <Space>
             <ClockCircleOutlined />
@@ -305,11 +312,7 @@ const WorkingHoursManagement = () => {
           </Space>
         }
         extra={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleCreate}
-          >
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
             Add Working Hours
           </Button>
         }
@@ -319,159 +322,122 @@ const WorkingHoursManagement = () => {
           dataSource={items}
           rowKey="working_hours_id"
           loading={loading}
-          pagination={{ 
+          pagination={{
             pageSize: 10,
             showSizeChanger: true,
             showQuickJumper: true,
-            showTotal: (total, range) => 
-              `${range[0]}-${range[1]} of ${total} items`
+            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
           }}
         />
-      </Card>
 
-      {/* Create/Edit Modal */}
-      <Modal
-        title={editingItem ? 'Edit Working Hours' : 'Add Working Hours'}
-        open={isModalVisible}
-        onCancel={handleModalClose}
-        footer={null}
-        width={600}
-        destroyOnClose
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={onFormFinish}
-          initialValues={{
-            timezone: 'UTC',
-            is_default: false,
-            is_active: true
-          }}
+        {/* Create/Edit Modal */}
+        <Modal
+          title={editingItem ? 'Edit Working Hours' : 'Add Working Hours'}
+          open={isModalVisible}
+          onCancel={handleModalClose}
+          footer={null}
+          width={600}
+          destroyOnClose
         >
-          <Form.Item
-            label="Name"
-            name="name"
-            rules={[{ required: true, message: 'Please enter a name for these working hours' }]}
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={onFormFinish}
+            initialValues={{
+              timezone: 'UTC',
+              is_default: false,
+              is_active: true
+            }}
           >
-            <Input 
-              placeholder="e.g., Standard Business Hours, 24/7 Support, etc." 
-              maxLength={150}
-            />
-          </Form.Item>
+            <Form.Item label="Name" name="name" rules={[{ required: true, message: 'Please enter a name for these working hours' }]}>
+              <Input placeholder="e.g., Standard Business Hours, 24/7 Support, etc." maxLength={150} />
+            </Form.Item>
 
-          <Form.Item
-            label="Timezone"
-            name="timezone"
-            rules={[{ required: true, message: 'Please select a timezone' }]}
-          >
-            <Select placeholder="Select timezone" showSearch>
-              {timezones.map(tz => (
-                <Option key={tz} value={tz}>{tz}</Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item label="Working Days" required>
-            <Checkbox.Group
-              value={selectedDays}
-              onChange={handleDayChange}
-              style={{ width: '100%' }}
-            >
-              <Row gutter={[16, 8]}>
-                {daysOptions.map(day => (
-                  <Col span={8} key={day.value}>
-                    <Checkbox value={day.value}>{day.label}</Checkbox>
-                  </Col>
+            <Form.Item label="Timezone" name="timezone" rules={[{ required: true, message: 'Please select a timezone' }]}>
+              <Select placeholder="Select timezone" showSearch>
+                {timezones.map((tz) => (
+                  <Option key={tz} value={tz}>
+                    {tz}
+                  </Option>
                 ))}
-              </Row>
-            </Checkbox.Group>
-            {selectedDays.length === 0 && (
-              <Alert
-                message="Please select at least one working day"
-                type="error"
-                showIcon
-                style={{ marginTop: 8 }}
-              />
-            )}
-          </Form.Item>
+              </Select>
+            </Form.Item>
 
-          <Divider>Working Hours</Divider>
+            <Form.Item label="Working Days" required>
+              <Checkbox.Group value={selectedDays} onChange={handleDayChange} style={{ width: '100%' }}>
+                <Row gutter={[16, 8]}>
+                  {daysOptions.map((day) => (
+                    <Col span={8} key={day.value}>
+                      <Checkbox value={day.value}>{day.label}</Checkbox>
+                    </Col>
+                  ))}
+                </Row>
+              </Checkbox.Group>
+              {selectedDays.length === 0 && (
+                <Alert message="Please select at least one working day" type="error" showIcon style={{ marginTop: 8 }} />
+              )}
+            </Form.Item>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                label="Start Time"
-                name="start_time"
-                rules={[{ required: true, message: 'Please select start time' }]}
-              >
-                <TimePicker
-                  format="HH:mm"
-                  style={{ width: '100%' }}
-                  placeholder="Start time"
-                  minuteStep={15}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                label="End Time"
-                name="end_time"
-                rules={[{ 
-                  required: true, 
-                  message: 'Please select end time' 
-                }]}
-              >
-                <TimePicker
-                  format="HH:mm"
-                  style={{ width: '100%' }}
-                  placeholder="End time"
-                  minuteStep={15}
-                />
-              </Form.Item>
-            </Col>
-          </Row>
+            <Divider>Working Hours</Divider>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                label="Set as Default"
-                name="is_default"
-                valuePropName="checked"
-                tooltip="Setting this as default will automatically use it for new SLAs"
-              >
-                <Switch />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                label="Active"
-                name="is_active"
-                valuePropName="checked"
-                tooltip="Inactive working hours cannot be assigned to new SLAs"
-              >
-                <Switch />
-              </Form.Item>
-            </Col>
-          </Row>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item label="Start Time" name="start_time" rules={[{ required: true, message: 'Please select start time' }]}>
+                  <TimePicker format="HH:mm" style={{ width: '100%' }} placeholder="Start time" minuteStep={15} />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="End Time"
+                  name="end_time"
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Please select end time'
+                    }
+                  ]}
+                >
+                  <TimePicker format="HH:mm" style={{ width: '100%' }} placeholder="End time" minuteStep={15} />
+                </Form.Item>
+              </Col>
+            </Row>
 
-          <Form.Item>
-            <Space style={{ float: 'right' }}>
-              <Button onClick={handleModalClose} disabled={loading}>
-                <CloseOutlined /> Cancel
-              </Button>
-              <Button
-                type="primary"
-                htmlType="submit"
-                loading={loading}
-                icon={<SaveOutlined />}
-                disabled={selectedDays.length === 0}
-              >
-                {editingItem ? 'Update' : 'Create'} Working Hours
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  label="Set as Default"
+                  name="is_default"
+                  valuePropName="checked"
+                  tooltip="Setting this as default will automatically use it for new SLAs"
+                >
+                  <Switch />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="Active"
+                  name="is_active"
+                  valuePropName="checked"
+                  tooltip="Inactive working hours cannot be assigned to new SLAs"
+                >
+                  <Switch />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Form.Item>
+              <Space style={{ float: 'right' }}>
+                <Button onClick={handleModalClose} disabled={loading}>
+                  <CloseOutlined /> Cancel
+                </Button>
+                <Button type="primary" htmlType="submit" loading={loading} icon={<SaveOutlined />} disabled={selectedDays.length === 0}>
+                  {editingItem ? 'Update' : 'Create'} Working Hours
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Modal>
+      </MainCard>
     </div>
   );
 };

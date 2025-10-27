@@ -269,7 +269,9 @@ const TicketForm = ({ onCancel }) => {
 
   const handleConfirmSubmit = async () => {
     if (!submitValues) return;
-    // setIsLoading(true);
+
+    setIsLoading(true); // ✅ Disable button right away!!
+
     try {
       const { values, formikHelpers } = submitValues;
       const { resetForm, setSubmitting } = formikHelpers;
@@ -287,23 +289,20 @@ const TicketForm = ({ onCancel }) => {
       formData.append('priority_id', values.priority || '');
       formData.append('priority', selPriority ? selPriority.name : '');
 
-      if (String(values.issueType) === 'Other' || String(values.issueType).toLowerCase() === 'other') {
+      if (String(values.issueType).toLowerCase() === 'other') {
         formData.append('issueType', 'Other');
         if (values.issueName) formData.append('issueName', values.issueName);
-        formData.append('sla_id', String(1));
+        formData.append('sla_id', '1');
       } else {
         formData.append('issueType_id', values.issueType || '');
         formData.append('issueType', selIssue ? selIssue.name ?? selIssue.issue_type ?? '' : '');
-        const issueSlaId = selIssue?.sla_id ?? selIssue?.sla?.sla_id ?? '1';
-        formData.append('sla_id', issueSlaId);
+        formData.append('sla_id', selIssue?.sla_id ?? selIssue?.sla?.sla_id ?? '1');
       }
 
       formData.append('comment', values.comments || '');
       (values.files || []).forEach((f) => formData.append('files', f));
 
-      // ✅ Create ticket
       const response = await dispatch(createTicket(formData)).unwrap();
-      // Assuming response contains ticket_id
       const ticketId = response?.ticket?.ticket_id;
 
       await dispatch(fetchTickets()).unwrap();
@@ -314,18 +313,13 @@ const TicketForm = ({ onCancel }) => {
       setSuccessDialogOpen(true);
       setSubmitValues(null);
 
-      // ✅ Show success dialog with ticket number
       if (ticketId) setRaisedTicketId(ticketId);
-      setSuccessDialogOpen(true);
-
-      if (selectedFileUrl) {
-        URL.revokeObjectURL(selectedFileUrl);
-      }
+      if (selectedFileUrl) URL.revokeObjectURL(selectedFileUrl);
     } catch (err) {
       console.error('Error submitting ticket:', err);
       setErrorMessage(err?.message || 'Failed to raise ticket');
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // ✅ Re-enable after response only
     }
   };
 
