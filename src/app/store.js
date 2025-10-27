@@ -5,6 +5,11 @@ import categoryReducer from 'features/categories/categorySlice';
 import subcategoriesReducer from 'features/subcategories/subcategorySlice';
 import prioritiesReducer from 'features/priorities/prioritySlice';
 import usersReducer from 'features/users/usersSlice'; // Add this line
+import slaReducer from 'features/sla/slaSlice';
+import issueTypeReducer from 'features/issueType/issueTypeSlice';
+import workingHoursReducer from 'features/services/workingHoursSlice';
+import systemRegistrationReducer from 'features/SystemRegistration/systemRegistrationSlice';
+
 
 export const store = configureStore({
   reducer: {
@@ -13,7 +18,12 @@ export const store = configureStore({
     categories: categoryReducer,
     subcategories: subcategoriesReducer,
     priorities: prioritiesReducer,
-    users: usersReducer // Add this line
+    users: usersReducer, // Add this line
+    sla: slaReducer,
+    issueType: issueTypeReducer,
+    workingHours: workingHoursReducer,
+    systemRegistration: systemRegistrationReducer
+
 
   },
 });

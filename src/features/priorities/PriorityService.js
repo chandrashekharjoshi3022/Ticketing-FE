@@ -5,6 +5,9 @@ import API from '../../api/axios';
 const listPriorities = async () => {
   const res = await API.get('/admin/priorities');
   // backend returns { priorities: [...] } or [...]
+
+
+  console.log( res.data ,'priority service');
   return res.data;
 };
 

@@ -29,6 +29,7 @@ import { fetchCategories, createCategory, updateCategory, deleteCategory } from 
 import { useNavigate } from 'react-router';
 import { errorMessageStyle } from 'components/StyleComponent';
 import { toast } from 'react-toastify';
+import CustomParagraphLight from 'components/CustomParagraphLight';
 
 export default function SubCategoryMaster() {
   const dispatch = useDispatch();
@@ -55,8 +56,8 @@ export default function SubCategoryMaster() {
   }));
 
   const columns = [
-    { field: 'name', headerName: 'Name', width: 220 },
     { field: 'category_name', headerName: 'Category', width: 200 },
+    { field: 'name', headerName: 'Sub Category', width: 220 },
     { field: 'description', headerName: 'Description', width: 220, flex: 1 },
     { field: 'status', headerName: 'Status', width: 120 },
     {
@@ -160,11 +161,7 @@ export default function SubCategoryMaster() {
                 <Form>
                   <Grid container spacing={2} alignItems="center" sx={{ mb: 1 }}>
                     <Grid item xs={12} sm={2}>
-                      <Field as={FieldPadding} name="name" placeholder="Sub Category Name" fullWidth sx={{ width: '100%' }} />
-                      <ErrorMessage name="name" component="div" style={errorMessageStyle} />
-                    </Grid>
-
-                    <Grid item xs={12} sm={2}>
+                      <CustomParagraphLight>Category</CustomParagraphLight>
                       <Field as={SelectFieldPadding} name="category_id" fullWidth sx={{ width: '100%' }}>
                         {categories.map((c) => (
                           <MenuItem key={c.category_id ?? c.id} value={c.category_id ?? c.id}>
@@ -174,13 +171,20 @@ export default function SubCategoryMaster() {
                       </Field>
                       <ErrorMessage name="category_id" component="div" style={errorMessageStyle} />
                     </Grid>
+                    <Grid item xs={12} sm={2}>
+                      <CustomParagraphLight>Sub Category</CustomParagraphLight>
+                      <Field as={FieldPadding} name="name" placeholder="Sub Category" fullWidth sx={{ width: '100%' }} />
+                      <ErrorMessage name="name" component="div" style={errorMessageStyle} />
+                    </Grid>
 
                     <Grid item xs={12} sm={2}>
+                      <CustomParagraphLight>Description</CustomParagraphLight>
                       <Field as={FieldPadding} name="description" placeholder="Description" fullWidth sx={{ width: '100%' }} />
                       <ErrorMessage name="description" component="div" style={errorMessageStyle} />
                     </Grid>
 
                     <Grid item xs={12} sm={1}>
+                      <CustomParagraphLight>Status</CustomParagraphLight>
                       <Field as={SelectFieldPadding} name="status" fullWidth sx={{ width: '100%' }}>
                         <MenuItem value="1">Active</MenuItem>
                         <MenuItem value="0">Inactive</MenuItem>

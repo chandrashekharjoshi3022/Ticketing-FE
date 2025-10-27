@@ -38,6 +38,7 @@ import { selectCurrentUser } from 'features/auth/authSlice'; // Adjust path as n
 // assets
 import avatar1 from 'assets/images/users/avatar-6.png';
 import { Setting2, Profile, Logout } from 'iconsax-react';
+import { Button } from '@mui/material';
 
 // tab panel wrapper
 function TabPanel({ children, value, index, ...other }) {
@@ -75,24 +76,23 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     try {
       console.log('Dispatching logout action...');
-      
+
       // Dispatch the logout action
       await dispatch(logout()).unwrap();
-      
+
       console.log('Logout successful, redirecting to login...');
-      
+
       // Redirect to login page
-      navigate('/login', { 
+      navigate('/login', {
         replace: true,
         state: {
           from: ''
         }
       });
-      
+
       // Clear any local storage
       localStorage.clear();
       sessionStorage.clear();
-      
     } catch (err) {
       console.error('Logout error:', err);
       // Even if API fails, redirect to login
@@ -166,18 +166,23 @@ export default function ProfilePage() {
                           </Stack>
                         </Stack>
                       </Grid>
-                      <Grid item>
-                        <Tooltip title="Logout">
-                          <IconButton size="large" color="error" sx={{ p: 1 }} onClick={handleLogout}>
-                            <Logout variant="Bulk" />
-                          </IconButton>
-                        </Tooltip>
-                      </Grid>
+                    </Grid>
+                    <Grid item justifyContent={'center'} alignItems="center" textAlign="center">
+                      <Button
+                        variant="contained"
+                        color="error"
+                        size="small"
+                        onClick={handleLogout}
+                        startIcon={<Logout />}
+                        sx={{ textTransform: 'none', px: 2, py: 0.8 , mt: 2}}
+                      >
+                        Logout
+                      </Button>
                     </Grid>
                   </CardContent>
 
                   <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs variant="fullWidth" value={value} onChange={handleChange} aria-label="profile tabs">
+                    {/* <Tabs variant="fullWidth" value={value} onChange={handleChange} aria-label="profile tabs">
                       <Tab
                         sx={{
                           display: 'flex',
@@ -202,14 +207,14 @@ export default function ProfilePage() {
                         label="Setting"
                         {...a11yProps(1)}
                       />
-                    </Tabs>
+                    </Tabs> */}
                   </Box>
-                  <TabPanel value={value} index={0} dir={theme.direction}>
+                  {/* <TabPanel value={value} index={0} dir={theme.direction}>
                     <ProfileTab handleLogout={handleLogout} />
                   </TabPanel>
                   <TabPanel value={value} index={1} dir={theme.direction}>
                     <SettingTab />
-                  </TabPanel>
+                  </TabPanel> */}
                 </MainCard>
               </ClickAwayListener>
             </Paper>

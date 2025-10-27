@@ -1,10 +1,9 @@
-// project nav import
+// menu-items/index.js
 import samplePage from './sample-page';
 import tickitingRaiseMenu from './tickiting';
 import MasterTabMenu from './masterTab';
 
-// ==============================|| MENU ITEMS ||============================== //
-
+// Export a simple object, no hooks here
 const menuItems = {
   items: [samplePage, tickitingRaiseMenu, MasterTabMenu]
 };

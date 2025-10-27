@@ -401,7 +401,7 @@ const TicketReply = () => {
                           startIcon={<SendIcon />}
                           style={{ marginLeft: '10px', padding: '10px' }}
                         >
-                          Send Reply
+                          Submit
                         </SubmitButton>
                       </Box>
                     </Box>

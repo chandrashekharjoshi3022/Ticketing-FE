@@ -51,7 +51,21 @@ const masterForm = {
           type: 'item',
           url: '/slamaster',
           target: false
-        }
+        },
+        {
+          id: 'workinghoursmanagement',
+          title: <FormattedMessage id="Working Hours Management Master" />,
+          type: 'item',
+          url: '/workinghoursmanagement',
+          target: false
+        },
+               {
+          id: 'SystemRegistration',
+          title: <FormattedMessage id="SystemRegistration Master" />,
+          type: 'item',
+          url: '/SystemRegistration',
+          target: false
+        },
       ]
     }
   ]

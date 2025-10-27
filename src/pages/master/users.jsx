@@ -313,7 +313,8 @@ export default function UsersPages() {
             getRowHeight={() => 'auto'}
             sx={{
               ...gridStyle,
-              height: '80vh'
+              height: '80vh',
+              
             }}
             stickyHeader={true}
             rows={gridUsers}

@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { login } from '../features/auth/authSlice';
+import { getMe, login } from '../features/auth/authSlice';
 
 // material-ui
 import {
@@ -160,7 +160,15 @@ export default function Login({ forgot }) {
   const { user, isLoading, isError, message } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    if (user) navigate('/dashboard');
+    if (user) {
+      try {
+        dispatch(getMe());
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
+      } finally {
+        navigate('/dashboard');
+      }
+    }
   }, [user, navigate]);
 
   const handleClickShowPassword = () => setShowPassword(!showPassword);
@@ -188,8 +196,12 @@ export default function Login({ forgot }) {
               password: Yup.string().max(255).required('Password is required')
             })}
             onSubmit={async (values, { setSubmitting }) => {
-              dispatch(login(values));
-              setSubmitting(false);
+              try {
+                dispatch(login(values));
+                setSubmitting(false);
+              } catch (error) {
+                toast.error('An unexpected error occurred. Please try again.');
+              }
             }}
           >
             {({ errors, handleBlur, handleChange, handleSubmit, touched, values, isSubmitting }) => (
@@ -278,13 +290,13 @@ export default function Login({ forgot }) {
                   </Grid>
 
                   {/* Forgot Password Link */}
-                  <Grid item xs={12}>
+                  {/* <Grid item xs={12}>
                     <Stack direction="row" justifyContent="flex-end" alignItems="center">
                       <Link variant="body1" component={RouterLink} to={forgot || '/forgot-password'} sx={loginStyles.forgotLink}>
                         Forgot your password?
                       </Link>
                     </Stack>
-                  </Grid>
+                  </Grid> */}
 
                   {/* Login Button */}
                   <Grid item xs={12}>
@@ -304,7 +316,7 @@ export default function Login({ forgot }) {
                   </Grid>
 
                   {/* Additional Links */}
-                  <Grid item xs={12}>
+                  {/* <Grid item xs={12}>
                     <Stack direction="row" justifyContent="center" spacing={1}>
                       <Typography variant="body2" color="text.secondary">
                         Don't have an account?
@@ -313,7 +325,7 @@ export default function Login({ forgot }) {
                         Sign up
                       </Link>
                     </Stack>
-                  </Grid>
+                  </Grid> */}
                 </Grid>
               </form>
             )}

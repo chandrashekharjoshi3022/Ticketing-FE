@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Box, Typography, Grid, Chip, Card, CardContent } from '@mui/material';
 import MainCard from 'components/MainCard';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
@@ -21,10 +21,16 @@ export default function SamplePage() {
   useEffect(() => {
     dispatch(fetchTickets());
   }, [dispatch]);
+  useEffect(() => {
+    if (!sessionStorage.getItem('pageReloaded')) {
+      sessionStorage.setItem('pageReloaded', 'true');
+      window.location.reload();
+    }
+  }, []);
 
   const totalTickets = tickets?.length || 0;
   const openTickets = tickets?.filter((t) => t.status === 'Open').length || 0;
-  const pendingTickets = tickets?.filter((t) => t.status === 'In Progress').length || 0;
+  const pendingTickets = tickets?.filter((t) => t.status === 'Pending').length || 0;
   const closedTickets = tickets?.filter((t) => t.status === 'Closed').length || 0;
   const ResolvedTickets = tickets?.filter((t) => t.status === 'Resolved').length || 0;
 
@@ -52,7 +58,7 @@ export default function SamplePage() {
           </Typography>
 
           {/* ✅ User info with role */}
-          <Box display="flex" alignItems="center" gap={1} sx={{ ml: 2 }}>
+          {/* <Box display="flex" alignItems="center" gap={1} sx={{ ml: 2 }}>
             <Typography variant="body2" color="textSecondary">
               Welcome, {currentUser?.username || 'Guest'}
             </Typography>
@@ -63,7 +69,7 @@ export default function SamplePage() {
               size="small"
               variant="outlined"
             />
-          </Box>
+          </Box> */}
         </Box>
       }
     >
