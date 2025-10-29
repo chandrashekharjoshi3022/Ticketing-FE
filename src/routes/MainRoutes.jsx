@@ -21,6 +21,8 @@ import SLAMaster from 'pages/master/SLAMaster';
 import WorkingHoursManagement from 'pages/master/WorkingHoursManagement';
 import SystemRegistration from 'pages/master/SystemRegistration';
 
+import EscalationReport from 'pages/master/EscalationReport';
+
 const MaintenanceError = Loadable(lazy(() => import('pages/maintenance/error/404')));
 const AppContactUS = Loadable(lazy(() => import('pages/contact-us')));
 const Unauthorized = Loadable(lazy(() => import('pages/Unauthorized'))); // Add this
@@ -74,7 +76,8 @@ const MainRoutes = {
                 { path: '/issuetype', element: <IssueTypeMaster /> },
                 { path: '/priority', element: <PriorityMaster /> },
                 { path: '/slamaster', element: <SLAMaster /> },
-                { path: 'master/SystemRegistration', element: <SystemRegistration /> }
+                { path: 'master/SystemRegistration', element: <SystemRegistration /> },
+                { path: 'master/EscalationReport', element: <EscalationReport /> }
               ]
             }
           ]
