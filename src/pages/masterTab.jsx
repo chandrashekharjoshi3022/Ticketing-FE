@@ -50,16 +50,20 @@ const MasterTab = () => {
       label: 'EscalationReport',
       path: '/master/EscalationReport'
     },
-    // {
-    //   icon: <AccountCircleIcon sx={{ color: colors.primary, fontSize: 40 }} />,
-    //   label: 'Working Hours Mgmt',
-    //   path: '/master/WorkingHoursManagement'
-    // },
-    // {
-    //   icon: <AccountCircleIcon sx={{ color: colors.primary, fontSize: 40 }} />,
-    //   label: 'System Registration',
-    //   path: '/master/SystemRegistration'
-    // }
+    {
+      icon: <AccountCircleIcon sx={{ color: colors.primary, fontSize: 40 }} />,
+      label: 'Working Hours Mgmt',
+      path: '/master/WorkingHoursManagement'
+    },
+    {
+      icon: <AccountCircleIcon sx={{ color: colors.primary, fontSize: 40 }} />,
+      label: 'System Registration',
+      path: '/master/SystemRegistration'
+    },    {
+      icon: <AccountCircleIcon sx={{ color: colors.primary, fontSize: 40 }} />,
+      label: 'Exceptions Table',
+      path: '/master/Exceptions'
+    }
   ];
 
   // boxesUppper.sort((a, b) => a.label.localeCompare(b.label));

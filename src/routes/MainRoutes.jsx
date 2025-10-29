@@ -20,6 +20,7 @@ import PriorityMaster from 'pages/master/PriorityMaster';
 import SLAMaster from 'pages/master/SLAMaster';
 import WorkingHoursManagement from 'pages/master/WorkingHoursManagement';
 import SystemRegistration from 'pages/master/SystemRegistration';
+import Exceptions from 'pages/master/Exceptions';
 
 import EscalationReport from 'pages/master/EscalationReport';
 
@@ -77,7 +78,8 @@ const MainRoutes = {
                 { path: '/priority', element: <PriorityMaster /> },
                 { path: '/slamaster', element: <SLAMaster /> },
                 { path: 'master/SystemRegistration', element: <SystemRegistration /> },
-                { path: 'master/EscalationReport', element: <EscalationReport /> }
+                { path: 'master/EscalationReport', element: <EscalationReport /> },
+                { path: 'master/Exceptions', element: <Exceptions /> },
               ]
             }
           ]

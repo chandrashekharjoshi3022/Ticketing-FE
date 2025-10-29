@@ -72,6 +72,13 @@ const masterForm = {
           url: '/EscalationReport',
           target: false
         },
+          {
+          id: 'Exceptions',
+          title: <FormattedMessage id="Exceptions" />,
+          type: 'item',
+          url: '/Exceptions',
+          target: false
+        },
       ]
     }
   ]

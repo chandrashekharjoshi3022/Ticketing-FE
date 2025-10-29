@@ -26,6 +26,7 @@ import CustomParagraphDark from 'components/CustomParagraphDark';
 import ValidationStar from 'components/ValidationStar';
 import FieldPadding from 'components/FieldPadding';
 import { errorMessageStyle } from 'components/StyleComponent';
+import PlusButton from 'components/CustomButton';
 const validationSchema = Yup.object({
   system_name: Yup.string().required('Please enter system name').min(3, 'System name must be at least 3 characters'),
   contact_email: Yup.string().email('Please enter valid email').required('Please enter contact email'),
@@ -267,11 +268,21 @@ const SystemRegistration = () => {
   return (
     <div>
       <MainCard
-        title="System Registration Management"
-        extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateNew} loading={loading}>
-            Register New System
-          </Button>
+    
+      title={
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600 }}>
+            <Box>
+           
+                <span>System Registration Management </span>
+            
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+             
+                  <PlusButton label=" +  Register New System" onClick={handleCreateNew} loading={loading} />
+                
+             
+            </Box>
+          </Box>
         }
       >
         <Box>

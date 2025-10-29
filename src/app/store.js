@@ -9,6 +9,7 @@ import slaReducer from 'features/sla/slaSlice';
 import issueTypeReducer from 'features/issueType/issueTypeSlice';
 import workingHoursReducer from 'features/services/workingHoursSlice';
 import systemRegistrationReducer from 'features/SystemRegistration/systemRegistrationSlice';
+import exceptionsReducer from 'features/exceptions/exceptionSlice';
 
 
 export const store = configureStore({
@@ -22,7 +23,8 @@ export const store = configureStore({
     sla: slaReducer,
     issueType: issueTypeReducer,
     workingHours: workingHoursReducer,
-    systemRegistration: systemRegistrationReducer
+    systemRegistration: systemRegistrationReducer,
+    exceptions: exceptionsReducer,
 
 
   },

@@ -41,6 +41,8 @@ import {
   clearSuccess
 } from '../../features/services/workingHoursSlice';
 import MainCard from 'components/MainCard';
+import { Box, Chip, Grid, IconButton } from '@mui/material';
+import PlusButton from 'components/CustomButton';
 
 const { Option } = Select;
 
@@ -305,16 +307,16 @@ const WorkingHoursManagement = () => {
     <div>
       {/* Main List Card */}
       <MainCard
-        title={
-          <Space>
-            <ClockCircleOutlined />
-            Working Hours Management
-          </Space>
-        }
-        extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
-            Add Working Hours
-          </Button>
+              title={
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600 }}>
+     
+            <Box sx={{ display: 'flex', gap: 1 }}>
+             
+                  <PlusButton label=" +   Add Working Hours" onClick={handleCreate} loading={loading} />
+                
+             
+            </Box>
+          </Box>
         }
       >
         <Table
