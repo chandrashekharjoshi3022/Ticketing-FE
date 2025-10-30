@@ -595,6 +595,20 @@ export default function TicketRaise() {
       // renderCell: (params) => renderDateWithSLA(params, 'resolve')
       renderCell: (params) => (params?.row?.resolve_time_seconds) ?? "-"
     },
+
+      {
+    field: 'response_time_seconds3',
+    headerName: ' SLA Response Time (hours)',
+    width: 100,
+    renderCell: (params) => (Number(params?.row?.sla?.response_target_minutes) - Number(params?.row?.response_time_seconds)) ?? "-"
+  },
+    {
+    field: 'resolve_time_seconds4',
+    headerName: ' SLA Resolved Time (hours)',
+    width: 100,
+   renderCell: (params) => (Number(params?.row?.sla?.resolve_target_minutes) - Number(params?.row.resolve_time_seconds)) ?? "-"
+  },
+
     ...(isAdmin
       ? [
           {
