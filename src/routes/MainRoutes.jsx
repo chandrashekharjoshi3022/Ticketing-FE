@@ -79,7 +79,7 @@ const MainRoutes = {
                 { path: '/slamaster', element: <SLAMaster /> },
                 { path: 'master/SystemRegistration', element: <SystemRegistration /> },
                 { path: 'master/EscalationReport', element: <EscalationReport /> },
-                { path: 'master/Exceptions', element: <Exceptions /> },
+                { path: 'master/WorkingHours', element: <Exceptions /> },
               ]
             }
           ]

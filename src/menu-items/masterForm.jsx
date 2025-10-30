@@ -52,20 +52,21 @@ const masterForm = {
           url: '/slamaster',
           target: false
         },
-        {
-          id: 'workinghoursmanagement',
-          title: <FormattedMessage id="Working Hours Management Master" />,
-          type: 'item',
-          url: '/workinghoursmanagement',
-          target: false
-        },
-               {
-          id: 'SystemRegistration',
-          title: <FormattedMessage id="SystemRegistration Master" />,
-          type: 'item',
-          url: '/SystemRegistration',
-          target: false
-        },             {
+        // {
+        //   id: 'workinghoursmanagement',
+        //   title: <FormattedMessage id="Working Hours Management Master" />,
+        //   type: 'item',
+        //   url: '/workinghoursmanagement',
+        //   target: false
+        // },
+        //        {
+        //   id: 'SystemRegistration',
+        //   title: <FormattedMessage id="SystemRegistration Master" />,
+        //   type: 'item',
+        //   url: '/SystemRegistration',
+        //   target: false
+        // },       
+              {
           id: 'Escalation Report',
           title: <FormattedMessage id="Escalation Report" />,
           type: 'item',
@@ -73,10 +74,10 @@ const masterForm = {
           target: false
         },
           {
-          id: 'Exceptions',
-          title: <FormattedMessage id="Exceptions" />,
+          id: 'WorkingHours',
+          title: <FormattedMessage id="WorkingHours" />,
           type: 'item',
-          url: '/Exceptions',
+          url: '/WorkingHours',
           target: false
         },
       ]

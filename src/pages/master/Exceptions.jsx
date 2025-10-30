@@ -115,13 +115,13 @@ export default function Exceptions() {
       field: 'open_time', 
       headerName: 'Open Time', 
       width: 120,
-      renderCell: (params) => (params?.value)
+      renderCell: (params) => (params?.value) || '-'
     },
     { 
       field: 'close_time', 
       headerName: 'Close Time', 
       width: 120,
-      renderCell: (params) => (params?.value)
+      renderCell: (params) => (params?.value) || '-'
     },
     { 
       field: 'working_hour', 

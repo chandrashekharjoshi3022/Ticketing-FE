@@ -583,15 +583,17 @@ export default function TicketRaise() {
     },
     {
       field: 'response_at',
-      headerName: 'Response On',
+      headerName: 'Response Time (hours)',
       width: 200,
-      renderCell: (params) => renderDateWithSLA(params, 'response')
+      // renderCell: (params) => renderDateWithSLA(params, 'response')
+      renderCell: (params) => (params?.row?.response_time_seconds)
     },
     {
       field: 'resolved_at',
-      headerName: 'Resolved On',
+      headerName: 'Resolved Time (hours)',
       width: 200,
-      renderCell: (params) => renderDateWithSLA(params, 'resolve')
+      // renderCell: (params) => renderDateWithSLA(params, 'resolve')
+      renderCell: (params) => (params?.row?.resolve_time_seconds)
     },
     ...(isAdmin
       ? [
