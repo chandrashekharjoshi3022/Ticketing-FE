@@ -78,8 +78,8 @@ export default function SLAMaster() {
     sla_name: s.name,
     response_target_minutes: s.response_target_minutes,
     resolve_target_minutes: s.resolve_target_minutes,
-    response_time: `${s.response_target_minutes} minutes`,
-    resolve_time: `${s.resolve_target_minutes} minutes`,
+    response_time: `${s.response_target_minutes} hours`,
+    resolve_time: `${s.resolve_target_minutes} hours`,
     created_on: new Date(s.created_on).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
