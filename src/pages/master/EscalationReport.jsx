@@ -245,7 +245,7 @@ const EscalationReport = () => {
           >
             <VisibilityIcon />
           </IconButton>
-          <IconButton 
+          {/* <IconButton 
             color="primary" 
             size="small" 
             onClick={() => viewEscalationDetails(params.row)}
@@ -260,7 +260,7 @@ const EscalationReport = () => {
             title="Delete"
           >
             <DeleteIcon />
-          </IconButton>
+          </IconButton> */}
         </Box>
       )
     }
@@ -289,7 +289,7 @@ const EscalationReport = () => {
           <Box sx={{ height: '85dvh', overflowY: 'scroll' }}>
             {/* Search and Filter Section - You can add filters here later */}
             <Box p={1}>
-              <Box display="flex" gap={2} alignItems="center" mb={2}>
+              {/* <Box display="flex" gap={2} alignItems="center" mb={2}>
                 <FieldPadding 
                   placeholder="Search escalations..." 
                   size="small" 
@@ -301,14 +301,14 @@ const EscalationReport = () => {
                 <CustomRefreshBtn onClick={fetchEscalationReports}>
                   Refresh
                 </CustomRefreshBtn>
-              </Box>
+              </Box> */}
               
-              {/* Summary Stats */}
-              <Box mb={2}>
+           
+              {/* <Box mb={2}>
                 <Typography variant="h6" color="textSecondary">
                   Total Escalations: {escalations.length}
                 </Typography>
-              </Box>
+              </Box> */}
             </Box>
 
             <DataGrid
@@ -462,6 +462,7 @@ const EscalationReport = () => {
                     <Box sx={{ mb: 3, p: 2, border: '1px solid', borderColor: 'grey.300', borderRadius: 1 }}>
                       <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
                         {selectedEscalation.message}
+                           <div dangerouslySetInnerHTML={{ __html: selectedEscalation.message }} />
                       </Typography>
                     </Box>
 

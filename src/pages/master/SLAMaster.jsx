@@ -188,8 +188,8 @@ export default function SLAMaster() {
     user_id: editing ? editing.user_id : '',
     issue_type_id: editing ? editing.issue_type_id : '',
     name: editing ? editing.sla_name : '',
-    response_target_minutes: editing ? editing.response_target_minutes : 60,
-    resolve_target_minutes: editing ? editing.resolve_target_minutes : 1440,
+    response_target_minutes: editing ? editing.response_target_minutes : 2,
+    resolve_target_minutes: editing ? editing.resolve_target_minutes : 8,
     status: editing ? (editing.status === 'Active' ? '1' : '0') : '1'
   };
 
@@ -341,7 +341,7 @@ export default function SLAMaster() {
 
                     <Grid item xs={12} sm={1.5}>
                       <CustomParagraphLight>
-                        Response Time (min)<ValidationStar>*</ValidationStar>
+                        Response Time (hours)<ValidationStar>*</ValidationStar>
                       </CustomParagraphLight>
                       <Field 
                         as={FieldPadding} 
@@ -356,7 +356,7 @@ export default function SLAMaster() {
 
                     <Grid item xs={12} sm={1.5}>
                       <CustomParagraphLight>
-                        Resolve Time (min)<ValidationStar>*</ValidationStar>
+                        Resolve Time (hours)<ValidationStar>*</ValidationStar>
                       </CustomParagraphLight>
                       <Field 
                         as={FieldPadding} 
